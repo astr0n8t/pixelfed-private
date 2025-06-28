@@ -47,7 +47,7 @@ class UserInviteController extends Controller
 	public function show(Request $request)
 	{
         $this->authPreflight($request);
-        $invites = Auth::user()->invites()->paginate(10);
+        $invites = UserInvite::whereUserId(Auth::id())->paginate(10);
         if ($request->wantsJson()) {
             return response()->json($invites);
         }
