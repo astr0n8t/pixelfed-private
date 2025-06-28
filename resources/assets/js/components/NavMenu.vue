@@ -68,7 +68,7 @@
 										<span class="fas fa-cog pr-2 text-lighter"></span>
 										Settings
 									</a>
-									<a class="dropdown-item font-weight-bold" href="/settings/invites">
+									<a class="dropdown-item font-weight-bold" href="/i/invites">
 										<span class="fas fa-user-plus pr-2 text-lighter"></span>
 										Invites
 									</a>

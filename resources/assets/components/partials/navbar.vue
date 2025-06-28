@@ -244,10 +244,14 @@
                                         </li>
 
                                         <li class="nav-item">
-                                            <a class="nav-link" target="_parent" href="/settings/invites">
-                                                <span class="icon text-lighter"><i class="far fa-user-plus"></i></span>
-                                                {{ $t('navmenu.invites') }}
-                                            </a>
+                                            <router-link class="nav-link d-flex justify-content-between align-items-center" to="/i/invites">
+                                                <span>
+                                                    <span class="icon text-lighter">
+                                                        <i class="far fa-user-plus"></i>
+                                                    </span>
+                                                    {{ $t('navmenu.invites') }}
+                                                </span>
+                                            </router-link>
                                         </li>
 
                                         <li v-if="user.is_admin" class="nav-item">

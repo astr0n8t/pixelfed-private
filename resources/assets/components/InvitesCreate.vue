@@ -16,8 +16,8 @@ export default {
   },
   methods: {
     submitForm() {
-      axios.post('/settings/invites/create', this.form)
-        .then(() => this.$router.push('/settings/invites'))
+      axios.post('/i/invites/create', this.form)
+        .then(() => this.$router.push('/i/invites'))
         .catch(error => console.error(error));
     }
   }

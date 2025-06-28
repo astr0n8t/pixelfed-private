@@ -41,7 +41,7 @@ class UserInviteController extends Controller
 	public function create(Request $request)
 	{
         $this->authPreflight($request);
-		return view('settings.invites.create');
+		return view('invites.create');
 	}
 
 	public function show(Request $request)
@@ -51,7 +51,7 @@ class UserInviteController extends Controller
         if ($request->wantsJson()) {
             return response()->json($invites);
         }
-        return view('settings.invites.home', compact('invites'));
+        return view('invites.home', compact('invites'));
 	}
 
 	public function store(Request $request)
@@ -77,7 +77,7 @@ class UserInviteController extends Controller
             return response()->json(['success' => true, 'invite' => $invite]);
         }
 
-		return redirect(route('settings.invites'));
+		return redirect(route('invites.home'));
 	}
 
     public function delete(Request $request)
@@ -94,7 +94,7 @@ class UserInviteController extends Controller
 
         $invite->delete();
 
-		return redirect(route('settings.invites'));
+		return redirect(route('invites.home'));
     }
 
 	public function index(Request $request, $code)

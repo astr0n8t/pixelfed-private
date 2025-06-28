@@ -9,7 +9,7 @@
       </tr>
     </table>
     <p v-else>No invites found.</p>
-    <router-link to="/settings/invites/create">Invite Someone</router-link>
+    <router-link to="/i/invites/create">Invite Someone</router-link>
   </div>
 </template>
 <script>
@@ -23,12 +23,12 @@ export default {
   },
   methods: {
     fetchInvites() {
-      axios.get('/settings/invites', { headers: { 'Accept': 'application/json' } })
+      axios.get('/i/invites', { headers: { 'Accept': 'application/json' } })
         .then(response => { this.invites = response.data; })
         .catch(error => console.error(error));
     },
     deleteInvite(id) {
-      axios.post('/settings/invites/delete', { id })
+      axios.post('/i/invites/delete', { id })
         .then(() => this.fetchInvites())
         .catch(error => console.error(error));
     }
