@@ -259,6 +259,10 @@ return [
 
 	'oauth_enabled' => env('OAUTH_ENABLED', true),
 
+	'nsfw' => [
+		'enabled' => env('PF_NSFW_ENABLE', false),
+    ],
+
 	'bouncer' => [
 		'enabled' => env('PF_BOUNCER_ENABLED', false),
 

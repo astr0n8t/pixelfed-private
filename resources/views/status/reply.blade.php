@@ -200,7 +200,7 @@
     $('.reactions').hide();
     $('.more-comments').hide();
     $('.card-footer').hide();
-    new Vue({ 
+    new Vue({
       el: '#content'
     });
   });
