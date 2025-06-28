@@ -1,4 +1,12 @@
-@extends('@extends('settings.template')
-@section('section')
-    <invites-home></invites-home>
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+<invites-home></invites-home>
+</div>
 @endsection
+
+@push('scripts')
+<script type="text/javascript" src="{{ mix('js/invites_home.js') }}"></script>
+<script type="text/javascript">App.boot();</script>
+@endpush
