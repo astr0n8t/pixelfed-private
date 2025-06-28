@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="invites-create">
     <h2>My Invites</h2>
     <table v-if="invites.length">
       <tr v-for="invite in invites" :key="invite.id">

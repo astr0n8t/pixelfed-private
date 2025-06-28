@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="invites-create">
     <h2>Create Invite</h2>
     <form @submit.prevent="submitForm">
       <input v-model="form.email" type="email" required placeholder="Email">
