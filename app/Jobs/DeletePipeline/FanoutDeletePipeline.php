@@ -44,7 +44,7 @@ class FanoutDeletePipeline implements ShouldQueue
             'timeout'  => config('federation.activitypub.delivery.timeout')
         ]);
 
-        $audience = Cache::remember('pf:ap:known_instances', now()->addHours(6), function() {
+        $audience = Cache::remember('pf:ap:known_instances', now()->addMinutes(60), function() {
         	return Profile::whereNotNull('sharedInbox')->groupBy('sharedInbox')->pluck('sharedInbox')->toArray();
         });
 

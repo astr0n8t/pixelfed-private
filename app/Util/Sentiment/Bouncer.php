@@ -33,7 +33,7 @@ class Bouncer {
 			return;
 		}
 
-		$exemption = Cache::remember($exemptionKey, $exemptionTtl, function() use($status) {
+		$exemption = Cache::remember($exemptionKey, now()->addMinutes(60), function() use($status) {
 			$uid = $status->profile->user_id;
 			$ids = AccountInterstitial::whereUserId($uid)
 				->whereType('post.autospam')
@@ -69,7 +69,7 @@ class Bouncer {
 		$recentKey = 'pf:bouncer_v0:recent_by_pid:' . $status->profile_id;
 		$recentTtl = now()->addHours(28);
 
-		$recent = Cache::remember($recentKey, $recentTtl, function() use($status) {
+		$recent = Cache::remember($recentKey, now()->addMinutes(60), function() use($status) {
 			return $status
 				->profile
 				->created_at

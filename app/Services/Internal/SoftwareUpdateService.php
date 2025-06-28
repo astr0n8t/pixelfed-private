@@ -20,7 +20,7 @@ class SoftwareUpdateService
     {
         $curVersion = config('pixelfed.version');
 
-        $version = Cache::remember(self::cacheKey(), 1800, function() {
+        $version = Cache::remember(self::cacheKey(), now()->addMinutes(60), function() {
             return self::fetchLatest();
         });
 

@@ -62,7 +62,7 @@ class GroupsLikeService
     public static function liked($profileId, $statusId)
     {
         $key = self::CACHE_KEY . $profileId . ':' . $statusId;
-        return Cache::remember($key, 900, function() use($profileId, $statusId) {
+        return Cache::remember($key, now()->addMinutes(60), function() use($profileId, $statusId) {
             return GroupLike::whereProfileId($profileId)->whereStatusId($statusId)->exists();
         });
     }

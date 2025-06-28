@@ -58,7 +58,7 @@ class PixelfedDirectoryController extends Controller
         if (isset($res['banner_image']) && ! empty($res['banner_image'])) {
             $res['banner_image'] = url(URL::temporarySignedRoute(
                 'storage.file',
-                now()->addMinutes(30),
+                now()->addMinutes(60),
                 ['file' => $res['banner_image'], 'user_id' => auth()->id()]
             ));
         }
@@ -147,7 +147,7 @@ class PixelfedDirectoryController extends Controller
         ];
 
         $statusesCount = InstanceService::totalLocalStatuses();
-        $usersCount = Cache::remember('api:nodeinfo:users', 43200, function () {
+        $usersCount = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
             return UUser::whereNull('status')->count(); # Only get null status - these are the "active" users
         });
         $res['stats'] = [

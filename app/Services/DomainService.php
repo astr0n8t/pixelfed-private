@@ -26,7 +26,7 @@ class DomainService
             return false;
         }
 
-        return Cache::remember(self::CACHE_KEY.'valid-dns:'.$domain, 1800, function () use ($domain) {
+        return Cache::remember(self::CACHE_KEY.'valid-dns:'.$domain, now()->addMinutes(60), function () use ($domain) {
             return count(dns_get_record($domain, DNS_A | DNS_AAAA)) > 0;
         });
     }

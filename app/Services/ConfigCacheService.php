@@ -28,7 +28,7 @@ class ConfigCacheService
         }
 
         try {
-            return Cache::remember($cacheKey, $ttl, function () use ($key) {
+            return Cache::remember($cacheKey, now()->addMinutes(60), function () use ($key) {
                 $allowed = [
                     'app.name',
                     'app.short_description',

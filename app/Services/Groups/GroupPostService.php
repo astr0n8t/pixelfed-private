@@ -21,7 +21,7 @@ class GroupPostService
 
     public static function get($gid, $pid)
     {
-        return Cache::remember(self::key($gid, $pid), 604800, function() use($gid, $pid) {
+        return Cache::remember(self::key($gid, $pid), now()->addMinutes(60), function() use($gid, $pid) {
             $gp = GroupPost::whereGroupId($gid)->find($pid);
 
             if(!$gp) {

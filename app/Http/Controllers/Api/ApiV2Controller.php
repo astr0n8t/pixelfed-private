@@ -36,7 +36,7 @@ class ApiV2Controller extends Controller
 
     public function instance(Request $request)
     {
-        $contact = Cache::remember('api:v1:instance-data:contact', 604800, function () {
+        $contact = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
             if (config_cache('instance.admin.pid')) {
                 return AccountService::getMastodon(config_cache('instance.admin.pid'), true);
             }
@@ -47,7 +47,7 @@ class ApiV2Controller extends Controller
                 null;
         });
 
-        $rules = Cache::remember('api:v1:instance-data:rules', 604800, function () {
+        $rules = Cache::remember('api:v1:instance-data:rules', now()->addMinutes(60), function () {
             return config_cache('app.rules') ?
                 collect(json_decode(config_cache('app.rules'), true))
                     ->map(function ($rule, $key) {
@@ -61,7 +61,7 @@ class ApiV2Controller extends Controller
                     ->toArray() : [];
         });
 
-        $res = Cache::remember('api:v2:instance-data-response-v2', 1800, function () use ($contact, $rules) {
+        $res = Cache::remember('api:v2:instance-data-response-v2', now()->addMinutes(60), function () use ($contact, $rules) {
             return [
                 'domain' => config('pixelfed.domain.app'),
                 'title' => config_cache('app.name'),
@@ -229,7 +229,7 @@ class ApiV2Controller extends Controller
 
         $limitKey = 'compose:rate-limit:media-upload:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1250;

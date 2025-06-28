@@ -27,7 +27,7 @@ class GroupAccountService
         }
 
         $key = self::CACHE_KEY . $gid . ':' . $pid;
-        $account['group'] = Cache::remember($key, 3600, function() use($gid, $pid) {
+        $account['group'] = Cache::remember($key, now()->addMinutes(60), function() use($gid, $pid) {
             $membership = GroupMember::whereGroupId($gid)->whereProfileId($pid)->first();
             if(!$membership) {
                 return [];

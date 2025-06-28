@@ -1678,8 +1678,8 @@ class ApiV1Controller extends Controller
      */
     public function instance(Request $request)
     {
-        $res = Cache::remember('api:v1:instance-data-response-v1', 1800, function () {
-            $contact = Cache::remember('api:v1:instance-data:contact', 604800, function () {
+        $res = Cache::remember('api:v1:instance-data-response-v1', now()->addMinutes(60), function () {
+            $contact = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
                 if (config_cache('instance.admin.pid')) {
                     return AccountService::getMastodon(config_cache('instance.admin.pid'), true);
                 }
@@ -1690,7 +1690,7 @@ class ApiV1Controller extends Controller
                     null;
             });
 
-            $stats = Cache::remember('api:v1:instance-data:stats:v0', 43200, function () {
+            $stats = Cache::remember('api:v1:instance-data:stats:v0', now()->addMinutes(60), function () {
                 return [
                     'user_count' => (int) User::whereNull('status')->count(), # Only get null status - these are the "active" users,
                     'status_count' => (int) StatusService::totalLocalStatuses(),
@@ -1698,7 +1698,7 @@ class ApiV1Controller extends Controller
                 ];
             });
 
-            $rules = Cache::remember('api:v1:instance-data:rules', 604800, function () {
+            $rules = Cache::remember('api:v1:instance-data:rules', now()->addMinutes(60), function () {
                 return config_cache('app.rules') ?
                     collect(json_decode(config_cache('app.rules'), true))
                         ->map(function ($rule, $key) {
@@ -1828,7 +1828,7 @@ class ApiV1Controller extends Controller
 
         $limitKey = 'compose:rate-limit:media-upload:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1250;
@@ -2053,7 +2053,7 @@ class ApiV1Controller extends Controller
 
         $limitKey = 'compose:rate-limit:media-upload:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1250;
@@ -2579,7 +2579,7 @@ class ApiV1Controller extends Controller
             return $this->json($res->toArray(), 200, $headers);
         }
 
-        $following = Cache::remember('profile:following:'.$pid, 1209600, function () use ($pid) {
+        $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
             $following = Follower::whereProfileId($pid)->pluck('following_id');
 
             return $following->push($pid)->toArray();
@@ -2763,7 +2763,7 @@ class ApiV1Controller extends Controller
                 ->toArray();
         } elseif ($remote && ! $local) {
             if (config('instance.timeline.network.cached')) {
-                Cache::remember('api:v1:timelines:network:cache_check', 10368000, function () {
+                Cache::remember('api:v1:timelines:network:cache_check', now()->addMinutes(60), function () {
                     if (NetworkTimelineService::count() == 0) {
                         NetworkTimelineService::warmCache(true, config('instance.timeline.network.cache_dropoff'));
                     }
@@ -2810,7 +2810,7 @@ class ApiV1Controller extends Controller
             }
         } else {
             if (config('instance.timeline.local.cached')) {
-                Cache::remember('api:v1:timelines:public:cache_check', 10368000, function () {
+                Cache::remember('api:v1:timelines:public:cache_check', now()->addMinutes(60), function () {
                     if (PublicTimelineService::count() == 0) {
                         PublicTimelineService::warmCache(true, 400);
                     }
@@ -3518,7 +3518,7 @@ class ApiV1Controller extends Controller
 
         $limitKey = 'compose:rate-limit:store:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $minId = SnowflakeService::byDate(now()->subDays(1));
             $dailyLimit = Status::whereProfileId($user->profile_id)
                 ->where('id', '>', $minId)
@@ -4146,7 +4146,7 @@ class ApiV1Controller extends Controller
         }
 
         if ($sortBy == 'all' && ! $request->has('cursor')) {
-            $ids = Cache::remember('status:replies:all:'.$id, 3600, function () use ($id) {
+            $ids = Cache::remember('status:replies:all:'.$id, now()->addMinutes(60), function () use ($id) {
                 return DB::table('statuses')
                     ->where('in_reply_to_id', $id)
                     ->orderBy('id')
@@ -4237,7 +4237,7 @@ class ApiV1Controller extends Controller
 
         $pid = $request->user()->profile_id;
 
-        $ids = Cache::remember('api:v1.1:discover:accounts:popular', 14400, function () {
+        $ids = Cache::remember('api:v1.1:discover:accounts:popular', now()->addMinutes(60), function () {
             return DB::table('profiles')
                 ->where('is_private', false)
                 ->whereNull('status')
@@ -4384,7 +4384,7 @@ class ApiV1Controller extends Controller
         }
 
         return $this->json(
-            Cache::remember(InstanceService::CACHE_KEY_API_PEERS_LIST, now()->addHours(24), function () {
+            Cache::remember(InstanceService::CACHE_KEY_API_PEERS_LIST, now()->addMinutes(60), function () {
                 return Instance::whereNotNull('nodeinfo_last_fetched')
                     ->whereBanned(false)
                     ->where('nodeinfo_last_fetched', '>', now()->subDays(8))

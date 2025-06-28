@@ -14,7 +14,7 @@ class GroupHashtagService
 
     public static function get($id)
     {
-        return Cache::remember(self::CACHE_KEY . $id, 3600, function() use($id) {
+        return Cache::remember(self::CACHE_KEY . $id, now()->addMinutes(60), function() use($id) {
             $tag = GroupHashtag::find($id);
             if(!$tag) {
                 return [];

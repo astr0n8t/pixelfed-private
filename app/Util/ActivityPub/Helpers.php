@@ -267,7 +267,7 @@ class Helpers
         $hash = hash('sha256', $host);
         $key = self::URL_CACHE_PREFIX."valid-dns:sha256-{$hash}";
 
-        return Cache::remember($key, self::CACHE_TTL, function () use ($host) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($host) {
             return DomainService::hasValidDns($host);
         });
     }
@@ -335,7 +335,7 @@ class Helpers
         $key = "helpers:url:fetcher:sha256-{$hash}";
         $ttl = now()->addMinutes(15);
 
-        return Cache::remember($key, $ttl, function () use ($url) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($url) {
             $res = ActivityPubFetchService::get($url);
             if (! $res || empty($res)) {
                 return false;

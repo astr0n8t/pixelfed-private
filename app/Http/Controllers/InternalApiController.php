@@ -346,7 +346,7 @@ class InternalApiController extends Controller
                 return response()->json([]);
             }
             $pid = Auth::user()->profile->id;
-            $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(1440), function () use ($pid) {
+            $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
                 $following = Follower::whereProfileId($pid)->pluck('following_id');
 
                 return $following->push($pid)->toArray();
@@ -355,7 +355,7 @@ class InternalApiController extends Controller
         } else {
             if (Auth::check()) {
                 $pid = Auth::user()->profile->id;
-                $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(1440), function () use ($pid) {
+                $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
                     $following = Follower::whereProfileId($pid)->pluck('following_id');
 
                     return $following->push($pid)->toArray();

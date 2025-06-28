@@ -27,7 +27,7 @@ class GroupService
 	{
 		$res = Cache::remember(
 			self::key($id),
-			1209600,
+			now()->addMinutes(60),
 			function() use($id, $pid) {
 				$group = (new Group)->withoutRelations()->whereNull('status')->find($id);
 
@@ -81,7 +81,7 @@ class GroupService
 	{
 		return Cache::remember(
 			self::key('self:gid-' . $gid . ':pid-' . $pid),
-			3600,
+			now()->addMinutes(60),
 			function() use($gid, $pid) {
 				$group = Group::find($gid);
 
@@ -110,14 +110,14 @@ class GroupService
 
 	public static function sidToGid($gid, $pid)
 	{
-		return Cache::remember(self::key('s2gid:' . $gid . ':' . $pid), 3600, function() use($gid, $pid) {
+		return Cache::remember(self::key('s2gid:' . $gid . ':' . $pid), now()->addMinutes(60), now()->addMinutes(60), $pid) {
 			return optional(GroupPost::whereGroupId($gid)->whereStatusId($pid)->first())->id;
 		});
 	}
 
 	public static function membershipsByPid($pid)
 	{
-		return Cache::remember(self::key("mbpid:{$pid}"), 3600, function() use($pid) {
+		return Cache::remember(self::key("mbpid:{$pid}"), now()->addMinutes(60), function() use($pid) {
 			return GroupMember::whereProfileId($pid)->pluck('group_id');
 		});
 	}
@@ -230,7 +230,7 @@ class GroupService
 
 	public static function getInteractionLimits($gid, $pid)
 	{
-		return Cache::remember(self::key(":il:{$gid}:{$pid}"), 3600, function() use($gid, $pid) {
+		return Cache::remember(self::key(":il:{$gid}:{$pid}"), now()->addMinutes(60), now()->addMinutes(60), $pid) {
 			$limit = GroupLimit::whereGroupId($gid)->whereProfileId($pid)->first();
 			if(!$limit) {
 				return [
@@ -287,7 +287,7 @@ class GroupService
 
 	public static function categories($onlyActive = true)
 	{
-		return Cache::remember(self::key(':categories'), 2678400, function() use($onlyActive) {
+		return Cache::remember(self::key(':categories'), now()->addMinutes(60), function() use($onlyActive) {
 			return GroupCategory::when($onlyActive, function($q, $onlyActive) {
 					return $q->whereActive(true);
 				})
@@ -299,7 +299,7 @@ class GroupService
 
 	public static function categoryById($id)
 	{
-		return Cache::remember(self::key(':categorybyid:'.$id), 2678400, function() use($id) {
+		return Cache::remember(self::key(':categorybyid:'.$id), now()->addMinutes(60), function() use($id) {
 			$category = GroupCategory::find($id);
 			if($category) {
 				return [
@@ -318,7 +318,7 @@ class GroupService
 		}
 
 		$key = self::key("is_member:{$gid}:{$pid}");
-		return Cache::remember($key, 3600, function() use($gid, $pid) {
+		return Cache::remember($key, now()->addMinutes(60), now()->addMinutes(60), $pid) {
 			return GroupMember::whereGroupId($gid)
 				->whereProfileId($pid)
 				->whereJoinRequest(false)
