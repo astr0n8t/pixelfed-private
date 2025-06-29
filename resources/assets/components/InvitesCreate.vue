@@ -50,7 +50,7 @@ export default {
       axios
         .post('/api/invites/create', this.form)
         .then(() => {
-          this.$router.push('/');
+          this.$router.push('/i/invites');
         })
         .catch(error => {
           if (error.response && error.response.status === 422) {

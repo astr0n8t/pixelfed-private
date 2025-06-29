@@ -99,20 +99,18 @@ export default {
         });
     },
     deleteInvite(id) {
-      if (confirm('Are you sure you want to delete this invite?')) {
-        this.loading = true;
-        axios
-          .post('/api/invites/delete', { id })
-          .then(() => {
-            this.fetchInvites(this.pagination.current_page);
-          })
-          .catch(error => {
-            this.errors = ['Failed to delete invite'];
-          })
-          .finally(() => {
-            this.loading = false;
-          });
-      }
+      this.loading = true;
+      axios
+        .post('/api/invites/delete', { id })
+        .then(() => {
+        this.fetchInvites(this.pagination.current_page);
+        })
+        .catch(error => {
+        this.errors = ['Failed to delete invite'];
+        })
+        .finally(() => {
+        this.loading = false;
+        });
     }
   }
 };
