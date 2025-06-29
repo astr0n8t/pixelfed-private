@@ -260,7 +260,11 @@ return [
 	'oauth_enabled' => env('OAUTH_ENABLED', true),
 
 	'nsfw' => [
-		'enabled' => env('PF_NSFW_ENABLE', false),
+		'enabled' => env('PF_NSFW_ENABLED', false),
+    ],
+
+	'pronouns' => [
+		'enabled' => env('PF_PRONOUNS_ENABLED', false),
     ],
 
 	'bouncer' => [

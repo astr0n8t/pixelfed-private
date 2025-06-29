@@ -63,13 +63,13 @@
 
 					<hr />
 
-					<p v-if="config.nsfw.enable" class="font-weight-bold small">Sensitive/NSFW</p>
-					<div v-if="config.nsfw.enable" class="border py-2 px-3 bg-light rounded">
+					<p v-if="config.nsfw.enabled" class="font-weight-bold small">Sensitive/NSFW</p>
+					<div v-if="config.nsfw.enabled" class="border py-2 px-3 bg-light rounded">
 						<b-form-checkbox v-model="fields.sensitive" name="check-button" switch style="font-weight:300">
 							<span class="ml-1 small">Contains spoilers, sensitive or nsfw content</span>
 						</b-form-checkbox>
 					</div>
-					<transition v-if="config.nsfw.enable" name="slide-fade">
+					<transition v-if="config.nsfw.enabled" name="slide-fade">
 						<div v-if="fields.sensitive" class="form-group mt-3">
 							<label class="font-weight-bold small">Content Warning</label>
 							<textarea

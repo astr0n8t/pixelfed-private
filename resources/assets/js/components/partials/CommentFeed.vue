@@ -23,7 +23,7 @@
 								<option value="public">Public</option>
 								<option value="private">Followers Only</option>
 							</select>
-							<div v-if="config.nsfw.enable" class="custom-control custom-switch">
+							<div v-if="config.nsfw.enabled" class="custom-control custom-switch">
 								<input type="checkbox" class="custom-control-input" id="sensitive" v-model="sensitive">
 								<label class="custom-control-label font-weight-bold text-lighter" for="sensitive">
 									<span class="d-none d-md-inline-block">Sensitive/</span>NSFW

@@ -107,7 +107,7 @@
 			<div class="card-footer">
 				<div class="d-flex justify-content-between align-items-center">
 					<div>
-						<div v-if="config.nsfw.enable" class="custom-control custom-switch d-inline mr-3">
+						<div v-if="config.nsfw.enabled" class="custom-control custom-switch d-inline mr-3">
 							<input type="checkbox" class="custom-control-input" id="nsfwToggle" v-model="nsfw">
 							<label class="custom-control-label small font-weight-bold text-muted pt-1" for="nsfwToggle">NSFW</label>
 						</div>

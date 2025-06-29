@@ -1,7 +1,7 @@
 <template>
 	<div v-if="status.sensitive == true">
 		<details class="details-animated">
-			< v-if="config.nsfw.enable" summary>
+			< v-if="config.nsfw.enabled" summary>
 				<p class="mb-0 lead font-weight-bold">{{ status.spoiler_text ? status.spoiler_text : 'CW / NSFW / Hidden Media'}}</p>
 				<p class="font-weight-light">(click to show)</p>
 			</summary>

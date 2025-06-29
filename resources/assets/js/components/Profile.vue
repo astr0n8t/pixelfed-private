@@ -135,7 +135,7 @@
 									</div>
 									<div class="d-md-flex align-items-center mb-1 text-break">
 										<div class="font-weight-bold mr-1">{{profile.display_name}}</div>
-										<div v-if="profile.pronouns" class="text-muted small">{{profile.pronouns.join('/')}}</div>
+										<div v-if="config.pronouns.enabled && profile.pronouns" class="text-muted small">{{profile.pronouns.join('/')}}</div>
 									</div>
 									<p v-if="profile.note" class="mb-0" v-html="profile.note"></p>
 									<p v-if="profile.website"><a :href="profile.website" class="profile-website small" rel="me external nofollow noopener" target="_blank">{{formatWebsite(profile.website)}}</a></p>
