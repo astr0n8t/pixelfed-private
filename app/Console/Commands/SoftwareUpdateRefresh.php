@@ -29,7 +29,7 @@ class SoftwareUpdateRefresh extends Command
     {
         $key = SoftwareUpdateService::cacheKey();
         Cache::forget($key);
-        Cache::remember($key, 1209600, function() {
+        Cache::remember($key, now()->addMinutes(60), function() {
             return SoftwareUpdateService::fetchLatest();
         });
         $this->info('Successfully updated software versions!');

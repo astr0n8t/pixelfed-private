@@ -61,7 +61,7 @@ class LikeService {
 	public static function liked($profileId, $statusId)
 	{
 		$key = self::CACHE_KEY . $profileId . ':' . $statusId;
-		return Cache::remember($key, 86400, function() use($profileId, $statusId) {
+		return Cache::remember($key, now()->addMinutes(60), function() use($profileId, $statusId) {
 			return Like::whereProfileId($profileId)->whereStatusId($statusId)->exists();
 		});
 	}
@@ -77,7 +77,7 @@ class LikeService {
 			return $empty;
 		}
 
-		$res = Cache::remember('pf:services:likes:liked_by:' . $status->id, 86400, function() use($status, $empty) {
+		$res = Cache::remember('pf:services:likes:liked_by:' . $status->id, now()->addMinutes(60), function() use($status, $empty) {
 			$like = Like::whereStatusId($status->id)->first();
 			if(!$like || !$like->profile_id) {
 				return $empty;

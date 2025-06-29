@@ -27,7 +27,7 @@ class NotificationAppGatewayService
             return false;
         }
 
-        return Cache::remember(self::GATEWAY_SUPPORT_CHECK, 43200, function () {
+        return Cache::remember(self::GATEWAY_SUPPORT_CHECK, now()->addMinutes(60), function () {
             return self::checkServerSupport();
         });
     }

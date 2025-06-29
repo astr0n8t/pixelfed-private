@@ -12,7 +12,7 @@ class InstanceApiController extends Controller {
 
 	protected function getData()
 	{
-		$contact = Cache::remember('api:v1:instance:contact', now()->addMinutes(1440), function() {
+		$contact = Cache::remember('api:v1:instance:contact', now()->addMinutes(60), function() {
 			$admin = User::whereIsAdmin(true)->first()->profile;
 			return [
 				'id' 			  => $admin->id,

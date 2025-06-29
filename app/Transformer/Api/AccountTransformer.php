@@ -22,7 +22,7 @@ class AccountTransformer extends Fractal\TransformerAbstract
             return [];
         }
 
-        $adminIds = Cache::remember('pf:admin-ids', 604800, function () {
+        $adminIds = Cache::remember('pf:admin-ids', now()->addMinutes(60), function () {
             return User::whereIsAdmin(true)->pluck('profile_id')->toArray();
         });
 
@@ -31,7 +31,7 @@ class AccountTransformer extends Fractal\TransformerAbstract
         $hideFollowing = false;
         $hideFollowers = false;
         if ($local) {
-            $hideFollowing = Cache::remember('pf:acct-trans:hideFollowing:'.$profile->id, 2592000, function () use ($profile) {
+            $hideFollowing = Cache::remember('pf:acct-trans:hideFollowing:'.$profile->id, now()->addMinutes(60), function () use ($profile) {
                 $settings = UserSetting::whereUserId($profile->user_id)->first();
                 if (! $settings) {
                     return false;
@@ -39,7 +39,7 @@ class AccountTransformer extends Fractal\TransformerAbstract
 
                 return $settings->show_profile_following_count == false;
             });
-            $hideFollowers = Cache::remember('pf:acct-trans:hideFollowers:'.$profile->id, 2592000, function () use ($profile) {
+            $hideFollowers = Cache::remember('pf:acct-trans:hideFollowers:'.$profile->id, now()->addMinutes(60), function () use ($profile) {
                 $settings = UserSetting::whereUserId($profile->user_id)->first();
                 if (! $settings) {
                     return false;

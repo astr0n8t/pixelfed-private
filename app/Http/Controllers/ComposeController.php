@@ -77,7 +77,7 @@ class ComposeController extends Controller
 
         $limitKey = 'compose:rate-limit:media-upload:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1250;
@@ -178,7 +178,7 @@ class ComposeController extends Controller
 
         $limitKey = 'compose:rate-limit:media-updates:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1500;
@@ -327,7 +327,7 @@ class ComposeController extends Controller
         abort_if(! $pid, 400);
         $q = e($request->input('q'));
 
-        $popular = Cache::remember('pf:search:location:v1:popular', 1209600, function () {
+        $popular = Cache::remember('pf:search:location:v1:popular', now()->addMinutes(60), function () {
             $minId = SnowflakeService::byDate(now()->subDays(290));
             if (config('database.default') == 'pgsql') {
                 return Status::selectRaw('id, place_id, count(place_id) as pc')
@@ -505,7 +505,7 @@ class ComposeController extends Controller
 
         $limitKey = 'compose:rate-limit:store:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        // $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
+        // $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
         //     $dailyLimit = Status::whereProfileId($user->profile_id)
         //         ->whereNull('in_reply_to_id')
         //         ->whereNull('reblog_of_id')

@@ -156,7 +156,7 @@ class FollowerService
     {
         $key = 'pf:services:follower:audience:' . $pid;
         $bannedDomains = InstanceService::getBannedDomains();
-        $domains = Cache::remember($key, 432000, function() use($pid, $bannedDomains) {
+        $domains = Cache::remember($key, now()->addMinutes(60), function() use($pid, $bannedDomains) {
             $profile = Profile::whereNull(['status', 'domain'])->find($pid);
             if(!$profile) {
                 return [];
@@ -201,7 +201,7 @@ class FollowerService
 
     public static function mutualCount($pid, $mid)
     {
-        return Cache::remember(self::CACHE_KEY . ':mutualcount:' . $pid . ':' . $mid, 3600, function() use($pid, $mid) {
+        return Cache::remember(self::CACHE_KEY . ':mutualcount:' . $pid . ':' . $mid, now()->addMinutes(60), function() use($pid, $mid) {
             return DB::table('followers as u')
                 ->join('followers as s', 'u.following_id', '=', 's.following_id')
                 ->where('s.profile_id', $mid)
@@ -213,7 +213,7 @@ class FollowerService
     public static function mutualIds($pid, $mid, $limit = 3)
     {
         $key = self::CACHE_KEY . ':mutualids:' . $pid . ':' . $mid . ':limit_' . $limit;
-        return Cache::remember($key, 3600, function() use($pid, $mid, $limit) {
+        return Cache::remember($key, now()->addMinutes(60), function() use($pid, $mid, $limit) {
             return DB::table('followers as u')
                 ->join('followers as s', 'u.following_id', '=', 's.following_id')
                 ->where('s.profile_id', $mid)
@@ -252,7 +252,7 @@ class FollowerService
     public static function localFollowerIds($pid, $limit = 0)
     {
         $key = self::FOLLOWERS_LOCAL_KEY . $pid;
-        $res = Cache::remember($key, 7200, function() use($pid) {
+        $res = Cache::remember($key, now()->addMinutes(60), function() use($pid) {
             return DB::table('followers')
                 ->join('profiles', 'followers.profile_id', '=', 'profiles.id')
                 ->where('followers.following_id', $pid)

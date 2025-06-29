@@ -69,7 +69,7 @@ class HomeTimelineService
     {
         if(self::count($id) == 0 || $force == true) {
             Redis::del(self::CACHE_KEY . $id);
-            $following = Cache::remember('profile:following:'.$id, 1209600, function() use($id) {
+            $following = Cache::remember('profile:following:'.$id, now()->addMinutes(60), function() use($id) {
                 $following = Follower::whereProfileId($id)->pluck('following_id');
                 return $following->push($id)->toArray();
             });

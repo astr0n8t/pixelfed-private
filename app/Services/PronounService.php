@@ -13,7 +13,7 @@ class PronounService {
 		$key = 'user:pronouns:' . $id;
 		$ttl = now()->addHours(12);
 
-		return Cache::remember($key, $ttl, function() use($id) {
+		return Cache::remember($key, now()->addMinutes(60), function() use($id) {
 			$res = UserPronoun::whereProfileId($id)->first();
 			return $res && $res->pronouns ? json_decode($res->pronouns, true) : [];
 		});

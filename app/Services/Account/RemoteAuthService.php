@@ -107,7 +107,7 @@ class RemoteAuthService
         $url = 'https://' . $domain . '/api/v1/accounts/' . $id . '/following?limit=80';
         $key = self::CACHE_KEY . 'get-following:code:' . substr($code, 0, 16) . substr($code, -5) . ':domain:' . $domain. ':id:' .$id;
 
-        return Cache::remember($key, 3600, function() use($url, $code) {
+        return Cache::remember($key, now()->addMinutes(60), function() use($url, $code) {
             $res = Http::withToken($code)->get($url);
             return $res->json();
         });
@@ -119,7 +119,7 @@ class RemoteAuthService
             return false;
         }
 
-        return Cache::remember(self::CACHE_KEY . 'domain-compatible:' . $domain, 14400, function() use($domain) {
+        return Cache::remember(self::CACHE_KEY . 'domain-compatible:' . $domain, now()->addMinutes(60), function() use($domain) {
             try {
                 $res = Http::timeout(20)->retry(3, 750)->get('https://beagle.pixelfed.net/api/v1/raa/domain?domain=' . $domain);
                 if(!$res->ok()) {

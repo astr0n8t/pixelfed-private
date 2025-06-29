@@ -17,12 +17,11 @@
     "/js/story-compose.js": "/js/story-compose.js?id=a25351b1487264fd49458d47cd8c121f",
     "/js/direct.js": "/js/direct.js?id=5a0900ec425cf9640bfdec400aa71c41",
     "/js/admin.js": "/js/admin.js?id=4f07b4fac37aa56cf7db83f76a20d0d6",
-    "/js/spa.js": "/js/spa.js?id=d5f7a3be32d814dbc16874f384d4580f",
+    "/js/spa.js": "/js/spa.js?id=4c36a5b3c2322ea8c0fd1696f62afe09",
     "/js/stories.js": "/js/stories.js?id=f5637cea14c47edfa96df7346b724236",
     "/js/portfolio.js": "/js/portfolio.js?id=5f64242a8cccdeb9d0642c9216396192",
     "/js/account-import.js": "/js/account-import.js?id=e1715ad431edffa5b0533f269743af2e",
-    "/js/user_invite.js": "/js/user_invite.js?id=42bc8c98115d5297675d93c507d93107",
-    "/js/admin_invite.js": "/js/admin_invite.js?id=883bf2f76521fc6b31eb1a3d4fb915ff",
+    "/js/invites.js": "/js/invites.js?id=90b2a10a1add0f4c7b8427652ecf6463",
     "/js/landing.js": "/js/landing.js?id=2e570d01ac1d350a47e7bb284c5ae900",
     "/js/remote_auth.js": "/js/remote_auth.js?id=1a952303a4e5c6651960a3b92b9f5134",
     "/js/groups.js": "/js/groups.js?id=28a29aaa2009d96e668b69737c325b7c",
@@ -64,5 +63,5 @@
     "/css/landing.css": "/css/landing.css?id=b6e73c3924453e3053aff7d192895d8c",
     "/css/profile.css": "/css/profile.css?id=ae4f5db9bb1a89db2ae293d6bde812e3",
     "/css/spa.css": "/css/spa.css?id=041aed9a146db0e74b2cfe3ad8eaf96c",
-    "/js/vendor.js": "/js/vendor.js?id=beb0ca8defd1da0f0a737ec228d4cbbc"
+    "/js/vendor.js": "/js/vendor.js?id=76b27cd4194d2d28df74fb3c464d6ddc"
 }

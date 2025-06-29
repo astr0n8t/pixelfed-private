@@ -263,7 +263,7 @@ class NotificationService
 
     public static function getNotification($id)
     {
-        $notification = Cache::remember('service:notification:'.$id, self::ITEM_CACHE_TTL, function () use ($id) {
+        $notification = Cache::remember('service:notification:'.$id, now()->addMinutes(60), function () use ($id) {
             $n = Notification::with('item')->find($id);
 
             if (! $n) {
@@ -296,7 +296,7 @@ class NotificationService
 
     public static function setNotification(Notification $notification)
     {
-        return Cache::remember('service:notification:'.$notification->id, self::ITEM_CACHE_TTL, function () use ($notification) {
+        return Cache::remember('service:notification:'.$notification->id, now()->addMinutes(60), function () use ($notification) {
             $fractal = new Fractal\Manager();
             $fractal->setSerializer(new ArraySerializer());
             $resource = new Fractal\Resource\Item($notification, new NotificationTransformer());

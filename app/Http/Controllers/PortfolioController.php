@@ -176,7 +176,7 @@ class PortfolioController extends Controller
             return response()->json([], 400);
         }
 
-        $feed = Cache::remember(self::CACHED_FEED_KEY . $portfolio->profile_id, 86400, function() use($portfolio) {
+        $feed = Cache::remember(self::CACHED_FEED_KEY . $portfolio->profile_id, now()->addMinutes(60), function() use($portfolio) {
 	        return collect($portfolio->metadata['posts'])->map(function($p) {
 	            return StatusService::get($p);
 	        })
@@ -193,7 +193,7 @@ class PortfolioController extends Controller
     }
 
     protected function getRecentFeed($id) {
-        $media = Cache::remember(self::RECENT_FEED_KEY . $id, 3600, function() use($id) {
+        $media = Cache::remember(self::RECENT_FEED_KEY . $id, now()->addMinutes(60), function() use($id) {
             return DB::table('media')
             ->whereProfileId($id)
             ->whereNotNull('status_id')
@@ -488,7 +488,7 @@ class PortfolioController extends Controller
         } else {
         	$feed = Cache::remember(
         		self::RSS_FEED_KEY . $user->profile_id,
-        		43200,
+        		now()->addMinutes(60),
         		function() use($portfolio, $portfolioUrl, $portfolioLayout) {
 					return collect($portfolio->metadata['posts'])->map(function($post) {
 						return StatusService::get($post);

@@ -237,23 +237,21 @@
                                         </li>
 
                                         <li class="nav-item">
-                                            <hr class="mt-n1" style="opacity: 0.4;margin-bottom: 0;" />
-                                            <a class="nav-link" href="/settings/invites">
-                                                <span class="icon text-lighter">
-                                                    <i class="far fa-cog"></i>
-                                                </span>
+                                            <a class="nav-link" target="_parent" href="/settings/home">
+                                                <span class="icon text-lighter"><i class="far fa-cog"></i></span>
                                                 {{ $t('navmenu.settings') }}
                                             </a>
                                         </li>
 
                                         <li class="nav-item">
-                                            <hr class="mt-n1" style="opacity: 0.4;margin-bottom: 0;" />
-                                            <a class="nav-link" href="/settings/invites">
-                                                <span class="icon text-lighter">
-                                                    <i class="far fa-user-plus"></i>
+                                            <router-link class="nav-link d-flex justify-content-between align-items-center" to="/i/invites">
+                                                <span>
+                                                    <span class="icon text-lighter">
+                                                        <i class="far fa-user-plus"></i>
+                                                    </span>
+                                                    {{ $t('navmenu.invites') }}
                                                 </span>
-                                                {{ $t('navmenu.invites') }}
-                                            </a>
+                                            </router-link>
                                         </li>
 
                                         <li v-if="user.is_admin" class="nav-item">

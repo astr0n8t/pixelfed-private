@@ -35,7 +35,7 @@ class AutospamService
 
     public static function eligible()
     {
-        return Cache::remember(self::CHCKD_CACHE_KEY, 86400, function () {
+        return Cache::remember(self::CHCKD_CACHE_KEY, now()->addMinutes(60), function () {
             if (! (bool) config_cache('pixelfed.bouncer.enabled') || ! (bool) config_cache('autospam.enabled')) {
                 return false;
             }
@@ -71,7 +71,7 @@ class AutospamService
             return null;
         }
 
-        return Cache::remember(self::MODEL_CACHE_KEY, 86400, function () {
+        return Cache::remember(self::MODEL_CACHE_KEY, now()->addMinutes(60), function () {
             $res = Storage::get(self::MODEL_FILE_PATH);
             if (! $res || empty($res)) {
                 return null;

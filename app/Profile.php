@@ -68,7 +68,7 @@ class Profile extends Model
 
 	public function followingCount($short = false)
 	{
-		$count = Cache::remember('profile:following_count:'.$this->id, now()->addMonths(1), function() {
+		$count = Cache::remember('profile:following_count:'.$this->id, now()->addMinutes(60), function() {
 			if($this->domain == null && $this->user->settings->show_profile_following_count == false) {
 				return 0;
 			}
@@ -85,7 +85,7 @@ class Profile extends Model
 
 	public function followerCount($short = false)
 	{
-		$count = Cache::remember('profile:follower_count:'.$this->id, now()->addMonths(1), function() {
+		$count = Cache::remember('profile:follower_count:'.$this->id, now()->addMinutes(60), function() {
 			if($this->domain == null && $this->user->settings->show_profile_follower_count == false) {
 				return 0;
 			}
@@ -159,7 +159,7 @@ class Profile extends Model
 
 	public function avatarUrl()
 	{
-		$url = Cache::remember('avatar:'.$this->id, now()->addMinutes(30), function () {
+		$url = Cache::remember('avatar:'.$this->id, now()->addMinutes(60), function () {
 			$avatar = $this->avatar;
 
 			if(!$avatar) {
@@ -198,7 +198,7 @@ class Profile extends Model
 			if(config('filesystems.default') !== 'local') {
 				return URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $path, 'user_id' => auth()->id()]
                 );
 			}
@@ -207,7 +207,7 @@ class Profile extends Model
 
 			return url(URL::temporarySignedRoute(
                 'storage.file',
-                now()->addMinutes(30),
+                now()->addMinutes(60),
                 ['file' => $path, 'user_id' => auth()->id()]
             ));
 		});

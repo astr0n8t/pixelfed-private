@@ -38,28 +38,22 @@ class UserInviteController extends Controller
         }
     }
 
+	public function get(Request $request)
+	{
+        $this->authPreflight($request);
+        $invites = UserInvite::whereUserId(Auth::id())->paginate(10);
+        if ($request->wantsJson()) {
+            return response()->json($invites);
+        }
+		return redirect(route('invites.home'));
+	}
+
 	public function create(Request $request)
-	{
-        $this->authPreflight($request);
-		return view('settings.invites.create');
-	}
-
-	public function show(Request $request)
-	{
-        $this->authPreflight($request);
-		$invites = UserInvite::whereUserId(Auth::id())->paginate(10);
-		$limit = config('pixelfed.user_invites.limit.total');
-		$used = UserInvite::whereUserId(Auth::id())->count();
-		return view('settings.invites.home', compact('invites', 'limit', 'used'));
-	}
-
-	public function store(Request $request)
 	{
         $this->authPreflight($request);
 		$this->validate($request, [
 			'email' => 'required|email|unique:users|unique:user_invites',
-			'message' => 'nullable|string|max:500',
-			'tos'	=> 'required|accepted'
+			'message' => 'nullable|string|max:500'
 		]);
 
 		$invite = new UserInvite;
@@ -73,7 +67,11 @@ class UserInviteController extends Controller
 
         DispatchUserInvitePipeline::dispatch($invite);
 
-		return redirect(route('settings.invites'));
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true, 'invite' => $invite]);
+        }
+
+		return redirect(route('invites.home'));
 	}
 
     public function delete(Request $request)
@@ -82,15 +80,16 @@ class UserInviteController extends Controller
         $this->validate($request, [
             'id' => 'required',
         ]);
-        Log::info('Delete request: ', [
-            'request' => $request,
-        ]);
         $invite = UserInvite::whereUserId($request->user()->id)
             ->findOrFail($request->input('id'));
 
         $invite->delete();
 
-		return redirect(route('settings.invites'));
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
+
+		return redirect(route('invites.home'));
     }
 
 	public function index(Request $request, $code)

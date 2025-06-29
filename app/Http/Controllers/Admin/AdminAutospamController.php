@@ -47,15 +47,15 @@ trait AdminAutospamController
 
 	public function getAutospamConfigApi(Request $request)
 	{
-		$open = Cache::remember('admin-dash:reports:spam-count', 3600, function() {
+		$open = Cache::remember('admin-dash:reports:spam-count', now()->addMinutes(60), function() {
 			return AccountInterstitial::whereType('post.autospam')->whereNull('appeal_handled_at')->count();
 		});
 
-		$closed = Cache::remember('admin-dash:reports:spam-count-closed', 3600, function() {
+		$closed = Cache::remember('admin-dash:reports:spam-count-closed', now()->addMinutes(60), function() {
 			return AccountInterstitial::whereType('post.autospam')->whereNotNull('appeal_handled_at')->count();
 		});
 
-		$thisWeek = Cache::remember('admin-dash:reports:spam-count-stats-this-week ', 86400, function() {
+		$thisWeek = Cache::remember('admin-dash:reports:spam-count-stats-this-week ', now()->addMinutes(60), function() {
 			$sr = config('database.default') == 'pgsql' ? "to_char(created_at, 'MM-YYYY')" : "DATE_FORMAT(created_at, '%m-%Y')";
 			$gb = config('database.default') == 'pgsql' ? [DB::raw($sr)] : DB::raw($sr);
 			$s = AccountInterstitial::select(

@@ -15,7 +15,7 @@ class PollService
 	{
 		$key = self::CACHE_KEY . $id;
 
-		$res = Cache::remember($key, 1800, function() use($id) {
+		$res = Cache::remember($key, now()->addMinutes(60), function() use($id) {
 			$poll = Poll::whereStatusId($id)->firstOrFail();
 			return [
 				'id' => (string) $poll->id,
@@ -73,7 +73,7 @@ class PollService
 	public static function storyResults($sid)
 	{
 		$key = self::CACHE_KEY . 'story_poll_results:' . $sid;
-		return Cache::remember($key, 60, function() use($sid) {
+		return Cache::remember($key, now()->addMinutes(60), function() use($sid) {
 			return Poll::whereStoryId($sid)
 			->firstOrFail()
 			->cached_tallies;

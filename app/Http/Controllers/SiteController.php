@@ -58,7 +58,7 @@ class SiteController extends Controller
 
     public function about()
     {
-        return Cache::remember('site.about_v2', now()->addMinutes(15), function () {
+        return Cache::remember('site.about_v2', now()->addMinutes(60), function () {
             $user_count = number_format(User::whereNull('status')->count()); # Only get null status - these are the "active" users);
             $post_count = number_format(StatusService::totalLocalStatuses());
             $rules = config_cache('app.rules') ? json_decode(config_cache('app.rules'), true) : null;
@@ -74,7 +74,7 @@ class SiteController extends Controller
 
     public function communityGuidelines(Request $request)
     {
-        return Cache::remember('site:help:community-guidelines', now()->addDays(120), function () {
+        return Cache::remember('site:help:community-guidelines', now()->addMinutes(60), function () {
             $slug = '/site/kb/community-guidelines';
             $page = Page::whereSlug($slug)->whereActive(true)->first();
 
@@ -84,7 +84,7 @@ class SiteController extends Controller
 
     public function privacy(Request $request)
     {
-        $page = Cache::remember('site:privacy', now()->addDays(120), function () {
+        $page = Cache::remember('site:privacy', now()->addMinutes(60), function () {
             $slug = '/site/privacy';
 
             return Page::whereSlug($slug)->whereActive(true)->first();
@@ -95,7 +95,7 @@ class SiteController extends Controller
 
     public function terms(Request $request)
     {
-        $page = Cache::remember('site:terms', now()->addDays(120), function () {
+        $page = Cache::remember('site:terms', now()->addMinutes(60), function () {
             $slug = '/site/terms';
 
             return Page::whereSlug($slug)->whereActive(true)->first();
@@ -169,7 +169,7 @@ class SiteController extends Controller
 
     public function legalNotice(Request $request)
     {
-        $page = Cache::remember('site:legal-notice', now()->addDays(120), function () {
+        $page = Cache::remember('site:legal-notice', now()->addMinutes(60), function () {
             $slug = '/site/legal-notice';
 
             return Page::whereSlug($slug)->whereActive(true)->first();

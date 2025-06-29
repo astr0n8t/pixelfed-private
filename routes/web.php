@@ -349,10 +349,6 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
             Route::redirect('/', '/settings/relationships/home');
             Route::get('home', 'SettingsController@relationshipsHome')->name('settings.relationships');
         });
-        Route::get('invites/create', 'UserInviteController@create')->name('settings.invites.create');
-        Route::post('invites/create', 'UserInviteController@store');
-        Route::post('invites/delete', 'UserInviteController@delete');
-        Route::get('invites', 'UserInviteController@show')->name('settings.invites');
         // Route::get('sponsor', 'SettingsController@sponsor')->name('settings.sponsor');
         // Route::post('sponsor', 'SettingsController@sponsorStore');
         Route::group(['prefix' => 'import', 'middleware' => 'dangerzone'], function() {

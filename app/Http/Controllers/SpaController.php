@@ -108,7 +108,7 @@ class SpaController extends Controller
 	{
 		return Cache::remember(
 			'pf:doc_cache:markdown:' . $src,
-			$ttl,
+			now()->addMinutes(60),
 			function() use($src) {
 				$path = resource_path($src);
 				$file = file_get_contents($path);

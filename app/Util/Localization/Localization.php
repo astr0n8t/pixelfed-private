@@ -9,7 +9,7 @@ class Localization {
 
 	public static function languages()
 	{
-		return Cache::remember('core:localization:languages', now()->addDays(1), function() {
+		return Cache::remember('core:localization:languages', now()->addMinutes(60), function() {
 			$dir = resource_path('lang');
 			return Arr::flatten(array_diff(scandir($dir), array('..', '.', 'vendor', '.DS_Store')));
 		});

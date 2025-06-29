@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\UserInvite;
 use App\Mail\UserInviteMessage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class DispatchUserInvitePipeline implements ShouldQueue
 {

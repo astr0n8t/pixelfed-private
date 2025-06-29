@@ -755,7 +755,7 @@ class ApiV1Dot1Controller extends Controller
 
         $place = Place::whereSlug($slug)->findOrFail($id);
 
-        $posts = Cache::remember('pf-api:v1.1:places-by-id:'.$place->id, 3600, function () use ($place) {
+        $posts = Cache::remember('pf-api:v1.1:places-by-id:'.$place->id, now()->addMinutes(60), function () use ($place) {
             return Status::wherePlaceId($place->id)
                 ->whereNull('uri')
                 ->whereScope('public')

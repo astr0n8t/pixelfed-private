@@ -180,7 +180,7 @@ class Image
 				$media->thumbnail_path = $converted['path'];
 				$media->thumbnail_url = url(URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $converted['path'], 'user_id' => auth()->id()]
                 ));
 			} else {

@@ -22,7 +22,7 @@ trait AdminGroupsController
 
     protected function groupAdminStats()
     {
-        return Cache::remember('admin:groups:stats', 3, function () {
+        return Cache::remember('admin:groups:stats', now()->addMinutes(60), function () {
             $res = [
                 'total' => Group::count(),
                 'local' => Group::whereLocal(true)->count(),
@@ -35,11 +35,11 @@ trait AdminGroupsController
             $res['interactions'] = GroupInteraction::count();
             $res['reports'] = GroupReport::count();
 
-            $res['local_30d'] = Cache::remember('admin:groups:stats:local_30d', 43200, function () {
+            $res['local_30d'] = Cache::remember('admin:groups:stats:local_30d', now()->addMinutes(60), function () {
                 return Group::whereLocal(true)->where('created_at', '>', now()->subMonth())->count();
             });
 
-            $res['remote_30d'] = Cache::remember('admin:groups:stats:remote_30d', 43200, function () {
+            $res['remote_30d'] = Cache::remember('admin:groups:stats:remote_30d', now()->addMinutes(60), function () {
                 return Group::whereLocal(false)->where('created_at', '>', now()->subMonth())->count();
             });
 

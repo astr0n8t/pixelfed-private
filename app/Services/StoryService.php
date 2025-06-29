@@ -35,7 +35,7 @@ class StoryService
 
 	public static function getById($id)
 	{
-		return Cache::remember(self::STORY_KEY . 'by-id:id-' . $id, 3600, function() use ($id) {
+		return Cache::remember(self::STORY_KEY . 'by-id:id-' . $id, now()->addMinutes(60), function() use ($id) {
 			return Story::find($id);
 		});
 	}
@@ -60,7 +60,7 @@ class StoryService
 					'expires_at' => $s->expires_at->toAtomString(),
 					'media' => url(URL::temporarySignedRoute(
                         'storage.file',
-                        now()->addMinutes(30),
+                        now()->addMinutes(60),
                         ['file' => $s->path, 'user_id' => auth()->id()]
                     )),
 					'can_reply' => (bool) $s->can_reply,
@@ -81,7 +81,7 @@ class StoryService
 	public static function hasSeen($pid, $sid)
 	{
 		$key = self::STORY_KEY . 'seen:' . $pid . ':' . $sid;
-		return Cache::remember($key, 3600, function() use($pid, $sid) {
+		return Cache::remember($key, now()->addMinutes(60), function() use($pid, $sid) {
 			return StoryView::whereStoryId($sid)
 			->whereProfileId($pid)
 			->exists();
@@ -90,7 +90,7 @@ class StoryService
 
 	public static function latest($pid)
 	{
-		return Cache::remember(self::STORY_KEY . 'latest:pid-' . $pid, 3600, function() use ($pid) {
+		return Cache::remember(self::STORY_KEY . 'latest:pid-' . $pid, now()->addMinutes(60), function() use ($pid) {
 			return Story::whereProfileId($pid)
 				->latest()
 				->first()
@@ -111,7 +111,7 @@ class StoryService
 
 	public static function adminStats()
 	{
-		return Cache::remember('pf:admin:stories:stats', 300, function() {
+		return Cache::remember('pf:admin:stories:stats', now()->addMinutes(60), function() {
 			$total = Story::count();
 			return [
 				'active' => [

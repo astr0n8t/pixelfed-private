@@ -35,7 +35,7 @@ class GroupsFeedController extends Controller
         $initial = $request->has('initial');
 
         if($initial) {
-            $res = Cache::remember('groups:self:feed:' . $pid, 900, function() use($pid) {
+            $res = Cache::remember('groups:self:feed:' . $pid, now()->addMinutes(60), function() use($pid) {
                 return $this->getSelfFeedV0($pid, 5, null);
             });
         } else {
@@ -153,7 +153,7 @@ class GroupsFeedController extends Controller
         //  });
         // return $posts;
 
-        Cache::remember('api:v1:timelines:public:cache_check', 10368000, function() use($id) {
+        Cache::remember('api:v1:timelines:public:cache_check', now()->addMinutes(60), function() use($id) {
             if(GroupFeedService::count($id) == 0) {
                 GroupFeedService::warmCache($id, true, 400);
             }

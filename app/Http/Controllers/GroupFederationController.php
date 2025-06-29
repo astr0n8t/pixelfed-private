@@ -23,7 +23,7 @@ class GroupFederationController extends Controller
 
     public function showGroupObject($group)
     {
-        return Cache::remember('ap:groups:object:'.$group->id, 3600, function () use ($group) {
+        return Cache::remember('ap:groups:object:'.$group->id, now()->addMinutes(60), function () use ($group) {
             return [
                 '@context' => 'https://www.w3.org/ns/activitystreams',
                 'id' => $group->url(),
