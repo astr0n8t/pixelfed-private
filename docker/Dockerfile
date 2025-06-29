@@ -331,7 +331,7 @@ ARG PHP_VERSION
 ENV PHP_VERSION=${PHP_VERSION}
 
 WORKDIR /var/www/
-COPY ../.git ./
+COPY .git ./
 RUN git config --global --add safe.directory /var/www && mv /root/.gitconfig /var/www/.gitconfig
 
 EXPOSE 9000
@@ -368,7 +368,7 @@ COPY --link --from=nginx-image /docker-entrypoint.d /docker/entrypoint.d/
 COPY docker/rootfs/nginx /
 
 WORKDIR /var/www/
-COPY ../.git ./
+COPY .git ./
 RUN git init && git config --global --add safe.directory /var/www && mv /root/.gitconfig /var/www/.gitconfig
 
 STOPSIGNAL SIGQUIT
