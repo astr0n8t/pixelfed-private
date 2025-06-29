@@ -27,6 +27,7 @@ class FederationController extends Controller
 
     public function nodeinfo()
     {
+        abort_if(! str_contains($userAgent, 'Pixelfed/'), 404);
         abort_if(! config('federation.nodeinfo.enabled'), 404);
 
         return response()->json(Nodeinfo::get(), 200, [], JSON_UNESCAPED_SLASHES)
