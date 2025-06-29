@@ -31,7 +31,7 @@ class RestrictedAccess
                     'storage/*',
                 ];
                 $userAgent = request()->header('User-Agent', 'unknown');
-                if str_contains($userAgent, 'Pixelfed/') {
+                if(str_contains($userAgent, 'Pixelfed/')){
                     array_push($p,
                         'oauth/token',
                         'oauth/authorize',
