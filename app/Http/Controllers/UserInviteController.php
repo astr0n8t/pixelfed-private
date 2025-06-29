@@ -55,9 +55,6 @@ class UserInviteController extends Controller
 			'email' => 'required|email|unique:users|unique:user_invites',
 			'message' => 'nullable|string|max:500'
 		]);
-        Log::info('Create request: ', [
-            'request' => $request,
-        ]);
 
 		$invite = new UserInvite;
 		$invite->user_id = Auth::id();
@@ -68,9 +65,6 @@ class UserInviteController extends Controller
 		$invite->token = str_random(32);
 		$invite->save();
 
-        Log::info('Invite: ', [
-            'invite' => $invite,
-        ]);
         DispatchUserInvitePipeline::dispatch($invite);
 
         if ($request->wantsJson()) {
@@ -85,9 +79,6 @@ class UserInviteController extends Controller
         $this->authPreflight($request);
         $this->validate($request, [
             'id' => 'required',
-        ]);
-        Log::info('Delete request: ', [
-            'request' => $request,
         ]);
         $invite = UserInvite::whereUserId($request->user()->id)
             ->findOrFail($request->input('id'));
