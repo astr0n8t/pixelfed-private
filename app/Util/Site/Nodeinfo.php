@@ -12,14 +12,65 @@ class Nodeinfo
     {
         $res = Cache::remember('api:nodeinfo', now()->addMinutes(60), function () {
 
+            if(config('instance.restricted.enabled')) {
+                return [
+                    'software' => [
+                        'name' => 'pixelfed',
+                        'version' => config('pixelfed.version'),
+                    ],
+                    'version' => '2.0',
+                ];
+            }
+
+            $activeHalfYear = self::activeUsersHalfYear();
+            $activeMonth = self::activeUsersMonthly();
+
+            $users = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
+                return User::whereNull('status')->count(); # Only get null status - these are the "active" users
+            });
+
+            if ((bool) config('instance.glitch.real_stat_count') == true) {
+                $postCount = InstanceService::totalRealLocalStatuses();
+            } else {
+                $postCount = InstanceService::totalLocalStatuses();
+            }
+
+            $features = ['features' => \App\Util\Site\Config::get()['features']];
+            unset($features['features']['hls']);
+
             return [
+                'metadata' => [
+                    'nodeName' => config_cache('app.name'),
+                    'software' => [
+                        'homepage'  => 'https://pixelfed-glitch.github.io/docs',
+                        'repo'      => 'https://github.com/pixelfed-glitch/pixelfed',
+                    ],
+                    'config' => $features,
+                ],
+                'protocols' => [
+                    'activitypub',
+                ],
+                'services' => [
+                    'inbound' => [],
+                    'outbound' => [],
+                ],
                 'software' => [
                     'name' => 'pixelfed',
                     'version' => config('pixelfed.version'),
                 ],
+                'usage' => [
+                    'localPosts' => (int) $postCount,
+                    'localComments' => 0,
+                    'users' => [
+                        'total' => (int) $users,
+                        'activeHalfyear' => (int) $activeHalfYear,
+                        'activeMonth' => (int) $activeMonth,
+                    ],
+                ],
                 'version' => '2.0',
             ];
         });
+        $res['openRegistrations'] = (bool) config_cache('pixelfed.open_registration');
 
         return $res;
     }

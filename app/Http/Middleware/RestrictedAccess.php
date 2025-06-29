@@ -27,13 +27,17 @@ class RestrictedAccess
                     'auth/invite/*',
                     'api/v1.1/auth/invite/user/re',
                     'password*',
-                    'loginAs*',
-                    'oauth/token',
-                    'oauth/authorize',
-                    'api/nodeinfo*',
                     'api/service/health-check',
                     'storage/*',
                 ];
+                $userAgent = request()->header('User-Agent', 'unknown');
+                if str_contains($userAgent, 'Pixelfed/') {
+                    array_push($p,
+                        'oauth/token',
+                        'oauth/authorize',
+                        'api/nodeinfo*',
+                    );
+                }
                 if(!$request->is($p)) {
                     Log::debug('RestrictedAccess: Request path', ['path' => $request->path()]);
                     return redirect('/login');
