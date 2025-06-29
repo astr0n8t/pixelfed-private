@@ -9,7 +9,7 @@
       </div>
     </div>
     <div v-else-if="invites.length">
-      <table class="table table-striped invites-table">
+      <table class="invites-table">
         <thead>
           <tr>
             <th>ID</th>

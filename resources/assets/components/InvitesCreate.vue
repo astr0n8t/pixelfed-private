@@ -10,7 +10,6 @@
           type="email"
           id="email"
           v-model="form.email"
-          class="form-control"
           required
         >
         <div v-if="errors.email" class="text-danger">{{ errors.email[0] }}</div>
@@ -20,7 +19,6 @@
         <textarea
           id="message"
           v-model="form.message"
-          class="form-control"
         ></textarea>
         <div v-if="errors.message" class="text-danger">{{ errors.message[0] }}</div>
       </div>
