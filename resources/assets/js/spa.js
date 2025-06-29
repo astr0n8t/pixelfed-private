@@ -142,6 +142,9 @@ import GroupNotificationsComponent from "./../components/GroupNotifications.vue"
 import GroupSearchComponent from "./../components/GroupSearch.vue";
 const CreateGroupComponent = () => import(/* webpackChunkName: "group.create" */ "./../components/GroupCreate.vue");
 
+import InvitesHome from "./../components/InvitesHome.vue";
+import InvitesCreate from "./../components/InvitesCreate.vue";
+
 const router = new VueRouter({
 	mode: "history",
 	linkActiveClass: "active",
@@ -390,6 +393,16 @@ const router = new VueRouter({
 		{
 			path: "/i/web",
 			component: HomeComponent,
+			props: true
+		},
+		{
+			path: "/i/invites",
+			component: InvitesHome,
+			props: true
+		},
+		{
+			path: "/i/invites/create",
+			component: InvitesCreate,
 			props: true
 		},
 		{
