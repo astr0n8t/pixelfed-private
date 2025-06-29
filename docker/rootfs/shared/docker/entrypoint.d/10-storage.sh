@@ -10,7 +10,7 @@ entrypoint-set-script-name "$0"
 
 acquire-lock
 
-su www-data -c 'cd /var/www && git init && git config --global --add safe.directory /var/www'
+su www-data -s /bin/bash -c 'cd /var/www && git init && git config --global --add safe.directory /var/www'
 # Copy the [storage/] skeleton files over the "real" [storage/] directory so assets are updated between versions
 run-as-runtime-user cp --force --recursive storage.skel/. ./storage/
 
