@@ -1,6 +1,7 @@
 <template>
   <div class="web-wrapper">
 	<div class="container-fluid mt-3">
+	<div class="invites-home-component">
     <h2>My Invites</h2>
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
@@ -48,6 +49,7 @@
       <ul>
         <li v-for="error in errors" :key="error">{{ error }}</li>
       </ul>
+    </div>
     </div>
     </div>
   </div>
@@ -116,3 +118,20 @@ export default {
 };
 </script>
 
+<style lang="scss" scoped>
+	.invites-home-component {
+		.bg-stellar {
+			background: #7474BF;
+			background: -webkit-linear-gradient(to right, #348AC7, #7474BF);
+			background: linear-gradient(to right, #348AC7, #7474BF);
+		}
+		.font-default {
+			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+			letter-spacing: -0.7px;
+		}
+
+		.active {
+			font-weight: 700;
+		}
+	}
+</style>

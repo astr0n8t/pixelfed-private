@@ -65,6 +65,7 @@ class UserInviteController extends Controller
 		$invite->token = str_random(32);
 		$invite->save();
 
+        Log::info("Sending email");
         DispatchUserInvitePipeline::dispatch($invite);
 
         if ($request->wantsJson()) {
