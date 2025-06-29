@@ -53,8 +53,11 @@ class UserInviteController extends Controller
         $this->authPreflight($request);
 		$this->validate($request, [
 			'email' => 'required|email|unique:users|unique:user_invites',
-			'message' => 'nullable|string|max:500',
+			'message' => 'nullable|string|max:500'
 		]);
+        Log::info('Create request: ', [
+            'request' => $request,
+        ]);
 
 		$invite = new UserInvite;
 		$invite->user_id = Auth::id();

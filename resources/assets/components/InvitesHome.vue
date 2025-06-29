@@ -1,15 +1,15 @@
 <template>
   <div class="web-wrapper">
 	<div class="container-fluid mt-3">
-	<div class="invites-home-component">
-    <h2>My Invites</h2>
+	<div class="invites-container">
+    <h2 class="invites-title">My Invites</h2>
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
         <span class="sr-only">Loading...</span>
       </div>
     </div>
     <div v-else-if="invites.length">
-      <table class="table table-striped">
+      <table class="table table-striped invites-table">
         <thead>
           <tr>
             <th>ID</th>
@@ -118,20 +118,63 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
-	.invites-home-component {
-		.bg-stellar {
-			background: #7474BF;
-			background: -webkit-linear-gradient(to right, #348AC7, #7474BF);
-			background: linear-gradient(to right, #348AC7, #7474BF);
-		}
-		.font-default {
-			font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-			letter-spacing: -0.7px;
-		}
+<style scoped>
+.invites-container {
+  background-color: #F8FAFC;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
 
-		.active {
-			font-weight: 700;
-		}
-	}
+.invites-title {
+  color: #1A202C;
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.invites-table {
+  background-color: #FFFFFF;
+}
+
+.invites-table th {
+  background-color: #E2E8F0;
+  color: #1A202C;
+  font-weight: 600;
+  padding: 12px;
+}
+
+.invites-table td {
+  color: #1A202C;
+  padding: 12px;
+}
+
+.invites-table tbody tr:hover {
+  background-color: #EDF2F7;
+}
+
+.btn-primary {
+  background-color: #4A90E2;
+  border-color: #4A90E2;
+}
+
+.btn-primary:hover {
+  background-color: #357ABD;
+  border-color: #357ABD;
+}
+
+.btn-danger {
+  background-color: #D32F2F;
+  border-color: #D32F2F;
+}
+
+.btn-danger:hover {
+  background-color: #B71C1C;
+  border-color: #B71C1C;
+}
+
+.alert-danger {
+  background-color: #FFEBEE;
+  color: #B00020;
+  border-color: #FFCDD2;
+}
 </style>

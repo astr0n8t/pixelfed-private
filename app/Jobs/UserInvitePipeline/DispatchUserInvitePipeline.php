@@ -34,7 +34,7 @@ class DispatchUserInvitePipeline implements ShouldQueue
     {
         $invite = $this->invite;
 
-        Log::debug('Sending email to ', ['email' => $invite->email]);
+        Log::info('Sending email to ', ['invite' => $invite]);
         Mail::to($invite->email)->send(new UserInviteMessage($invite));
     }
 }
