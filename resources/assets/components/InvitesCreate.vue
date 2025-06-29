@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div class="web-wrapper">
+	<div class="container-fluid mt-3">
     <h2>Create Invite</h2>
     <form @submit.prevent="submitForm">
       <div class="form-group">
@@ -26,6 +27,7 @@
     </form>
     <div v-if="errors.general" class="alert alert-danger mt-3">
       {{ errors.general[0] }}
+    </div>
     </div>
   </div>
 </template>

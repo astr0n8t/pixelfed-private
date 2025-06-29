@@ -1,5 +1,6 @@
 <template>
-  <div>
+  <div class="web-wrapper">
+	<div class="container-fluid mt-3">
     <h2>My Invites</h2>
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
@@ -47,6 +48,7 @@
       <ul>
         <li v-for="error in errors" :key="error">{{ error }}</li>
       </ul>
+    </div>
     </div>
   </div>
 </template>
