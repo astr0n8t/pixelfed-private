@@ -11,6 +11,7 @@ use Illuminate\Queue\SerializesModels;
 use App\Models\UserInvite;
 use App\Mail\UserInviteMessage;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class DispatchUserInvitePipeline implements ShouldQueue
 {
@@ -33,6 +34,7 @@ class DispatchUserInvitePipeline implements ShouldQueue
     {
         $invite = $this->invite;
 
+        Log::debug('Sending email to ', ['email' => $invite->email]);
         Mail::to($invite->email)->send(new UserInviteMessage($invite));
     }
 }
