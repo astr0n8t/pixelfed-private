@@ -76,21 +76,6 @@ jobs:
         php_base:
           - fpm
 
-        # See: https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#excluding-matrix-configurations
-        # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrixexclude
-        exclude:
-          # targeting [apache] runtime with [fpm] base type doesn't make sense
-          - target_runtime: apache
-            php_base: fpm
-
-          # targeting [fpm] runtime with [apache] base type doesn't make sense
-          - target_runtime: fpm
-            php_base: apache
-
-          # targeting [nginx] runtime with [apache] base type doesn't make sense
-          - target_runtime: nginx
-            php_base: apache
-
     # See: https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#example-using-concurrency-and-the-default-behavior
     concurrency:
       group: docker-build-${{ github.ref }}-${{ matrix.php_base }}-${{ matrix.php_version }}-${{ matrix.target_runtime }}
