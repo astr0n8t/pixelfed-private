@@ -110,7 +110,7 @@ class GroupService
 
 	public static function sidToGid($gid, $pid)
 	{
-		return Cache::remember(self::key('s2gid:' . $gid . ':' . $pid), now()->addMinutes(60), now()->addMinutes(60), $pid) {
+		return Cache::remember(self::key('s2gid:' . $gid . ':' . $pid), now()->addMinutes(60), function() use($gid, $pid) {
 			return optional(GroupPost::whereGroupId($gid)->whereStatusId($pid)->first())->id;
 		});
 	}
@@ -230,7 +230,7 @@ class GroupService
 
 	public static function getInteractionLimits($gid, $pid)
 	{
-		return Cache::remember(self::key(":il:{$gid}:{$pid}"), now()->addMinutes(60), now()->addMinutes(60), $pid) {
+		return Cache::remember(self::key(":il:{$gid}:{$pid}"), now()->addMinutes(60), function() use($gid, $pid) {
 			$limit = GroupLimit::whereGroupId($gid)->whereProfileId($pid)->first();
 			if(!$limit) {
 				return [
@@ -318,7 +318,7 @@ class GroupService
 		}
 
 		$key = self::key("is_member:{$gid}:{$pid}");
-		return Cache::remember($key, now()->addMinutes(60), now()->addMinutes(60), $pid) {
+		return Cache::remember($key, now()->addMinutes(60), function() use($gid, $pid) {
 			return GroupMember::whereGroupId($gid)
 				->whereProfileId($pid)
 				->whereJoinRequest(false)

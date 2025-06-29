@@ -105,7 +105,7 @@ class DiscoverController extends Controller
                 return $res;
             }
             $key = 'discover:tags:public_feed:'.$hashtag->id.':page:'.$page;
-            $tags = Cache::remember($key, now()->addMinutes(60), function () use ($hashtag, now()->addMinutes(60), $end) {
+            $tags = Cache::remember($key, now()->addMinutes(60), function () use ($hashtag, $page, $end) {
                 return collect(StatusHashtagService::get($hashtag->id, $page, $end))
                     ->filter(function ($tag) {
                         if (! $tag['status']['local']) {
