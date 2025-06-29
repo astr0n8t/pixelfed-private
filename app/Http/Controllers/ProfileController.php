@@ -154,7 +154,7 @@ class ProfileController extends Controller
         }
         $hash = ($withTrashed ? 'wt:' : 'wot:').strtolower($username);
 
-        return Cache::remember('pfc:cached-user:'.$hash, $withTrashed ? now()->addMinutes(60) : 900), function () use ($username, $withTrashed) {
+        return Cache::remember('pfc:cached-user:'.$hash, $withTrashed ? now()->addMinutes(60) : 900, function () use ($username, $withTrashed) {
             if (! $withTrashed) {
                 return Profile::whereNull(['domain', 'status'])
                     ->whereUsername($username)
