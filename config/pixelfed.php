@@ -23,8 +23,7 @@ return [
 	| This value is the version of your Pixelfed instance.
 	|
 	*/
-	'git_version' => exec('git describe --tags | sed -En "s/v(.*)-private/\1+private/p"'),
-	'version' => env('PIXELFED_VERSION', !empty($git_version) ? $git_version : '0.12.5+private.0.1.0?'),
+	'version' => env('PIXELFED_VERSION', '0.12.5+private.0.1.0?'),
 
 	/*
 	|--------------------------------------------------------------------------

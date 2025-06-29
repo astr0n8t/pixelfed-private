@@ -23,43 +23,18 @@ class Nodeinfo
             } else {
                 $postCount = InstanceService::totalLocalStatuses();
             }
-    
+
             $features = ['features' => \App\Util\Site\Config::get()['features']];
             unset($features['features']['hls']);
 
             return [
-                'metadata' => [
-                    'nodeName' => config_cache('app.name'),
-                    'software' => [
-                        'homepage'  => 'https://pixelfed-glitch.github.io/docs',
-                        'repo'      => 'https://github.com/pixelfed-glitch/pixelfed',
-                    ],
-                    'config' => $features,
-                ],
-                'protocols' => [
-                    'activitypub',
-                ],
-                'services' => [
-                    'inbound' => [],
-                    'outbound' => [],
-                ],
                 'software' => [
                     'name' => 'pixelfed',
                     'version' => config('pixelfed.version'),
                 ],
-                'usage' => [
-                    'localPosts' => (int) $postCount,
-                    'localComments' => 0,
-                    'users' => [
-                        'total' => (int) $users,
-                        'activeHalfyear' => (int) $activeHalfYear,
-                        'activeMonth' => (int) $activeMonth,
-                    ],
-                ],
                 'version' => '2.0',
             ];
         });
-        $res['openRegistrations'] = (bool) config_cache('pixelfed.open_registration');
 
         return $res;
     }
