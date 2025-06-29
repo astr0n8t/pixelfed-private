@@ -120,61 +120,35 @@ export default {
 
 <style scoped>
 .invites-container {
-  background-color: #F8FAFC;
+  background-color: var(--container-bg);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-color);
 }
 
 .invites-title {
-  color: #1A202C;
+  color: var(--text-color);
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }
 
 .invites-table {
-  background-color: #FFFFFF;
+  background-color: var(--bg-color);
 }
 
 .invites-table th {
-  background-color: #E2E8F0;
-  color: #1A202C;
+  background-color: var(--table-header-bg);
+  color: var(--text-color);
   font-weight: 600;
   padding: 12px;
 }
 
 .invites-table td {
-  color: #1A202C;
+  color: var(--text-color);
   padding: 12px;
 }
 
 .invites-table tbody tr:hover {
-  background-color: #EDF2F7;
-}
-
-.btn-primary {
-  background-color: #4A90E2;
-  border-color: #4A90E2;
-}
-
-.btn-primary:hover {
-  background-color: #357ABD;
-  border-color: #357ABD;
-}
-
-.btn-danger {
-  background-color: #D32F2F;
-  border-color: #D32F2F;
-}
-
-.btn-danger:hover {
-  background-color: #B71C1C;
-  border-color: #B71C1C;
-}
-
-.alert-danger {
-  background-color: #FFEBEE;
-  color: #B00020;
-  border-color: #FFCDD2;
+  background-color: var(--table-hover-bg);
 }
 </style>

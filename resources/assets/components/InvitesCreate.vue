@@ -69,14 +69,14 @@ export default {
 
 <style scoped>
 .invites-container {
-  background-color: #F8FAFC;
+  background-color: var(--container-bg);
   padding: 20px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-color);
 }
 
 .invites-title {
-  color: #1A202C;
+  color: var(--text-color);
   font-size: 1.5rem;
   margin-bottom: 1rem;
 }
@@ -85,40 +85,25 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-.form-group label {
-  color: #1A202C;
+.formබform-group label {
+  color: var(--text-color);
   font-weight: 500;
 }
 
 .form-control {
-  border-color: #E2E8F0 !important;
-  color: #1A202C !important;
+  border-color: var(--table-header-bg);
+  color: var(--text-color);
 }
 
 .form-control:focus {
-  border-color: #4A90E2 !important;
-  box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.2rem var(--primary-color-shadow, rgba(74, 144, 226, 0.25));
 }
 
 .text-danger {
-  color: #B00020;
+  color: var(--error-color);
   font-size: 0.875rem;
   margin-top: 0.25rem;
 }
-
-.btn-primary {
-  background-color: #4A90E2;
-  border-color: #4A90E2;
-}
-
-.btn-primary:hover {
-  background-color: #357ABD;
-  border-color: #357ABD;
-}
-
-.alert-danger {
-  background-color: #FFEBEE;
-  color: #B00020;
-  border-color: #FFCDD2;
-}
 </style>
+
