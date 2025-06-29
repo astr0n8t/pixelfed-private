@@ -46,7 +46,7 @@ export default {
   methods: {
     fetchInvites() {
       axios
-        .get('/settings/invites', { headers: { Accept: 'application/json' } })
+        .get('/i/invites', { headers: { Accept: 'application/json' } })
         .then(response => {
           this.invites = response.data;
         })
@@ -58,7 +58,7 @@ export default {
     deleteInvite(id) {
       if (confirm('Are you sure you want to delete this invite?')) {
         axios
-          .post('/settings/invites/delete', { id })
+          .post('/i/invites/delete', { id })
           .then(() => {
             this.fetchInvites();
           })
