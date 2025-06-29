@@ -35,3 +35,5 @@ else
     done
 fi
 
+sh -c 'cd /var/www && git init'
+su www-data -s /bin/bash -c 'git config --global --add safe.directory /var/www'
