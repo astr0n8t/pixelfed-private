@@ -34,3 +34,5 @@ else
         stream-prefix-command-output run-as-current-user chown --recursive "${RUNTIME_UID}:${RUNTIME_GID}" "${path}"
     done
 fi
+
+/bin/sh -c 'cd /var/www && git init && git config --global --add safe.directory /var/www'
