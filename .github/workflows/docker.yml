@@ -13,7 +13,7 @@ on:
       - "*"
   pull_request:
     branches: [ "main" ]
-    
+
 jobs:
   lint:
     name: hadolint
@@ -101,7 +101,7 @@ jobs:
 
       - name: Set version
         id: pixelfed_version
-        run: echo "PIXELFED_VERSION=$(git describe --tags | sed -En "s/v(.*)-glitch/\1+glitch/p")" >> $GITHUB_OUTPUT
+        run: echo "PIXELFED_VERSION=0.12.5+private.0.1.0" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
