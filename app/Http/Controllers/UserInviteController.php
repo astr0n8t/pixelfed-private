@@ -38,23 +38,17 @@ class UserInviteController extends Controller
         }
     }
 
-	public function create(Request $request)
-	{
-        $this->authPreflight($request);
-		return view('invites.create');
-	}
-
-	public function show(Request $request)
+	public function get(Request $request)
 	{
         $this->authPreflight($request);
         $invites = UserInvite::whereUserId(Auth::id())->paginate(10);
         if ($request->wantsJson()) {
             return response()->json($invites);
         }
-        return view('invites.home', compact('invites'));
+		return redirect(route('invites.home'));
 	}
 
-	public function store(Request $request)
+	public function create(Request $request)
 	{
         $this->authPreflight($request);
 		$this->validate($request, [
@@ -93,6 +87,10 @@ class UserInviteController extends Controller
             ->findOrFail($request->input('id'));
 
         $invite->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['success' => true]);
+        }
 
 		return redirect(route('invites.home'));
     }

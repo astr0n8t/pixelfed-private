@@ -75,7 +75,7 @@ export default {
     fetchInvites(page = 1) {
       this.loading = true;
       axios
-        .get('/i/invites', {
+        .get('/api/invites/get', {
           headers: { Accept: 'application/json' },
           params: { page }
         })
@@ -100,7 +100,7 @@ export default {
       if (confirm('Are you sure you want to delete this invite?')) {
         this.loading = true;
         axios
-          .post('/i/invites/delete', { id })
+          .post('/api/invites/delete', { id })
           .then(() => {
             this.fetchInvites(this.pagination.current_page);
           })
@@ -116,11 +116,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.table {
-  margin-top: 20px;
-}
-.pagination {
-  margin-top: 15px;
-}
-</style>

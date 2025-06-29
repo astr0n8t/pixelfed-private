@@ -209,11 +209,6 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
 
         Route::get('collections/create', 'CollectionController@create');
 
-        Route::get('invites/create', 'UserInviteController@create')->name('invites.create');
-        Route::post('invites/create', 'UserInviteController@store');
-        Route::post('invites/delete', 'UserInviteController@delete');
-        Route::get('invites', 'UserInviteController@show')->name('invites.home');
-
         Route::get('me', 'ProfileController@meRedirect');
         Route::get('intent/follow', 'SiteController@followIntent');
         Route::get('rs/{id}', 'StoryController@remoteStory');

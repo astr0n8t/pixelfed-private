@@ -46,7 +46,7 @@ export default {
   methods: {
     submitForm() {
       axios
-        .post('/i/invites/create', this.form)
+        .post('/api/invites/create', this.form)
         .then(() => {
           this.$router.push('/');
         })
