@@ -330,6 +330,8 @@ ARG PHP_VERSION
 
 ENV PHP_VERSION=${PHP_VERSION}
 
+RUN cd /var/www && git init && git config --global --add safe.directory /var/www && mv /root/.gitconfig /var/www/.gitconfig
+
 EXPOSE 9000
 
 CMD ["sh", "-c", "php-fpm${PHP_VERSION}"]
@@ -362,6 +364,8 @@ RUN --mount=type=cache,id=pixelfed-apt-lists-${PHP_VERSION}-${PHP_DEBIAN_RELEASE
 # copy docker entrypoints from the *real* nginx image directly
 COPY --link --from=nginx-image /docker-entrypoint.d /docker/entrypoint.d/
 COPY docker/rootfs/nginx /
+
+RUN cd /var/www && git init && git config --global --add safe.directory /var/www && mv /root/.gitconfig /var/www/.gitconfig
 
 STOPSIGNAL SIGQUIT
 
