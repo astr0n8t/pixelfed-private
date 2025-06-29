@@ -148,7 +148,7 @@ return [
     ],
 
     'software-update' => [
-        'disable_failed_warning' => env('INSTANCE_SOFTWARE_UPDATE_DISABLE_FAILED_WARNING', true),
+        'disable_failed_warning' => env('INSTANCE_SOFTWARE_UPDATE_DISABLE_FAILED_WARNING', false),
     ],
 
     'notifications' => [

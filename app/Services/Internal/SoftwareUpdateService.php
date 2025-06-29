@@ -63,7 +63,7 @@ class SoftwareUpdateService
                 ->timeout(5)
                 ->connectTimeout(5)
                 ->retry(2, 500)
-                ->get('https://api.github.com/repos/pixelfed-glitch/pixelfed/releases/latest');
+                ->get('https://api.github.com/repos/astr0n8t/pixelfed-private/releases/latest');
         } catch (RequestException $e) {
             return;
         } catch (ConnectionException $e) {
