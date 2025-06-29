@@ -23,7 +23,7 @@ return [
 	| This value is the version of your Pixelfed instance.
 	|
 	*/
-	'version' => env('PIXELFED_VERSION', '0.12.5+private.0.1.0?'),
+	'version' => env('PIXELFED_VERSION', '0.12.5+private.0.1.0'),
 
 	/*
 	|--------------------------------------------------------------------------
