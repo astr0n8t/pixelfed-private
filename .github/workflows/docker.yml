@@ -11,7 +11,9 @@ on:
       - main
     tags:
       - "*"
-
+  pull_request:
+    branches: [ "main" ]
+    
 jobs:
   lint:
     name: hadolint
@@ -65,16 +67,13 @@ jobs:
       # See: https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs
       matrix:
         php_version:
-          - 8.3
           - 8.4
         debian_release:
           - bookworm
         target_runtime:
-          - apache
           - fpm
           - nginx
         php_base:
-          - apache
           - fpm
 
         # See: https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#excluding-matrix-configurations
