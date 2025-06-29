@@ -1,7 +1,7 @@
 <template>
   <div class="web-wrapper">
 	<div class="container-fluid mt-3">
-	<div class="card">
+	<div class="card card-body shadow-sm">
     <h2 class="invites-title">Create Invite</h2>
     <form @submit.prevent="submitForm">
       <div class="form-group">
