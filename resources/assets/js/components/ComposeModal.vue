@@ -226,7 +226,7 @@
 											<a class="btn btn-outline-lighter rounded-pill mx-3" href="#" @click.prevent="showTagCard()">
 												<i class="fas fa-user-plus px-3"></i>
 											</a> -->
-											<a class="btn rounded-pill mx-3 d-inline-flex align-items-center" href="#" :class="[nsfw ? 'btn-danger' : 'btn-outline-lighter']" style="height: 37px;" @click.prevent="nsfw = !nsfw" title="Mark as sensitive/not safe for work">
+											<a v-if="config.nsfw.enable" class="btn rounded-pill mx-3 d-inline-flex align-items-center" href="#" :class="[nsfw ? 'btn-danger' : 'btn-outline-lighter']" style="height: 37px;" @click.prevent="nsfw = !nsfw" title="Mark as sensitive/not safe for work">
 												<i class="far fa-flag px-3"></i> <span class="text-muted small font-weight-bold"></span>
 											</a>
 											<a class="btn btn-outline-lighter rounded-pill d-inline-flex align-items-center" href="#" style="height: 37px;" @click.prevent="showVisibilityCard()">
@@ -419,7 +419,7 @@
 								</span>
 							</p>
 						</div>
-						<div class="border-bottom px-4 mb-0 py-2">
+						<div v-if="config.nsfw.enable" class="border-bottom px-4 mb-0 py-2">
 							<div class="d-flex justify-content-between">
 								<div>
 									<div class="text-dark ">Sensitive/NSFW Media</div>
@@ -760,7 +760,7 @@
 						</div>
 
 
-						<div class="border-bottom d-flex justify-content-between px-4 mb-0 py-2 ">
+						<div v-if="config.nsfw.enable" class="border-bottom d-flex justify-content-between px-4 mb-0 py-2 ">
 							<div>
 								<div class="text-dark ">Contains NSFW Media</div>
 							</div>

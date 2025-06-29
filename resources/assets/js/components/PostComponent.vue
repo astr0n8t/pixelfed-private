@@ -496,7 +496,7 @@
 						</span>
 					</div>
 					<div class="d-flex align-items-center">
-						<div class="custom-control custom-switch mr-3">
+						<div v-if="config.nsfw.enable" class="custom-control custom-switch mr-3">
 							<input type="checkbox" class="custom-control-input" id="replyModalCWSwitch" v-model="replySensitive">
 							<label :class="[replySensitive ? 'custom-control-label font-weight-bold text-dark':'custom-control-label text-lighter']" for="replyModalCWSwitch">Mark as NSFW</label>
 						</div>
