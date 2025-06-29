@@ -1,7 +1,7 @@
 <template>
   <div class="web-wrapper">
 	<div class="container-fluid mt-3">
-	<div class="invites-container">
+	<div class="card">
     <h2 class="invites-title">My Invites</h2>
     <div v-if="loading" class="text-center">
       <div class="spinner-border" role="status">
@@ -118,37 +118,3 @@ export default {
 };
 </script>
 
-<style scoped>
-.invites-container {
-  background-color: var(--container-bg);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: var(--shadow-color);
-}
-
-.invites-title {
-  color: var(--text-color);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.invites-table {
-  background-color: var(--bg-color);
-}
-
-.invites-table th {
-  background-color: var(--table-header-bg);
-  color: var(--text-color);
-  font-weight: 600;
-  padding: 12px;
-}
-
-.invites-table td {
-  color: var(--text-color);
-  padding: 12px;
-}
-
-.invites-table tbody tr:hover {
-  background-color: var(--table-hover-bg);
-}
-</style>

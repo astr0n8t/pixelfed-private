@@ -1,7 +1,7 @@
 <template>
   <div class="web-wrapper">
 	<div class="container-fluid mt-3">
-	<div class="invites-container">
+	<div class="card">
     <h2 class="invites-title">Create Invite</h2>
     <form @submit.prevent="submitForm">
       <div class="form-group">
@@ -66,44 +66,4 @@ export default {
   }
 };
 </script>
-
-<style scoped>
-.invites-container {
-  background-color: var(--container-bg);
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: var(--shadow-color);
-}
-
-.invites-title {
-  color: var(--text-color);
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.formබform-group label {
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.form-control {
-  border-color: var(--table-header-bg);
-  color: var(--text-color);
-}
-
-.form-control:focus {
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 0.2rem var(--primary-color-shadow, rgba(74, 144, 226, 0.25));
-}
-
-.text-danger {
-  color: var(--error-color);
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-}
-</style>
 
