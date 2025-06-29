@@ -43,7 +43,7 @@ class SeasonalController extends Controller
 		$userKey = 'seasonal:my2020:user:' . $uid;
 		$userTtl = now()->addMonths(3);
 
-		$shared = Cache::remember($siteKey, $siteTtl, function() use($epochStart, $epochEnd) {
+		$shared = Cache::remember($siteKey, now()->addMinutes(60), $epochEnd) {
 			return [
 				'average' => [
 					'posts' => round(Status::selectRaw('*, count(profile_id) as count')
@@ -125,7 +125,7 @@ class SeasonalController extends Controller
 			];
 		});
 
-		$res = Cache::remember($userKey, $userTtl, function() use($uid, $pid, $epochStart, $epochEnd, $request) {
+		$res = Cache::remember($userKey, now()->addMinutes(60), $request) {
 			return [
 				'account' => [
 					'user_id' => $request->user()->id,

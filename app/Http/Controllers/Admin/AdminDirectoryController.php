@@ -330,7 +330,7 @@ trait AdminDirectoryController
 
     public function directoryGetPopularPosts(Request $request)
     {
-        $ids = Cache::remember('admin:api:popular_posts', 86400, function () {
+        $ids = Cache::remember('admin:api:popular_posts', now()->addMinutes(60), function () {
             return Status::whereLocal(true)
                 ->whereScope('public')
                 ->whereType('photo')

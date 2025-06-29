@@ -62,7 +62,7 @@ class CollectionService
 
 	public static function getCollection($id)
 	{
-		$collection = Cache::remember(self::CACHE_KEY . 'get:' . $id, 86400, function() use($id) {
+		$collection = Cache::remember(self::CACHE_KEY . 'get:' . $id, now()->addMinutes(60), function() use($id) {
 			$collection = Collection::find($id);
 			if(!$collection) {
 				return false;

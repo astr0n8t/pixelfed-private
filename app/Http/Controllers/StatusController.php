@@ -145,7 +145,7 @@ class StatusController extends Controller
             return response($content)->header('X-Frame-Options', 'ALLOWALL');
         }
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], 3600, function () use ($profile) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], now()->addMinutes(60), function () use ($profile) {
             $user = Profile::find($profile['id']);
             if (! $user) {
                 return true;
@@ -352,7 +352,7 @@ class StatusController extends Controller
     {
         $key = 'pf:status:ap:v1:sid:'.$status['id'];
 
-        return Cache::remember($key, 3600, function () use ($status) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($status) {
             $status = Status::findOrFail($status['id']);
             $object = $status->type == 'poll' ? new Question : new Note;
             $fractal = new Fractal\Manager;

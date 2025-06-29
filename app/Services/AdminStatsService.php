@@ -38,7 +38,7 @@ class AdminStatsService
 
     public static function storage()
     {
-        return Cache::remember('admin:dashboard:storage:stats', 120000, function () {
+        return Cache::remember('admin:dashboard:storage:stats', now()->addMinutes(60), function () {
             $res = [];
 
             $res['last_updated'] = str_replace('+00:00', 'Z', now()->format(DATE_RFC3339_EXTENDED));
@@ -78,7 +78,7 @@ class AdminStatsService
         $day = config('database.default') == 'pgsql' ? 'DATE_PART(\'day\',' : 'day(';
         $ttl = now()->addMinutes(15);
 
-        return Cache::remember('admin:dashboard:home:data:v0:15min', $ttl, function () {
+        return Cache::remember('admin:dashboard:home:data:v0:15min', now()->addMinutes(60), function () {
             return [
                 'contact' => PrettyNumber::convert(Contact::whereNull('read_at')->count()),
                 'contact_monthly' => PrettyNumber::convert(Contact::whereNull('read_at')->where('created_at', '>', now()->subMonth())->count()),
@@ -92,7 +92,7 @@ class AdminStatsService
     {
         $ttl = now()->addHours(24);
 
-        return Cache::remember('admin:dashboard:home:data:v0:24hr', $ttl, function () {
+        return Cache::remember('admin:dashboard:home:data:v0:24hr', now()->addMinutes(60), function () {
             return [
                 'failedjobs' => PrettyNumber::convert(FailedJob::where('failed_at', '>=', \Carbon\Carbon::now()->subDay())->count()),
                 'statuses' => PrettyNumber::convert(intval(StatusService::totalLocalStatuses())),
@@ -113,7 +113,7 @@ class AdminStatsService
     {
         $ttl = now()->addHours(24);
 
-        return Cache::remember('admin:dashboard:home:data-summary:v0:24hr', $ttl, function () {
+        return Cache::remember('admin:dashboard:home:data-summary:v0:24hr', now()->addMinutes(60), function () {
             return [
                 'statuses' => PrettyNumber::convert(intval(StatusService::totalLocalStatuses())),
                 'real_statuses' => PrettyNumber::convert(intval(StatusService::totalRealLocalStatuses())),
@@ -128,7 +128,7 @@ class AdminStatsService
     {
         $ttl = now()->addHours(12);
 
-        return Cache::remember('admin:dashboard:home:data-postsGraph:v0.1:24hr', $ttl, function () {
+        return Cache::remember('admin:dashboard:home:data-postsGraph:v0.1:24hr', now()->addMinutes(60), function () {
             $gb = config('database.default') == 'pgsql' ? ['statuses.id', 'created_at'] : DB::raw('Date(created_at)');
             $s = Status::selectRaw('Date(created_at) as date, count(statuses.id) as count')
                 ->where('created_at', '>=', now()->subWeek())

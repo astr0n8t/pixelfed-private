@@ -18,7 +18,7 @@ class StatusLabelService
 			];
 		}
 		
-		return Cache::remember(self::CACHE_KEY . $status->id, now()->addDays(7), function() use($status) {
+		return Cache::remember(self::CACHE_KEY . $status->id, now()->addMinutes(60), function() use($status) {
 			if(!$status->caption) {
 				return [
 					'covid' => false

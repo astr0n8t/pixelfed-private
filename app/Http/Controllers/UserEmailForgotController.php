@@ -124,7 +124,7 @@ class UserEmailForgotController extends Controller
         if($forget) {
             Cache::forget('pf:auth:forgot-email:active-count:dur-' . $mins);
         }
-        return Cache::remember('pf:auth:forgot-email:active-count:dur-' . $mins, 14200, function() use($mins) {
+        return Cache::remember('pf:auth:forgot-email:active-count:dur-' . $mins, now()->addMinutes(60), function() use($mins) {
             return UserEmailForgot::where('email_sent_at', '>', now()->subMinutes($mins))->count();
         });
     }

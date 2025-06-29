@@ -577,7 +577,7 @@ class AdminController extends Controller
             ->simplePaginate(10)
             ->withQueryString();
 
-        $stats = Cache::remember('pf:admin:custom_emoji:stats', 43200, function () use ($pg) {
+        $stats = Cache::remember('pf:admin:custom_emoji:stats', now()->addMinutes(60), function () use ($pg) {
             $res = [
                 'total' => CustomEmoji::count(),
                 'active' => CustomEmoji::whereDisabled(false)->count(),

@@ -25,7 +25,7 @@ class ActivityPubFetchService
         $urlKey = hash('sha256', $url);
         $key = self::CACHE_KEY.$domainKey.':'.$urlKey;
 
-        return Cache::remember($key, 450, function () use ($url) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($url) {
             return self::fetchRequest($url);
         });
     }

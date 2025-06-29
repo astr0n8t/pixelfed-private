@@ -19,7 +19,7 @@ class AutolinkService
         }
         $name = Purify::clean(strtolower($username));
 
-        return Cache::remember(self::CACHE_KEY.base64_encode($name), 7200, function () use ($name) {
+        return Cache::remember(self::CACHE_KEY.base64_encode($name), now()->addMinutes(60), function () use ($name) {
             return Profile::where('username', $name)->exists();
         });
     }

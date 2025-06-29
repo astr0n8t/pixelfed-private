@@ -135,7 +135,7 @@ class SearchController extends Controller
         $tag = $this->term;
         $key = $this->cacheKey.'hashtags:'.$this->hash;
         $ttl = now()->addMinutes(1);
-        $tokens = Cache::remember($key, $ttl, function () use ($tag) {
+        $tokens = Cache::remember($key, now()->addMinutes(60), function () use ($tag) {
             $htag = Str::startsWith($tag, '#') == true ? mb_substr($tag, 1) : $tag;
             $hashtags = Hashtag::select('id', 'name', 'slug')
                 ->where('slug', 'like', '%'.$htag.'%')
@@ -165,7 +165,7 @@ class SearchController extends Controller
         $tag = $this->term;
         // $key = $this->cacheKey . 'places:' . $this->hash;
         // $ttl = now()->addHours(12);
-        // $tokens = Cache::remember($key, $ttl, function() use($tag) {
+        // $tokens = Cache::remember($key, now()->addMinutes(60), function() use($tag) {
         $htag = Str::contains($tag, ',') == true ? explode(',', $tag) : [$tag];
         $hashtags = Place::select('id', 'name', 'slug', 'country')
             ->where('name', 'like', '%'.$htag[0].'%')
@@ -211,7 +211,7 @@ class SearchController extends Controller
             if (isset($remote['type']) &&
                 $remote['type'] == 'Person'
             ) {
-                $this->tokens['profiles'] = Cache::remember($remoteKey, $remoteTtl, function () use ($tag) {
+                $this->tokens['profiles'] = Cache::remember($remoteKey, now()->addMinutes(60), function () use ($tag) {
                     $item = Helpers::profileFirstOrNew($tag);
                     $tokens = [[
                         'count' => 1,
@@ -234,7 +234,7 @@ class SearchController extends Controller
                 });
             }
         } else {
-            $this->tokens['profiles'] = Cache::remember($key, $ttl, function () use ($tag) {
+            $this->tokens['profiles'] = Cache::remember($key, now()->addMinutes(60), function () use ($tag) {
                 if (Str::startsWith($tag, '@')) {
                     $tag = substr($tag, 1);
                 }

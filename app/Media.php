@@ -50,7 +50,7 @@ class Media extends Model
 
         return url(URL::temporarySignedRoute(
             'storage.file',
-            now()->addMinutes(30),
+            now()->addMinutes(60),
             ['file' => $this->media_path, 'user_id' => auth()->id()]
         ));
     }
@@ -64,7 +64,7 @@ class Media extends Model
         if (! $this->remote_media && $this->thumbnail_path) {
             return url(URL::temporarySignedRoute(
                 'storage.file',
-                now()->addMinutes(30),
+                now()->addMinutes(60),
                 ['file' => $this->thumbnail_path, 'user_id' => auth()->id()]
             ));
         }
@@ -78,7 +78,7 @@ class Media extends Model
                 $this->media_path :
                 url(URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $this->media_path, 'user_id' => auth()->id()]
                 ));
         }

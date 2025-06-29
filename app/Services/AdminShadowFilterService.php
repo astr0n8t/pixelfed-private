@@ -24,7 +24,7 @@ class AdminShadowFilterService
         if($refresh) {
             Cache::forget($key);
         }
-        return Cache::remember($key, 86400, function() {
+        return Cache::remember($key, now()->addMinutes(60), function() {
             return AdminShadowFilter::whereItemType('App\Profile')
                 ->whereActive(1)
                 ->where('hide_from_public_feeds', true)

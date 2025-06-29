@@ -47,7 +47,7 @@ class ProfileController extends Controller
 
         abort_unless($user, 404);
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$user->id, 3600, function () use ($user) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$user->id, now()->addMinutes(60), function () use ($user) {
             $exists = AccountInterstitial::whereUserId($user->user_id)->where('is_spam', 1)->count();
             if ($exists) {
                 return true;
@@ -72,7 +72,7 @@ class ProfileController extends Controller
         if (! $loggedIn) {
             $key = 'profile:settings:'.$user->id;
             $ttl = now()->addHours(6);
-            $settings = Cache::remember($key, $ttl, function () use ($user) {
+            $settings = Cache::remember($key, now()->addMinutes(60), function () use ($user) {
                 return $user->user->settings;
             });
 
@@ -105,7 +105,7 @@ class ProfileController extends Controller
         } else {
             $key = 'profile:settings:'.$user->id;
             $ttl = now()->addHours(6);
-            $settings = Cache::remember($key, $ttl, function () use ($user) {
+            $settings = Cache::remember($key, now()->addMinutes(60), function () use ($user) {
                 return $user->user->settings;
             });
 
@@ -154,7 +154,7 @@ class ProfileController extends Controller
         }
         $hash = ($withTrashed ? 'wt:' : 'wot:').strtolower($username);
 
-        return Cache::remember('pfc:cached-user:'.$hash, ($withTrashed ? 14400 : 900), function () use ($username, $withTrashed) {
+        return Cache::remember('pfc:cached-user:'.$hash, $withTrashed ? now()->addMinutes(60) : 900), function () use ($username, $withTrashed) {
             if (! $withTrashed) {
                 return Profile::whereNull(['domain', 'status'])
                     ->whereUsername($username)
@@ -239,7 +239,7 @@ class ProfileController extends Controller
         abort_if(! $user, 404, 'Not found');
         abort_if($user->domain, 404);
 
-        return Cache::remember('pf:activitypub:user-object:by-id:'.$user->id, 1800, function () use ($user) {
+        return Cache::remember('pf:activitypub:user-object:by-id:'.$user->id, now()->addMinutes(60), function () use ($user) {
             $fractal = new Fractal\Manager();
             $resource = new Fractal\Resource\Item($user, new ProfileTransformer);
             $res = $fractal->createData($resource)->toArray();
@@ -260,7 +260,7 @@ class ProfileController extends Controller
 
         abort_if(! $profile || $profile['locked'] || ! $profile['local'], 404);
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], 3600, function () use ($profile) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], now()->addMinutes(60), function () use ($profile) {
             $uid = User::whereProfileId($profile['id'])->first();
             if (! $uid) {
                 return true;
@@ -275,7 +275,7 @@ class ProfileController extends Controller
 
         abort_if($aiCheck, 404);
 
-        $enabled = Cache::remember('profile:atom:enabled:'.$profile['id'], 86400, function () use ($profile) {
+        $enabled = Cache::remember('profile:atom:enabled:'.$profile['id'], now()->addMinutes(60), function () use ($profile) {
             $uid = User::whereProfileId($profile['id'])->first();
             if (! $uid) {
                 return false;
@@ -290,7 +290,7 @@ class ProfileController extends Controller
 
         abort_if(! $enabled, 404);
 
-        $data = Cache::remember('pf:atom:user-feed:by-id:'.$profile['id'], 14400, function () use ($pid, $profile) {
+        $data = Cache::remember('pf:atom:user-feed:by-id:'.$profile['id'], now()->addMinutes(60), function () use ($pid, $profile) {
             $items = Status::whereProfileId($pid)
                 ->whereScope('public')
                 ->whereIn('type', ['photo', 'photo:album'])
@@ -354,7 +354,7 @@ class ProfileController extends Controller
             return response($res)->withHeaders(['X-Frame-Options' => 'ALLOWALL']);
         }
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile->id, 3600, function () use ($profile) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile->id, now()->addMinutes(60), function () use ($profile) {
             $exists = AccountInterstitial::whereUserId($profile->user_id)->where('is_spam', 1)->count();
             if ($exists) {
                 return true;

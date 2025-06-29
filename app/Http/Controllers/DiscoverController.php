@@ -105,7 +105,7 @@ class DiscoverController extends Controller
                 return $res;
             }
             $key = 'discover:tags:public_feed:'.$hashtag->id.':page:'.$page;
-            $tags = Cache::remember($key, 43200, function () use ($hashtag, $page, $end) {
+            $tags = Cache::remember($key, now()->addMinutes(60), function () use ($hashtag, now()->addMinutes(60), $end) {
                 return collect(StatusHashtagService::get($hashtag->id, $page, $end))
                     ->filter(function ($tag) {
                         if (! $tag['status']['local']) {
@@ -157,7 +157,7 @@ class DiscoverController extends Controller
         ];
         $key = ':api:discover:trending:v2.12:range:'.$days;
 
-        $ids = Cache::remember($key, $ttls[$days], function () use ($days) {
+        $ids = Cache::remember($key, now()->addMinutes(60), function () use ($days) {
             $min_id = SnowflakeService::byDate(now()->subDays($days));
 
             return DB::table('statuses')
@@ -266,7 +266,7 @@ class DiscoverController extends Controller
         abort_if(! $request->user(), 404);
         $pid = $request->user()->profile_id;
         abort_if(! $this->config()['insights']['enabled'], 404);
-        $posts = Cache::remember('pf:discover:metro2:accinsights:popular:'.$pid, 43200, function () use ($pid) {
+        $posts = Cache::remember('pf:discover:metro2:accinsights:popular:'.$pid, now()->addMinutes(60), function () use ($pid) {
             return Status::whereProfileId($pid)
                 ->whereNotNull('likes_count')
                 ->orderByDesc('likes_count')
@@ -389,7 +389,7 @@ class DiscoverController extends Controller
 
         $pid = $request->user()->profile_id;
 
-        $ids = Cache::remember('api:v1.1:discover:accounts:popular', 14400, function () {
+        $ids = Cache::remember('api:v1.1:discover:accounts:popular', now()->addMinutes(60), function () {
             return DB::table('profiles')
                 ->where('is_private', false)
                 ->whereNull('status')

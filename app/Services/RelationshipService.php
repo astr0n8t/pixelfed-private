@@ -24,7 +24,7 @@ class RelationshipService
 			return self::defaultRelation($tid);
 		}
 
-		return Cache::remember(self::key("a_{$aid}:t_{$tid}"), 1209600, function() use($aid, $tid) {
+		return Cache::remember(self::key("a_{$aid}:t_{$tid}"), now()->addMinutes(60), function() use($aid, $tid) {
 			return [
 				'id' => (string) $tid,
 				'following' => Follower::whereProfileId($aid)->whereFollowingId($tid)->exists(),
@@ -104,7 +104,7 @@ class RelationshipService
 			return $res;
 		}
 
-		return Cache::remember(self::key("wd:a_{$aid}:t_{$tid}"), 1209600, function() use($aid, $tid, $res) {
+		return Cache::remember(self::key("wd:a_{$aid}:t_{$tid}"), now()->addMinutes(60), function() use($aid, $tid, $res) {
 			$tmp = Follower::whereProfileId($aid)->whereFollowingId($tid)->first();
 			if(!$tmp) {
 				$res['following_since'] = null;

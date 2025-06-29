@@ -13,7 +13,7 @@ class LandingService
     {
         $activeMonth = Nodeinfo::activeUsersMonthly();
 
-        $totalUsers = Cache::remember('api:nodeinfo:users', 43200, function () {
+        $totalUsers = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
             return User::whereNull('status')->count(); # Only get null status - these are the "active" users
         });
 
@@ -23,7 +23,7 @@ class LandingService
             $postCount = InstanceService::totalLocalStatuses();
         }
 
-        $contactAccount = Cache::remember('api:v1:instance-data:contact', 604800, function () {
+        $contactAccount = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
             if (config_cache('instance.admin.pid')) {
                 return AccountService::getMastodon(config_cache('instance.admin.pid'), true);
             }
@@ -34,7 +34,7 @@ class LandingService
                 null;
         });
 
-        $rules = Cache::remember('api:v1:instance-data:rules', 604800, function () {
+        $rules = Cache::remember('api:v1:instance-data:rules', now()->addMinutes(60), function () {
             return config_cache('app.rules') ?
                 collect(json_decode(config_cache('app.rules'), true))
                     ->map(function ($rule, $key) {

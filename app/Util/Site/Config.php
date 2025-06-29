@@ -11,7 +11,7 @@ class Config
 
     public static function get()
     {
-        return Cache::remember(self::CACHE_KEY, 900, function () {
+        return Cache::remember(self::CACHE_KEY, now()->addMinutes(60), function () {
             $hls = [
                 'enabled' => config('media.hls.enabled'),
             ];

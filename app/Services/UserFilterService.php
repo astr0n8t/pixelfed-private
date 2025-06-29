@@ -155,7 +155,7 @@ class UserFilterService
         }
         return Cache::remember(
             self::USER_DOMAIN_KEY . $pid,
-            21600,
+            now()->addMinutes(60),
             function() use($pid) {
                 return UserDomainBlock::whereProfileId($pid)->pluck('domain')->toArray();
         });

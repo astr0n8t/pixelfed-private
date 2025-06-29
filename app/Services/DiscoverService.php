@@ -27,7 +27,7 @@ class DiscoverService
 
 	public static function getForYou()
 	{
-		return Cache::remember('pf:services:discover:for-you', 21600, function() {
+		return Cache::remember('pf:services:discover:for-you', now()->addMinutes(60), function() {
 			return self::getDailyIdPool();
 		});
 	}

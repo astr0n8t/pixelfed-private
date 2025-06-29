@@ -35,7 +35,7 @@ class StoryApiV1Controller extends Controller
         $pid = $request->user()->profile_id;
 
         if (config('database.default') == 'pgsql') {
-            $s = Cache::remember(self::RECENT_KEY.$pid, self::RECENT_TTL, function () use ($pid) {
+            $s = Cache::remember(self::RECENT_KEY.$pid, now()->addMinutes(60), function () use ($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -52,7 +52,7 @@ class StoryApiV1Controller extends Controller
                     ->unique('profile_id');
             });
         } else {
-            $s = Cache::remember(self::RECENT_KEY.$pid, self::RECENT_TTL, function () use ($pid) {
+            $s = Cache::remember(self::RECENT_KEY.$pid, now()->addMinutes(60), function () use ($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -74,7 +74,7 @@ class StoryApiV1Controller extends Controller
                 'type' => $s->type,
                 'src' => url(URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $s->path, 'user_id' => auth()->id()]
                 )),
                 'duration' => $s->duration ?? 3,
@@ -122,7 +122,7 @@ class StoryApiV1Controller extends Controller
                         'type' => $s->type,
                         'src' => url(URL::temporarySignedRoute(
                             'storage.file',
-                            now()->addMinutes(30),
+                            now()->addMinutes(60),
                             ['file' => $s->path, 'user_id' => auth()->id()]
                         )),
                         'duration' => $s->duration,
@@ -155,7 +155,7 @@ class StoryApiV1Controller extends Controller
         $pid = $request->user()->profile_id;
 
         if (config('database.default') == 'pgsql') {
-            $s = Cache::remember(self::RECENT_KEY.$pid, self::RECENT_TTL, function () use ($pid) {
+            $s = Cache::remember(self::RECENT_KEY.$pid, now()->addMinutes(60), function () use ($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -172,7 +172,7 @@ class StoryApiV1Controller extends Controller
                     ->unique('profile_id');
             });
         } else {
-            $s = Cache::remember(self::RECENT_KEY.$pid, self::RECENT_TTL, function () use ($pid) {
+            $s = Cache::remember(self::RECENT_KEY.$pid, now()->addMinutes(60), function () use ($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -194,7 +194,7 @@ class StoryApiV1Controller extends Controller
                 'type' => $s->type,
                 'src' => url(URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $s->path, 'user_id' => auth()->id()]
                 )),
                 'duration' => $s->duration ?? 3,
@@ -253,7 +253,7 @@ class StoryApiV1Controller extends Controller
                         'type' => $s->type,
                         'src' => url(URL::temporarySignedRoute(
                             'storage.file',
-                            now()->addMinutes(30),
+                            now()->addMinutes(60),
                             ['file' => $s->path, 'user_id' => auth()->id()]
                         )),
                         'duration' => $s->duration,
@@ -318,7 +318,7 @@ class StoryApiV1Controller extends Controller
             'media_id' => (string) $story->id,
             'media_url' => url(URL::temporarySignedRoute(
                 'storage.file',
-                now()->addMinutes(30),
+                now()->addMinutes(60),
                 ['file' => $story->path, 'user_id' => auth()->id()]
             )).'?v='.time(),
             'media_type' => $story->type,
@@ -458,7 +458,7 @@ class StoryApiV1Controller extends Controller
             'story_id' => $story->id,
             'story_media_url' => url(URL::temporarySignedRoute(
                 'storage.file',
-                now()->addMinutes(30),
+                now()->addMinutes(60),
                 ['file' => $story->path, 'user_id' => auth()->id()]
             )),
             'caption' => $text,

@@ -123,7 +123,7 @@ class ReblogService
     public static function getPostReblogs($id, $start = 0, $stop = 10)
     {
         if (! Redis::zcard(self::REBLOGS_KEY.$id)) {
-            return Cache::remember(self::COLDBOOT_KEY.$id, 86400, function () use ($id) {
+            return Cache::remember(self::COLDBOOT_KEY.$id, now()->addMinutes(60), function () use ($id) {
                 return Status::whereReblogOfId($id)
                     ->pluck('id')
                     ->each(function ($reblog) use ($id) {

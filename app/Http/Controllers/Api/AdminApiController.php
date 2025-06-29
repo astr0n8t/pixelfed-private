@@ -508,7 +508,7 @@ class AdminApiController extends Controller
             Cache::forget($key);
         }
 
-        return Cache::remember($key, 86400, function () use ($id) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($id) {
             $user = User::findOrFail($id);
             $profile = $user->profile;
             $account = AccountService::get($user->profile_id, true);
@@ -814,7 +814,7 @@ class AdminApiController extends Controller
             Cache::forget('admin-api:instance-all-stats-v1');
         }
 
-        return Cache::remember('admin-api:instance-all-stats-v1', 1209600, function () {
+        return Cache::remember('admin-api:instance-all-stats-v1', now()->addMinutes(60), function () {
             $days = range(1, 7);
             $res = [
                 'cached_at' => now()->format('c'),

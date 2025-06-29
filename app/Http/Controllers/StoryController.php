@@ -44,7 +44,7 @@ class StoryController extends StoryComposeController
         $pid = $user->profile_id;
 
         if(config('database.default') == 'pgsql') {
-            $s = Cache::remember('pf:stories:recent-by-id:' . $pid, 900, function() use($pid) {
+            $s = Cache::remember('pf:stories:recent-by-id:' . $pid, now()->addMinutes(60), function() use($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -62,7 +62,7 @@ class StoryController extends StoryComposeController
             });
 
         } else {
-            $s = Cache::remember('pf:stories:recent-by-id:' . $pid, 900, function() use($pid) {
+            $s = Cache::remember('pf:stories:recent-by-id:' . $pid, now()->addMinutes(60), function() use($pid) {
                 return Story::select('stories.*', 'followers.following_id')
                     ->leftJoin('followers', 'followers.following_id', 'stories.profile_id')
                     ->where('followers.profile_id', $pid)
@@ -73,7 +73,7 @@ class StoryController extends StoryComposeController
             });
         }
 
-        $self = Cache::remember('pf:stories:recent-self:' . $pid, 21600, function() use($pid) {
+        $self = Cache::remember('pf:stories:recent-self:' . $pid, now()->addMinutes(60), function() use($pid) {
             return Story::whereProfileId($pid)
                 ->whereActive(true)
                 ->orderByDesc('id')
@@ -107,7 +107,7 @@ class StoryController extends StoryComposeController
                     'type' => $s->type,
                     'preview_url' => url(URL::temporarySignedRoute(
                         'storage.file',
-                        now()->addMinutes(30),
+                        now()->addMinutes(60),
                         ['file' => $s->path, 'user_id' => auth()->id()]
                     )),
                 ],
@@ -148,7 +148,7 @@ class StoryController extends StoryComposeController
                 'duration' => $s->duration,
                 'src' => url(URL::temporarySignedRoute(
                     'storage.file',
-                    now()->addMinutes(30),
+                    now()->addMinutes(60),
                     ['file' => $s->path, 'user_id' => auth()->id()]
                 )),
                 'created_at' => $s->created_at->toAtomString(),

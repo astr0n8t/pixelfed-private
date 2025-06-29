@@ -315,7 +315,7 @@ class PublicApiController extends Controller
                 $res = $timeline->toArray();
             }
         } else {
-            Cache::remember('api:v1:timelines:public:cache_check', 10368000, function () {
+            Cache::remember('api:v1:timelines:public:cache_check', now()->addMinutes(60), function () {
                 if (PublicTimelineService::count() == 0) {
                     PublicTimelineService::warmCache(true, 400);
                 }
@@ -384,7 +384,7 @@ class PublicApiController extends Controller
 
         $pid = $user->profile_id;
 
-        $following = Cache::remember('profile:following:'.$pid, 1209600, function () use ($pid) {
+        $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
             $following = Follower::whereProfileId($pid)->pluck('following_id');
 
             return $following->push($pid)->toArray();
@@ -590,7 +590,7 @@ class PublicApiController extends Controller
                 $res = $timeline->toArray();
             }
         } else {
-            Cache::remember('api:v1:timelines:network:cache_check', 10368000, function () {
+            Cache::remember('api:v1:timelines:network:cache_check', now()->addMinutes(60), function () {
                 if (NetworkTimelineService::count() == 0) {
                     NetworkTimelineService::warmCache(true, 400);
                 }
@@ -697,7 +697,7 @@ class PublicApiController extends Controller
                 return response()->json([]);
             }
             $pid = $user->profile_id;
-            $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(1440), function () use ($pid) {
+            $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
                 $following = Follower::whereProfileId($pid)->pluck('following_id');
 
                 return $following->push($pid)->toArray();
@@ -706,7 +706,7 @@ class PublicApiController extends Controller
         } else {
             if ($user) {
                 $pid = $user->profile_id;
-                $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(1440), function () use ($pid) {
+                $following = Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
                     $following = Follower::whereProfileId($pid)->pluck('following_id');
 
                     return $following->push($pid)->toArray();
