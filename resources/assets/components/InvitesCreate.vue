@@ -91,12 +91,12 @@ export default {
 }
 
 .form-control {
-  border-color: #E2E8F0;
-  color: #1A202C;
+  border-color: #E2E8F0 !important;
+  color: #1A202C !important;
 }
 
 .form-control:focus {
-  border-color: #4A90E2;
+  border-color: #4A90E2 !important;
   box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
 }
 

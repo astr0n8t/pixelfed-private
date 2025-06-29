@@ -25,6 +25,7 @@ class DispatchUserInvitePipeline implements ShouldQueue
     public function __construct(UserInvite $invite)
     {
         $this->invite = $invite;
+        Log::info('Constructing email', ['invite' => $invite]);
     }
 
     /**
