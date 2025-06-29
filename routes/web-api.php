@@ -33,7 +33,7 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['validemail', 'twofact
 
         Route::post('invites/create', 'UserInviteController@create');
         Route::post('invites/delete', 'UserInviteController@delete');
-        Route::get('invites/get', 'UserInviteController@get')
+        Route::get('invites/get', 'UserInviteController@get');
 
         Route::group(['prefix' => 'direct'], function () {
             Route::get('browse', 'DirectMessageController@browse');
