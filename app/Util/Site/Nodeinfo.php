@@ -11,21 +11,6 @@ class Nodeinfo
     public static function get()
     {
         $res = Cache::remember('api:nodeinfo', now()->addMinutes(60), function () {
-            $activeHalfYear = self::activeUsersHalfYear();
-            $activeMonth = self::activeUsersMonthly();
-
-            $users = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
-                return User::whereNull('status')->count(); # Only get null status - these are the "active" users
-            });
-
-            if ((bool) config('instance.glitch.real_stat_count') == true) {
-                $postCount = InstanceService::totalRealLocalStatuses();
-            } else {
-                $postCount = InstanceService::totalLocalStatuses();
-            }
-
-            $features = ['features' => \App\Util\Site\Config::get()['features']];
-            unset($features['features']['hls']);
 
             return [
                 'software' => [
