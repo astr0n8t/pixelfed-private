@@ -1,37 +1,74 @@
 <template>
-  <div class="invites-create">
+  <div>
     <h2>My Invites</h2>
-    <table v-if="invites.length">
-      <tr v-for="invite in invites" :key="invite.id">
-        <td>{{ invite.email }}</td>
-        <td>{{ invite.message }}</td>
-        <td><button @click="deleteInvite(invite.id)">Delete</button></td>
-      </tr>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Email</th>
+          <th>Message</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="invite in invites" :key="invite.id">
+          <td>{{ invite.id }}</td>
+          <td>{{ invite.email }}</td>
+          <td>{{ invite.message }}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" @click="deleteInvite(invite.id)">Delete</button>
+          </td>
+        </tr>
+      </tbody>
     </table>
-    <p v-else>No invites found.</p>
-    <router-link to="/i/invites/create">Invite Someone</router-link>
+    <router-link to="/create" class="btn btn-primary">Invite Someone</router-link>
+    <div v-if="errors.length" class="alert alert-danger mt-3">
+      <ul>
+        <li v-for="error in errors" :key="error">{{ error }}</li>
+      </ul>
+    </div>
   </div>
 </template>
+
 <script>
 import axios from 'axios';
+
 export default {
   data() {
-    return { invites: [] };
+    return {
+      invites: [],
+      errors: []
+    };
   },
   mounted() {
     this.fetchInvites();
   },
   methods: {
     fetchInvites() {
-      axios.get('/i/invites', { headers: { 'Accept': 'application/json' } })
-        .then(response => { this.invites = response.data; })
-        .catch(error => console.error(error));
+      axios
+        .get('/settings/invites', { headers: { Accept: 'application/json' } })
+        .then(response => {
+          this.invites = response.data;
+        })
+        .catch(error => {
+          console.error(error);
+          this.errors = ['Failed to fetch invites'];
+        });
     },
     deleteInvite(id) {
-      axios.post('/i/invites/delete', { id })
-        .then(() => this.fetchInvites())
-        .catch(error => console.error(error));
+      if (confirm('Are you sure you want to delete this invite?')) {
+        axios
+          .post('/settings/invites/delete', { id })
+          .then(() => {
+            this.fetchInvites();
+          })
+          .catch(error => {
+            console.error(error);
+            this.errors = ['Failed to delete invite'];
+          });
+      }
     }
   }
-}
+};
 </script>
+
