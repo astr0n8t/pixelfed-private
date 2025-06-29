@@ -205,7 +205,7 @@ USER ${RUNTIME_UID}:${RUNTIME_GID}
 FROM --platform=${BUILDARCH} node:lts AS frontend-build
 
 ARG BUILDARCH
-ARG BUILD_FRONTEND=0
+ARG BUILD_FRONTEND=1
 ARG RUNTIME_UID
 ARG RUNTIME_GID
 
@@ -319,33 +319,6 @@ USER root
 COPY docker/rootfs/shared /
 
 ENTRYPOINT ["/docker/entrypoint.sh"]
-
-#######################################################
-# Runtime: apache
-#######################################################
-
-FROM shared-runtime AS apache-runtime
-
-ARG PHP_DEBIAN_RELEASE
-ARG PHP_VERSION
-ARG TARGETPLATFORM
-
-COPY docker/rootfs/apache /
-
-# Install apache webserver
-RUN --mount=type=cache,id=pixelfed-apt-lists-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/lib/apt/lists \
-    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/cache/apt \
-    set -ex \
-    && apt-get update \
-    && apt-get install -y --no-install-recommends apache2
-
-RUN set -ex \
-    && a2dismod mpm_event \
-    && a2enmod php${PHP_VERSION} \
-    && a2enmod rewrite remoteip proxy proxy_http \
-    && a2enconf remoteip
-
-CMD ["apache2-foreground"]
 
 #######################################################
 # Runtime: fpm
