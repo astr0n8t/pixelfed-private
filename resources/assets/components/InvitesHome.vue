@@ -1,27 +1,48 @@
 <template>
   <div>
     <h2>My Invites</h2>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Email</th>
-          <th>Message</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="invite in invites" :key="invite.id">
-          <td>{{ invite.id }}</td>
-          <td>{{ invite.email }}</td>
-          <td>{{ invite.message }}</td>
-          <td>
-            <button class="btn btn-danger btn-sm" @click="deleteInvite(invite.id)">Delete</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-    <router-link to="/create" class="btn btn-primary">Invite Someone</router-link>
+    <div v-if="loading" class="text-center">
+      <div class="spinner-border" role="status">
+        <span class="sr-only">Loading...</span>
+      </div>
+    </div>
+    <div v-else-if="invites.length">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Email</th>
+            <th>Message</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="invite in invites" :key="invite.id">
+            <td>{{ invite.id }}</td>
+            <td>{{ invite.email }}</td>
+            <td>{{ invite.message || 'No message' }}</td>
+            <td>
+              <button class="btn btn-danger btn-sm" @click="deleteInvite(invite.id)">Delete</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <!-- Pagination Controls -->
+      <nav v-if="pagination.total > pagination.per_page">
+        <ul class="pagination">
+          <li class="page-item" :class="{ disabled: pagination.current_page === 1 }">
+            <a class="page-link" @click.prevent="fetchInvites(pagination.current_page - 1)">Previous</a>
+          </li>
+          <li class="page-item" :class="{ disabled: pagination.current_page === pagination.last_page }">
+            <a class="page-link" @click.prevent="fetchInvites(pagination.current_page + 1)">Next</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div v-else class="alert alert-info">
+      No invites found.
+    </div>
+    <router-link to="/i/invites/create" class="btn btn-primary mt-3">Invite Someone</router-link>
     <div v-if="errors.length" class="alert alert-danger mt-3">
       <ul>
         <li v-for="error in errors" :key="error">{{ error }}</li>
@@ -37,34 +58,57 @@ export default {
   data() {
     return {
       invites: [],
-      errors: []
+      pagination: {
+        current_page: 1,
+        last_page: 1,
+        per_page: 10,
+        total: 0
+      },
+      errors: [],
+      loading: false
     };
   },
   mounted() {
     this.fetchInvites();
   },
   methods: {
-    fetchInvites() {
+    fetchInvites(page = 1) {
+      this.loading = true;
       axios
-        .get('/i/invites', { headers: { Accept: 'application/json' } })
+        .get('/i/invites', {
+          headers: { Accept: 'application/json' },
+          params: { page }
+        })
         .then(response => {
-          this.invites = response.data;
+          this.invites = response.data.data || response.data;
+          this.pagination = {
+            current_page: response.data.current_page || 1,
+            last_page: response.data.last_page || 1,
+            per_page: response.data.per_page || 10,
+            total: response.data.total || response.data.length
+          };
         })
         .catch(error => {
-          console.error(error);
+          console.error('Fetch Error:', error);
           this.errors = ['Failed to fetch invites'];
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     deleteInvite(id) {
       if (confirm('Are you sure you want to delete this invite?')) {
+        this.loading = true;
         axios
           .post('/i/invites/delete', { id })
           .then(() => {
-            this.fetchInvites();
+            this.fetchInvites(this.pagination.current_page);
           })
           .catch(error => {
-            console.error(error);
             this.errors = ['Failed to delete invite'];
+          })
+          .finally(() => {
+            this.loading = false;
           });
       }
     }
@@ -72,3 +116,11 @@ export default {
 };
 </script>
 
+<style scoped>
+.table {
+  margin-top: 20px;
+}
+.pagination {
+  margin-top: 15px;
+}
+</style>
