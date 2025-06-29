@@ -10,6 +10,7 @@ entrypoint-set-script-name "$0"
 
 acquire-lock
 
+run-as-runtime-user /bin/sh -c 'git init && git config --global --add safe.directory /var/www'
 # Copy the [storage/] skeleton files over the "real" [storage/] directory so assets are updated between versions
 run-as-runtime-user cp --force --recursive storage.skel/. ./storage/
 

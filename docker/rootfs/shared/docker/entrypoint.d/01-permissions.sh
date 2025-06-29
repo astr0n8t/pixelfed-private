@@ -35,4 +35,3 @@ else
     done
 fi
 
-run-as-runtime-user /bin/sh -c 'cd /var/www && git init && git config --global --add safe.directory /var/www'
