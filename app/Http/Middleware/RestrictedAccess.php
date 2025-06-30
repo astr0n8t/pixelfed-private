@@ -28,7 +28,7 @@ class RestrictedAccess
                     'oauth/authorize',
                     'auth/invite/*',
                     'api/v1/apps',
-                    'api/v1.1/auth/invite/user/re',
+                    'api/v1.1/auth/invite/*',
                     'password*',
                     'api/service/health-check',
                     'storage/*',
