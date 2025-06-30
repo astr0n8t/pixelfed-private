@@ -82,6 +82,7 @@ use DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Passport\Passport;
 use League\Fractal;
 use League\Fractal\Serializer\ArraySerializer;
@@ -1712,7 +1713,7 @@ class ApiV1Controller extends Controller
                         ->toArray() : [];
             });
 
-            if(config('instance.restricted.enabled') && ! $request->user() && ! $request->user()->token()) {
+            if(config('instance.restricted.enabled') && !Auth::guard($guard)->check() && !Auth::guard('api')->check()) {
                 return [
                     'uri' => config('pixelfed.domain.app'),
                 ];
