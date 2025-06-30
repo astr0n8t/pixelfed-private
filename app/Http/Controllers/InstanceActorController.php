@@ -10,6 +10,7 @@ class InstanceActorController extends Controller
 {
 	public function profile()
 	{
+        abort_if(config('instance.restricted.enabled'), 404);
 		$res = Cache::rememberForever(InstanceActor::PROFILE_KEY, function() {
 			$res = (new InstanceActor())->first()->getActor();
 			return json_encode($res, JSON_UNESCAPED_SLASHES);
@@ -19,11 +20,13 @@ class InstanceActorController extends Controller
 
 	public function inbox()
 	{
+        abort_if(config('instance.restricted.enabled'), 404);
 		return;
 	}
 
 	public function outbox()
 	{
+        abort_if(config('instance.restricted.enabled'), 404);
 		$res = json_encode([
 			"@context" => [
                 "https://www.w3.org/ns/activitystreams",
