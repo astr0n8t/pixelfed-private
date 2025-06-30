@@ -1713,7 +1713,7 @@ class ApiV1Controller extends Controller
                         ->toArray() : [];
             });
 
-            if(config('instance.restricted.enabled') && !Auth::guard($guard)->check() && !Auth::guard('api')->check()) {
+            if(config('instance.restricted.enabled') && !Auth::guard('web')->check() && !Auth::guard('api')->check()) {
                 return [
                     'uri' => config('pixelfed.domain.app'),
                 ];
