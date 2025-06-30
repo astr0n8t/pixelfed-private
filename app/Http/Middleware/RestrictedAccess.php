@@ -24,6 +24,8 @@ class RestrictedAccess
             if (!Auth::guard($guard)->check()) {
                 $p = [
                     'login',
+                    'oauth/token',
+                    'oauth/authorize',
                     'auth/invite/*',
                     'api/v1.1/auth/invite/user/re',
                     'password*',
@@ -33,8 +35,6 @@ class RestrictedAccess
                 $userAgent = request()->header('User-Agent', 'unknown');
                 if(str_contains($userAgent, 'Pixelfed/')){
                     array_push($p,
-                        'oauth/token',
-                        'oauth/authorize',
                         'api/nodeinfo*',
                     );
                 }
