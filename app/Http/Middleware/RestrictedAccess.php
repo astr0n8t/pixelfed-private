@@ -21,10 +21,7 @@ class RestrictedAccess
     public function handle($request, Closure $next, $guard = null)
     {
         if(config('instance.restricted.enabled')) {
-            if ($guard == null) {
-                $guard = $guard ?? (request()->header('Authorization') ? 'api' : 'web');
-            }
-            if (!Auth::guard($guard)->check()) {
+            if (!Auth::guard($guard)->check() && !Auth::guard('api')->check()) {
                 $p = [
                     'login',
                     'oauth/token',
