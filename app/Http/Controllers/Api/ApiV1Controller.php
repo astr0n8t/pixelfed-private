@@ -1712,6 +1712,12 @@ class ApiV1Controller extends Controller
                         ->toArray() : [];
             });
 
+            if(config('instance.restricted.enabled') && ! $request->user() && ! $request->user()->token()) {
+                return [
+                    'uri' => config('pixelfed.domain.app'),
+                ];
+            }
+
             return [
                 'uri' => config('pixelfed.domain.app'),
                 'title' => config_cache('app.name'),
