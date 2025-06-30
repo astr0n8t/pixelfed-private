@@ -40,7 +40,7 @@ class RestrictedAccess
                     );
                 }
                 if(!$request->is($p)) {
-                    Log::debug('RestrictedAccess: Request path', ['path' => $request->path()]);
+                    Log::info('RestrictedAccess: Request path', ['path' => $request->path()]);
                     return redirect('/login');
                 }
             }
