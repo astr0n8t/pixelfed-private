@@ -33,13 +33,8 @@ class RestrictedAccess
                     'password*',
                     'api/service/health-check',
                     'storage/*',
+                    'api/nodeinfo*',
                 ];
-                $userAgent = request()->header('User-Agent', 'unknown');
-                if(str_contains($userAgent, 'Pixelfed/')){
-                    array_push($p,
-                        'api/nodeinfo*',
-                    );
-                }
                 if(!$request->is($p)) {
                     Log::debug('RestrictedAccess: Request path', ['path' => $request->path()]);
                     return redirect('/login');
