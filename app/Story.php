@@ -66,7 +66,7 @@ class Story extends Model
 		return url(URL::temporarySignedRoute(
             'storage.file',
             now()->addMinutes(60),
-            ['file' => $this->path, 'user_id' => auth()->id()]
+            ['file' => $this->path]
         ));
 	}
 

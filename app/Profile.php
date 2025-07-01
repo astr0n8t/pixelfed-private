@@ -199,7 +199,7 @@ class Profile extends Model
 				return URL::temporarySignedRoute(
                     'storage.file',
                     now()->addMinutes(60),
-                    ['file' => $path, 'user_id' => auth()->id()]
+                    ['file' => $path]
                 );
 			}
 
@@ -208,7 +208,7 @@ class Profile extends Model
 			return url(URL::temporarySignedRoute(
                 'storage.file',
                 now()->addMinutes(60),
-                ['file' => $path, 'user_id' => auth()->id()]
+                ['file' => $path]
             ));
 		});
 

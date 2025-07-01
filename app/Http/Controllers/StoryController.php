@@ -108,7 +108,7 @@ class StoryController extends StoryComposeController
                     'preview_url' => url(URL::temporarySignedRoute(
                         'storage.file',
                         now()->addMinutes(60),
-                        ['file' => $s->path, 'user_id' => auth()->id()]
+                        ['file' => $s->path]
                     )),
                 ],
                 'url' => $url,
@@ -149,7 +149,7 @@ class StoryController extends StoryComposeController
                 'src' => url(URL::temporarySignedRoute(
                     'storage.file',
                     now()->addMinutes(60),
-                    ['file' => $s->path, 'user_id' => auth()->id()]
+                    ['file' => $s->path]
                 )),
                 'created_at' => $s->created_at->toAtomString(),
                 'expires_at' => $s->expires_at->toAtomString(),

@@ -161,7 +161,7 @@ class Status extends Model
 		$url = $media->cdn_url ? $media->cdn_url . "?v={$hash}" : url(URL::temporarySignedRoute(
             'storage.file',
             now()->addMinutes(60),
-            ['file' => $path, 'user_id' => auth()->id()]
+            ['file' => $path]
         )."?v={$hash}");
 
 		return $url;
