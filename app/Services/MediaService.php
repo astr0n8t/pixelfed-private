@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Auth;
 use Cache;
 use Illuminate\Support\Facades\Redis;
 use App\Media;
