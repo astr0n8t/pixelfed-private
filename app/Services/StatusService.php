@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Auth;
 use App\Status;
 use App\Transformer\Api\StatusStatelessTransformer;
 use Illuminate\Support\Facades\Cache;
@@ -21,7 +22,7 @@ class StatusService
 
     public static function get($id, $publicOnly = true, $mastodonMode = false)
     {
-        $res = Cache::remember(self::key($id, $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
+        $res = Cache::remember(self::key($id . ':' . Auth::id(), $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
             if ($publicOnly) {
                 $status = Status::whereScope('public')->find($id);
             } else {
@@ -202,5 +203,5 @@ class StatusService
     public static function totalRealLocalStatuses()
     {
         return InstanceService::totalRealLocalStatuses();
-    }    
+    }
 }
