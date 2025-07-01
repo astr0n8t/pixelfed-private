@@ -2,6 +2,7 @@
 
 namespace App\Services\Groups;
 
+use Auth;
 use Cache;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Redis;
@@ -35,7 +36,7 @@ class GroupMediaService
 
     public static function get($statusId)
     {
-        return Cache::remember(self::CACHE_KEY.$statusId, now()->addMinutes(60), function() use($statusId) {
+        return Cache::remember(self::CACHE_KEY.$statusId. ':' . Auth::id(), now()->addMinutes(60), function() use($statusId) {
             $media = GroupMedia::whereStatusId($statusId)->orderBy('order')->get();
             if(!$media) {
                 return [];
