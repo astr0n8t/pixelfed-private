@@ -1141,7 +1141,7 @@ class Inbox
             'story_media_url' => url(URL::temporarySignedRoute(
                 'storage.file',
                 now()->addMinutes(60),
-                ['file' => $story->path]
+                ['file' => $story->path, 'user_id' => auth()->id()]
             )),
             'reaction' => $text,
         ]);
@@ -1265,7 +1265,7 @@ class Inbox
             'story_media_url' => url(URL::temporarySignedRoute(
                 'storage.file',
                 now()->addMinutes(60),
-                ['file' => $story->path]
+                ['file' => $story->path, 'user_id' => auth()->id()]
             )),
             'caption' => $text,
         ]);

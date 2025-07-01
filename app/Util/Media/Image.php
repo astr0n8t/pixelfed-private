@@ -181,7 +181,7 @@ class Image
 				$media->thumbnail_url = url(URL::temporarySignedRoute(
                     'storage.file',
                     now()->addMinutes(60),
-                    ['file' => $converted['path']]
+                    ['file' => $converted['path'], 'user_id' => auth()->id()]
                 ));
 			} else {
 				$media->width = $img->width();
