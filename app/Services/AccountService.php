@@ -84,34 +84,32 @@ class AccountService
 
     public static function settings($id)
     {
-        return Cache::remember('profile:compose:settings:'.$id, now()->addMinutes(60), function () use ($id) {
-            $settings = UserSetting::whereUserId($id)->first();
-            if (! $settings) {
-                return self::defaultSettings();
-            }
+        $settings = UserSetting::whereUserId($id)->first();
+        if (! $settings) {
+            return self::defaultSettings();
+        }
 
-            return collect($settings)
-                ->filter(function ($item, $key) {
-                    return in_array($key, array_keys(self::defaultSettings())) == true;
-                })
-                ->map(function ($item, $key) {
-                    if ($key == 'compose_settings') {
-                        $cs = self::defaultSettings()['compose_settings'];
-                        $ms = is_array($item) ? $item : [];
+        return collect($settings)
+            ->filter(function ($item, $key) {
+                return in_array($key, array_keys(self::defaultSettings())) == true;
+            })
+            ->map(function ($item, $key) {
+                if ($key == 'compose_settings') {
+                    $cs = self::defaultSettings()['compose_settings'];
+                    $ms = is_array($item) ? $item : [];
 
-                        return array_merge($cs, $ms);
-                    }
+                    return array_merge($cs, $ms);
+                }
 
-                    if ($key == 'other') {
-                        $other = self::defaultSettings()['other'];
-                        $mo = is_array($item) ? $item : [];
+                if ($key == 'other') {
+                    $other = self::defaultSettings()['other'];
+                    $mo = is_array($item) ? $item : [];
 
-                        return array_merge($other, $mo);
-                    }
+                    return array_merge($other, $mo);
+                }
 
-                    return $item;
-                });
-        });
+                return $item;
+            });
     }
 
     public static function getAccountSettings($pid)
