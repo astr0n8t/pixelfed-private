@@ -17,11 +17,6 @@
                         <p class="lead mb-1 text-muted">You've been invited to join</p>
                         <p class="h3 mb-2">{{ instance.uri }}</p>
                         <p class="mb-0 text-muted">
-                            <span>{{ instance.stats.user_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} users</span>
-                            <span>·</span>
-                            <span>{{ instance.stats.status_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} posts</span>
-                        </p>
-
                         <div v-if="inviteConfig.message != 'You\'ve been invited to join'">
                             <div class="admin-message">
                                 <p class="small text-light mb-0">Message from admin(s):</p>
