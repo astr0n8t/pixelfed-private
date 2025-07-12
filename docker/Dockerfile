@@ -353,7 +353,7 @@ ENV PHP_VERSION=${PHP_VERSION}
 RUN --mount=type=cache,id=pixelfed-apt-lists-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/lib/apt/lists \
     --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/cache/apt \
     set -ex \
-    && curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor > $NGINX_GPGKEY_PATH" \
+    && curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor > "$NGINX_GPGKEY_PATH" \
     && echo "deb [signed-by=${NGINX_GPGKEY_PATH}] https://nginx.org/packages/mainline/debian/ ${PHP_DEBIAN_RELEASE} nginx" >> /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
     && apt-get install -y --no-install-recommends nginx=${NGINX_VERSION}*
