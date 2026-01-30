@@ -7,12 +7,12 @@
 
 # See: https://nginx.org/
 #
-# renovate: datasource=docker depName=nginx versioning=semver
+# renovate: datasource=docker depName=public.ecr.aws/nginx/nginx versioning=semver
 ARG NGINX_VERSION="1.27.3"
 
-# See: https://github.com/ddollar/forego
+# See: https://github.com/nginx-proxy/forego
 #
-# renovate: datasource=docker depName=nginxproxy/forego
+# renovate: datasource=docker depName=ghcr.io/nginx-proxy/forego versioning=semver
 ARG FOREGO_VERSION="0.18.2"
 
 # See: https://github.com/hairyhenderson/gomplate
@@ -30,14 +30,14 @@ ARG DOTTIE_VERSION="v0.14.3"
 # renovate: datasource=github-releases depName=composer/composer
 ARG COMPOSER_VERSION="2.8.4"
 
-# See: https://github.com/jippi/dottie
+# See: https://mariadb.com/kb/en/mariadb-server-release-dates/
 #
-# renovate: datasource=docker depName=ghcr.io/jippi/dottie
+# renovate: datasource=docker depName=mariadb versioning=loose
 ARG MARIADB_CLIENT_VERSION="10.11"
 
-# See: https://github.com/jippi/dottie
+# See: https://www.postgresql.org/support/versioning/
 #
-# renovate: datasource=docker depName=ghcr.io/jippi/dottie
+# renovate: datasource=docker depName=postgres versioning=loose
 ARG POSTGRESQL_CLIENT_VERSION="17"
 
 ARG RUNTIME_UID=33 # often called 'www-data'
