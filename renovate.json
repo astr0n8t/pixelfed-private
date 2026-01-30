@@ -3,6 +3,13 @@
   "extends": [
     "config:recommended"
   ],
+  "packageRules": [
+    {
+      "description": "Disable regular dependency updates, only security updates are enabled",
+      "matchPackageNames": ["*"],
+      "enabled": false
+    }
+  ],
   "vulnerabilityAlerts": {
     "enabled": true
   },
