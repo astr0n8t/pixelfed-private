@@ -1,17 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
+    "config:recommended",
+    "security:only-security-updates"
   ],
-  "packageRules": [
-    {
-      "description": "Disable regular dependency updates, only security updates are enabled",
-      "matchPackageNames": ["*"],
-      "enabled": false
-    }
-  ],
-  "vulnerabilityAlerts": {
-    "enabled": true
-  },
-  "osvVulnerabilityAlerts": true
+  "dependencyDashboard": true
 }
