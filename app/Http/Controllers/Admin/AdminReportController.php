@@ -41,18 +41,18 @@ trait AdminReportController
         $filter = $request->input('filter') == 'closed' ? 'closed' : 'open';
         $page = $request->input('page') ?? 1;
 
-        $ai = Cache::remember('admin-dash:reports:ai-count', now()->addMinutes(60), function () {
+        $ai = Cache::remember('admin-dash:reports:ai-count', 3600, function () {
             return AccountInterstitial::whereNotNull('appeal_requested_at')->whereNull('appeal_handled_at')->count();
         });
 
-        $spam = Cache::remember('admin-dash:reports:spam-count', now()->addMinutes(60), function () {
+        $spam = Cache::remember('admin-dash:reports:spam-count', 3600, function () {
             return AccountInterstitial::whereType('post.autospam')->whereNull('appeal_handled_at')->count();
         });
 
         $mailVerifications = Redis::scard('email:manual');
 
         if ($filter == 'open' && $page == 1) {
-            $reports = Cache::remember('admin-dash:reports:list-cache', now()->addMinutes(60), function () use ($filter) {
+            $reports = Cache::remember('admin-dash:reports:list-cache', 300, function () use ($filter) {
                 return Report::whereHas('status')
                     ->whereHas('reportedUser')
                     ->whereHas('reporter')
@@ -118,31 +118,31 @@ trait AdminReportController
 
         $tab = $request->input('tab', 'home');
 
-        $openCount = Cache::remember('admin-dash:reports:spam-count', now()->addMinutes(60), function () {
+        $openCount = Cache::remember('admin-dash:reports:spam-count', 3600, function () {
             return AccountInterstitial::whereType('post.autospam')
                 ->whereNull('appeal_handled_at')
                 ->count();
         });
 
-        $monthlyCount = Cache::remember('admin-dash:reports:spam-count:30d', now()->addMinutes(60), function () {
+        $monthlyCount = Cache::remember('admin-dash:reports:spam-count:30d', 43200, function () {
             return AccountInterstitial::whereType('post.autospam')
                 ->where('created_at', '>', now()->subMonth())
                 ->count();
         });
 
-        $totalCount = Cache::remember('admin-dash:reports:spam-count:total', now()->addMinutes(60), function () {
+        $totalCount = Cache::remember('admin-dash:reports:spam-count:total', 43200, function () {
             return AccountInterstitial::whereType('post.autospam')->count();
         });
 
-        $uncategorized = Cache::remember('admin-dash:reports:spam-sync', now()->addMinutes(60), function () {
+        $uncategorized = Cache::remember('admin-dash:reports:spam-sync', 3600, function () {
             return AccountInterstitial::whereType('post.autospam')
                 ->whereIsSpam(null)
                 ->whereNotNull('appeal_handled_at')
                 ->exists();
         });
 
-        $avg = Cache::remember('admin-dash:reports:spam-count:avg', now()->addMinutes(60), function () {
-            if (config('database.default') != 'mysql' && config('database.default') != 'mariadb') {
+        $avg = Cache::remember('admin-dash:reports:spam-count:avg', 43200, function () {
+            if (config('database.default') !== 'mysql' && config('database.default') !== 'mariadb') {
                 return 0;
             }
 
@@ -153,8 +153,8 @@ trait AdminReportController
                 ->avg('counter');
         });
 
-        $avgOpen = Cache::remember('admin-dash:reports:spam-count:avgopen', now()->addMinutes(60), function () {
-            if (config('database.default') != 'mysql' && config('database.default') != 'mariadb') {
+        $avgOpen = Cache::remember('admin-dash:reports:spam-count:avgopen', 43200, function () {
+            if (config('database.default') !== 'mysql' && config('database.default') !== 'mariadb') {
                 return '0';
             }
             $seconds = AccountInterstitial::selectRaw('DATE(created_at) AS start_date, AVG(TIME_TO_SEC(TIMEDIFF(appeal_handled_at, created_at))) AS timediff')->whereType('post.autospam')->whereNotNull('appeal_handled_at')->where('created_at', '>', now()->subMonth())->get();
@@ -181,13 +181,10 @@ trait AdminReportController
                     switch ($tab) {
                         case 'home':
                             return $q->whereNull('appeal_handled_at');
-                            break;
                         case 'spam':
                             return $q->whereIsSpam(true);
-                            break;
                         case 'not-spam':
                             return $q->whereIsSpam(false);
-                            break;
                     }
                 })
                 ->latest()
@@ -728,7 +725,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'delete':
                 $profile = Profile::find($report->reported_profile_id);
@@ -760,7 +756,6 @@ trait AdminReportController
                 StoryDelete::dispatch($story)->onQueue('story');
 
                 return [200];
-                break;
 
             case 'delete-all':
                 $profile = Profile::find($report->reported_profile_id);
@@ -792,7 +787,6 @@ trait AdminReportController
                 });
 
                 return [200];
-                break;
         }
     }
 
@@ -807,7 +801,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'nsfw':
                 if ($report->object_type === 'App\Profile') {
@@ -867,7 +860,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'unlist':
                 if ($report->object_type === 'App\Profile') {
@@ -927,7 +919,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'private':
                 if ($report->object_type === 'App\Profile') {
@@ -987,7 +978,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'delete':
                 if (config('pixelfed.account_deletion') == false) {
@@ -1070,7 +1060,6 @@ trait AdminReportController
                 }
 
                 return [200];
-                break;
         }
     }
 
@@ -1085,7 +1074,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'nsfw':
                 $status = Status::find($report->object_id);
@@ -1120,7 +1108,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'private':
                 $status = Status::find($report->object_id);
@@ -1157,7 +1144,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'unlist':
                 $status = Status::find($report->object_id);
@@ -1196,7 +1182,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
 
             case 'delete':
                 $status = Status::find($report->object_id);
@@ -1226,7 +1211,6 @@ trait AdminReportController
                     ]);
 
                 return [200];
-                break;
         }
     }
 
@@ -1605,10 +1589,10 @@ trait AdminReportController
                     'origin' => config('pixelfed.domain.app'),
                     'date' => now()->format('c'),
                     'type' => 'moderated-profiles',
-                    'version' => "1.0"
+                    'version' => '1.0',
                 ],
-                'data' => $res
-            ], JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+                'data' => $res,
+            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         }, 'data-export.json');
     }
 

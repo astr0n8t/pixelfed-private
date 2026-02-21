@@ -307,6 +307,15 @@ trait AdminSettingsController
                 ];
                 break;
 
+            case 'mariadb':
+                $exp = DB::raw('select version()');
+                $expQuery = $exp->getValue(DB::connection()->getQueryGrammar());
+                $sys['database'] = [
+                    'name' => 'MariaDB',
+                    'version' => DB::select($expQuery)[0]->{'version()'},
+                ];
+                break;
+
             default:
                 $sys['database'] = [
                     'name' => 'Unknown',
@@ -493,35 +502,27 @@ trait AdminSettingsController
         switch ($type) {
             case 'home':
                 return $this->settingsApiUpdateHomeType($request);
-                break;
 
             case 'landing':
                 return $this->settingsApiUpdateLandingType($request);
-                break;
 
             case 'posts':
                 return $this->settingsApiUpdatePostsType($request);
-                break;
 
             case 'platform':
                 return $this->settingsApiUpdatePlatformType($request);
-                break;
 
             case 'branding':
                 return $this->settingsApiUpdateBrandingType($request);
-                break;
 
             case 'media':
                 return $this->settingsApiUpdateMediaType($request);
-                break;
 
             case 'users':
                 return $this->settingsApiUpdateUsersType($request);
-                break;
 
             case 'storage':
                 return $this->settingsApiUpdateStorageType($request);
-                break;
 
             default:
                 abort(404);
@@ -611,7 +612,7 @@ trait AdminSettingsController
         $mediaTypes = $request->input('media_types');
         $mediaArray = explode(',', $mediaTypes);
         foreach ($mediaArray as $mediaType) {
-            if (! in_array($mediaType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'video/mp4', 'image/avif'])) {
+            if (! in_array($mediaType, ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/avif', 'image/heic', 'video/mp4', 'video/mov'])) {
                 return redirect()->back()->withErrors(['media_types' => 'Invalid media type']);
             }
         }
@@ -879,12 +880,12 @@ trait AdminSettingsController
                     return response()->json(['error' => true, 's3_vce' => true, 'message' => "<div class='border border-danger text-danger p-3 font-weight-bold rounded-lg'>The S3/Spaces credentials you provided are invalid, or the bucket does not have the proper permissions.</div><br/>Please check all fields and try again.<br/><br/><strong>Any cloud storage configuration changes you made have NOT been saved due to invalid credentials.</strong>"], 400);
                 }
 
-                ConfigCacheService::put($dkey . 'key', $key);
-                ConfigCacheService::put($dkey . 'secret', $secret);
-                ConfigCacheService::put($dkey . 'region', $region);
-                ConfigCacheService::put($dkey . 'bucket', $bucket);
-                ConfigCacheService::put($dkey . 'endpoint', $endpoint);
-                ConfigCacheService::put($dkey . 'url', $url);
+                ConfigCacheService::put($dkey.'key', $key);
+                ConfigCacheService::put($dkey.'secret', $secret);
+                ConfigCacheService::put($dkey.'region', $region);
+                ConfigCacheService::put($dkey.'bucket', $bucket);
+                ConfigCacheService::put($dkey.'endpoint', $endpoint);
+                ConfigCacheService::put($dkey.'url', $url);
             }
             $res['changes'] = json_encode($changes);
         }

@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Storage;
-use Illuminate\Support\Facades\URL;
 
 class GroupMedia extends Model
 {
@@ -21,28 +20,21 @@ class GroupMedia extends Model
         return [
             'metadata' => 'json',
             'processed_at' => 'datetime',
-            'thumbnail_generated' => 'datetime'
+            'thumbnail_generated' => 'datetime',
         ];
     }
 
     public function url()
     {
-        if($this->cdn_url) {
+        if ($this->cdn_url) {
             return $this->cdn_url;
         }
-        return url(URL::temporarySignedRoute(
-            'storage.file',
-            now()->addMinutes(60),
-            ['file' => $this->media_path, 'user_id' => auth()->id()]
-        ));
+
+        return Storage::url($this->media_path);
     }
 
     public function thumbnailUrl()
     {
-        return url(URL::temporarySignedRoute(
-            'storage.file',
-            now()->addMinutes(60),
-            ['file' => $this->thumbnail_url, 'user_id' => auth()->id()]
-        ));
+        return $this->thumbnail_url;
     }
 }
