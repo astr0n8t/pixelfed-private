@@ -33,3 +33,4 @@
 !/.vscode/extensions.json
 !/bootstrap/cache/.gitignore
 !/public/vendor/horizon/.gitignore
+.phpunit.result.cache
