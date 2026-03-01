@@ -2,145 +2,137 @@
 
 namespace App\Services;
 
+use Auth;
 use App\ModLog;
 use App\Notification;
 use App\User;
 
-class ModLogService
-{
-    protected $log;
+class ModLogService {
 
-    public function __construct()
-    {
-        $this->log = new \StdClass;
-    }
+	protected $log;
 
-    public static function boot()
-    {
-        return new self;
-    }
+	public function __construct()
+	{
+		$this->log = new \StdClass;
+	}
 
-    public function user(User $user)
-    {
-        $this->log->user = $user;
+	public static function boot()
+	{
+		return new self;
+	}
 
-        return $this;
-    }
+	public function user(User $user)
+	{
+		$this->log->user = $user;
+		return $this;
+	}
 
-    public function objectUid($val = null)
-    {
-        $this->log->object_uid = $val;
+	public function objectUid($val = null)
+	{
+		$this->log->object_uid = $val;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function objectId($val = null)
+	{
+		$this->log->object_id = $val;
+		return $this;
+	}
 
-    public function objectId($val = null)
-    {
-        $this->log->object_id = $val;
+	public function objectType($val = null)
+	{
+		$this->log->object_type = $val;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function action($val = null)
+	{
+		$this->log->action = $val;
+		return $this;
+	}
 
-    public function objectType($val = null)
-    {
-        $this->log->object_type = $val;
+	public function message($val = null)
+	{
+		$this->log->message = $val;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function metadata(array $val = null)
+	{
+		$this->log->metadata = json_encode($val);
+		return $this;
+	}
 
-    public function action($val = null)
-    {
-        $this->log->action = $val;
+	public function accessLevel($val = null)
+	{
+		if(!in_array($val, ['admin', 'mod'])) {
+			return $this;
+		}
+		$this->log->access_level = $val;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function save($res = false)
+	{
+		$log = $this->log;
+		if(!isset($log->user)) {
+			throw new \Exception('Invalid ModLog attribute.');
+		}
 
-    public function message($val = null)
-    {
-        $this->log->message = $val;
+		$ml = new ModLog();
+		$ml->user_id = $log->user->id;
+		$ml->user_username = $log->user->username;
+		$ml->object_uid = $log->object_uid ?? null;
+		$ml->object_id = $log->object_id ?? null;
+		$ml->object_type = $log->object_type ?? null;
+		$ml->action = $log->action ?? null;
+		$ml->message = $log->message ?? null;
+		$ml->metadata = $log->metadata ?? null;
+		$ml->access_level = $log->access_level ?? 'admin';
+		$ml->save();
 
-        return $this;
-    }
+		if($res == true) {
+			return $ml;
+		} else {
+			return;
+		}
+	}
 
-    public function metadata(?array $val = null)
-    {
-        $this->log->metadata = json_encode($val);
+	public function load($modLog)
+	{
+		$this->log = $modLog;
+		return $this;
+	}
 
-        return $this;
-    }
+	public function fanout()
+	{
+		$log = $this->log;
 
-    public function accessLevel($val = null)
-    {
-        if (! in_array($val, ['admin', 'mod'])) {
-            return $this;
-        }
-        $this->log->access_level = $val;
+		$item_id = $log->id;
+		$item_type = 'App\ModLog';
+		$action = 'admin.user.modlog.comment';
 
-        return $this;
-    }
+		$admins = User::whereNull('status')
+			->whereNotIn('id', [$log->user_id])
+			->whereIsAdmin(true)
+			->pluck('profile_id')
+			->toArray();
 
-    public function save($res = false)
-    {
-        $log = $this->log;
-        if (! isset($log->user)) {
-            throw new \Exception('Invalid ModLog attribute.');
-        }
+		foreach($admins as $user) {
+			$n = new Notification;
+			$n->profile_id = $user;
+			$n->actor_id = $log->admin->profile_id;
+			$n->item_id = $item_id;
+			$n->item_type = $item_type;
+			$n->action = $action;
+			$n->save();
+		}
+	}
 
-        $ml = new ModLog;
-        $ml->user_id = $log->user->id;
-        $ml->user_username = $log->user->username;
-        $ml->object_uid = $log->object_uid ?? null;
-        $ml->object_id = $log->object_id ?? null;
-        $ml->object_type = $log->object_type ?? null;
-        $ml->action = $log->action ?? null;
-        $ml->message = $log->message ?? null;
-        $ml->metadata = $log->metadata ?? null;
-        $ml->access_level = $log->access_level ?? 'admin';
-        $ml->save();
-
-        if ($res == true) {
-            return $ml;
-        } else {
-            return;
-        }
-    }
-
-    public function load($modLog)
-    {
-        $this->log = $modLog;
-
-        return $this;
-    }
-
-    public function fanout()
-    {
-        $log = $this->log;
-
-        $item_id = $log->id;
-        $item_type = 'App\ModLog';
-        $action = 'admin.user.modlog.comment';
-
-        $admins = User::whereNull('status')
-            ->whereNotIn('id', [$log->user_id])
-            ->whereIsAdmin(true)
-            ->pluck('profile_id')
-            ->toArray();
-
-        foreach ($admins as $user) {
-            $n = new Notification;
-            $n->profile_id = $user;
-            $n->actor_id = $log->admin->profile_id;
-            $n->item_id = $item_id;
-            $n->item_type = $item_type;
-            $n->action = $action;
-            $n->save();
-        }
-    }
-
-    public function unfanout()
-    {
-        Notification::whereItemType('App\ModLog')
-            ->whereItemId($this->log->id)
-            ->delete();
-    }
+	public function unfanout()
+	{
+		Notification::whereItemType('App\ModLog')
+			->whereItemId($this->log->id)
+			->delete();
+	}
 }

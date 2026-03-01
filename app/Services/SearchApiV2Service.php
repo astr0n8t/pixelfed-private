@@ -45,18 +45,21 @@ class SearchApiV2Service
                         'hashtags' => [],
                         'statuses' => [],
                     ];
+                    break;
                 case 'hashtags':
                     return [
                         'accounts' => [],
                         'hashtags' => $this->hashtags(),
                         'statuses' => [],
                     ];
+                    break;
                 case 'statuses':
                     return [
                         'accounts' => [],
                         'hashtags' => [],
                         'statuses' => $this->statuses(),
                     ];
+                    break;
             }
         }
 
@@ -129,6 +132,7 @@ class SearchApiV2Service
         $q = $this->query->input('q');
         $limit = $this->query->input('limit') ?? 20;
         $offset = $this->query->input('offset') ?? 0;
+
         $query = Str::startsWith($q, '#') ? substr($q, 1) : $q;
         $query = $query.'%';
 
@@ -210,9 +214,6 @@ class SearchApiV2Service
         $user = request()->user();
         $mastodonMode = self::$mastodonMode;
         $query = urldecode($this->query->input('q'));
-        $limit = $this->query->input('limit') ?? 20;
-        $offset = $this->query->input('offset') ?? 0;
-
         $banned = InstanceService::getBannedDomains();
         $domainBlocks = UserFilterService::domainBlocks($user->profile_id);
         if ($domainBlocks && count($domainBlocks)) {
@@ -251,12 +252,7 @@ class SearchApiV2Service
                     if (in_array($domain, $banned)) {
                         return $default;
                     }
-                    $paginated = collect($res)->take($limit)->skip($offset)->toArray();
-                    if (! empty($paginated)) {
-                        $default['accounts'][] = $paginated;
-                    } else {
-                        $default['accounts'] = [];
-                    }
+                    $default['accounts'][] = $res;
 
                     return $default;
                 } else {
@@ -275,12 +271,7 @@ class SearchApiV2Service
                     if (in_array($domain, $banned)) {
                         return $default;
                     }
-                    $paginated = collect($res)->take($limit)->skip($offset)->toArray();
-                    if (! empty($paginated)) {
-                        $default['accounts'][] = $paginated;
-                    } else {
-                        $default['accounts'] = [];
-                    }
+                    $default['accounts'][] = $res;
 
                     return $default;
                 } else {
@@ -332,6 +323,7 @@ class SearchApiV2Service
                             $default['statuses'][] = $note;
 
                             return $default;
+                            break;
 
                         case 'Person':
                             $obj = Helpers::profileFetch($query);
@@ -346,6 +338,7 @@ class SearchApiV2Service
                                 AccountService::get($obj['id'], true);
 
                             return $default;
+                            break;
 
                         default:
                             return [
@@ -353,6 +346,7 @@ class SearchApiV2Service
                                 'hashtags' => [],
                                 'statuses' => [],
                             ];
+                            break;
                     }
                 }
             } catch (\Exception $e) {

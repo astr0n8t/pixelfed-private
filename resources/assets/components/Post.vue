@@ -85,8 +85,6 @@
             :profile="user"
             @report-modal="handleReport()"
             @delete="deletePost()"
-            @pinned="handlePinned()"
-            @unpinned="handleUnpinned()"
             v-on:edit="handleEdit"
         />
 
@@ -443,15 +441,7 @@
                 this.$nextTick(() => {
                     this.forceUpdateIdx++;
                 });
-            },
-
-            handlePinned() {
-                this.post.pinned = true;
-            },
-
-            handleUnpinned() {
-                this.post.pinned = false;
-            },
+            }
         }
     }
 </script>

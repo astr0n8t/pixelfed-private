@@ -2,13 +2,13 @@
 
 namespace App\Observers;
 
-use App\Jobs\HomeFeedPipeline\FeedRemovePipeline;
-use App\Jobs\HomeFeedPipeline\FeedRemoveRemotePipeline;
+use App\Status;
+use App\Services\ProfileStatusService;
+use Cache;
 use App\Models\ImportPost;
 use App\Services\ImportService;
-use App\Services\ProfileStatusService;
-use App\Status;
-use Cache;
+use App\Jobs\HomeFeedPipeline\FeedRemovePipeline;
+use App\Jobs\HomeFeedPipeline\FeedRemoveRemotePipeline;
 
 class StatusObserver
 {
@@ -22,6 +22,7 @@ class StatusObserver
     /**
      * Handle the Status "created" event.
      *
+     * @param  \App\Status  $status
      * @return void
      */
     public function created(Status $status)
@@ -32,19 +33,20 @@ class StatusObserver
     /**
      * Handle the Status "updated" event.
      *
+     * @param  \App\Status  $status
      * @return void
      */
     public function updated(Status $status)
     {
-        if (! in_array($status->scope, ['public', 'unlisted', 'private'])) {
+        if(!in_array($status->scope, ['public', 'unlisted', 'private'])) {
             return;
         }
 
-        if (config('instance.timeline.home.cached')) {
-            Cache::forget('pf:timelines:home:'.$status->profile_id);
+        if(config('instance.timeline.home.cached')) {
+            Cache::forget('pf:timelines:home:' . $status->profile_id);
         }
 
-        if (in_array($status->scope, ['public', 'unlisted']) && in_array($status->type, ['photo', 'photo:album', 'video'])) {
+        if(in_array($status->scope, ['public', 'unlisted']) && in_array($status->type, ['photo', 'photo:album', 'video'])) {
             ProfileStatusService::add($status->profile_id, $status->id);
         }
     }
@@ -52,37 +54,39 @@ class StatusObserver
     /**
      * Handle the Status "deleted" event.
      *
+     * @param  \App\Status  $status
      * @return void
      */
     public function deleted(Status $status)
     {
-        if (! in_array($status->scope, ['public', 'unlisted', 'private'])) {
+        if(!in_array($status->scope, ['public', 'unlisted', 'private'])) {
             return;
         }
 
-        if (config('instance.timeline.home.cached')) {
-            Cache::forget('pf:timelines:home:'.$status->profile_id);
+        if(config('instance.timeline.home.cached')) {
+            Cache::forget('pf:timelines:home:' . $status->profile_id);
         }
 
         ProfileStatusService::delete($status->profile_id, $status->id);
 
-        if ($status->uri == null) {
+        if($status->uri == null) {
             ImportPost::whereProfileId($status->profile_id)->whereStatusId($status->id)->delete();
             ImportService::clearImportedFiles($status->profile_id);
         }
 
-        if (config('exp.cached_home_timeline')) {
-            if ($status->uri) {
-                FeedRemoveRemotePipeline::dispatch($status->id, $status->profile_id)->onQueue('feed');
-            } else {
-                FeedRemovePipeline::dispatch($status->id, $status->profile_id)->onQueue('feed');
-            }
+        if(config('exp.cached_home_timeline')) {
+        	if($status->uri) {
+        		FeedRemoveRemotePipeline::dispatch($status->id, $status->profile_id)->onQueue('feed');
+        	} else {
+        		FeedRemovePipeline::dispatch($status->id, $status->profile_id)->onQueue('feed');
+        	}
         }
     }
 
     /**
      * Handle the Status "restored" event.
      *
+     * @param  \App\Status  $status
      * @return void
      */
     public function restored(Status $status)
@@ -93,6 +97,7 @@ class StatusObserver
     /**
      * Handle the Status "force deleted" event.
      *
+     * @param  \App\Status  $status
      * @return void
      */
     public function forceDeleted(Status $status)

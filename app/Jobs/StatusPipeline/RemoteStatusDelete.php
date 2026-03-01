@@ -2,36 +2,47 @@
 
 namespace App\Jobs\StatusPipeline;
 
-use App\AccountInterstitial;
-use App\Bookmark;
-use App\CollectionItem;
-use App\DirectMessage;
-use App\Jobs\MediaPipeline\MediaDeletePipeline;
-use App\Like;
-use App\Media;
-use App\MediaTag;
-use App\Mention;
-use App\Notification;
-use App\Report;
-use App\Services\Account\AccountStatService;
-use App\Services\AccountService;
-use App\Services\CollectionService;
-use App\Services\NotificationService;
-use App\Services\StatusService;
-use App\Status;
-use App\StatusArchived;
-use App\StatusHashtag;
-use App\StatusView;
+use DB, Cache, Storage;
+use App\{
+    AccountInterstitial,
+    Bookmark,
+    CollectionItem,
+    DirectMessage,
+    Like,
+    Media,
+    MediaTag,
+    Mention,
+    Notification,
+    Report,
+    Status,
+    StatusArchived,
+    StatusHashtag,
+    StatusView
+};
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use League\Fractal;
+use Illuminate\Support\Str;
+use League\Fractal\Serializer\ArraySerializer;
+use App\Transformer\ActivityPub\Verb\DeleteNote;
+use App\Util\ActivityPub\Helpers;
+use GuzzleHttp\Pool;
+use GuzzleHttp\Client;
+use GuzzleHttp\Promise;
+use App\Util\ActivityPub\HttpSignature;
+use App\Services\AccountService;
+use App\Services\CollectionService;
+use App\Services\StatusService;
+use App\Jobs\MediaPipeline\MediaDeletePipeline;
+use App\Services\NotificationService;
+use App\Services\Account\AccountStatService;
 
-class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
+class RemoteStatusDelete implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -45,11 +56,8 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
     public $deleteWhenMissingModels = true;
 
     public $tries = 3;
-
     public $maxExceptions = 3;
-
     public $timeout = 180;
-
     public $failOnTimeout = true;
 
     /**
@@ -64,7 +72,7 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
      */
     public function uniqueId(): string
     {
-        return 'status:remote:delete:'.$this->status->id;
+        return 'status:remote:delete:' . $this->status->id;
     }
 
     /**
@@ -96,19 +104,11 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
     {
         $status = $this->status;
 
-        // Verify status exists
-        if (! $status) {
-            Log::info('RemoteStatusDelete: Status no longer exists, skipping job');
-
-            return;
-        }
-
-        if ($status->deleted_at) {
+        if($status->deleted_at) {
             return;
         }
 
         StatusService::del($status->id, true);
-
         // AccountStatService::decrementPostCount($status->profile_id);
         return $this->unlinkRemoveMedia($status);
     }
@@ -116,13 +116,11 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
     public function unlinkRemoveMedia($status)
     {
 
-        if ($status->in_reply_to_id) {
+        if($status->in_reply_to_id) {
             $parent = Status::find($status->in_reply_to_id);
-            if ($parent) {
-                if ($parent->reply_count) {
-                    $parent->reply_count = $parent->reply_count - 1;
-                    $parent->save();
-                }
+            if($parent) {
+                --$parent->reply_count;
+                $parent->save();
                 StatusService::del($parent->id);
             }
         }
@@ -134,16 +132,16 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
         CollectionItem::whereObjectType('App\Status')
             ->whereObjectId($status->id)
             ->get()
-            ->each(function ($col) {
+            ->each(function($col) {
                 CollectionService::removeItem($col->collection_id, $col->object_id);
                 $col->delete();
-            });
+        });
         $dms = DirectMessage::whereStatusId($status->id)->get();
-        foreach ($dms as $dm) {
+        foreach($dms as $dm) {
             $not = Notification::whereItemType('App\DirectMessage')
                 ->whereItemId($dm->id)
                 ->first();
-            if ($not) {
+            if($not) {
                 NotificationService::del($not->profile_id, $not->id);
                 $not->forceDeleteQuietly();
             }
@@ -151,16 +149,16 @@ class RemoteStatusDelete implements ShouldBeUniqueUntilProcessing, ShouldQueue
         }
         Like::whereStatusId($status->id)->forceDelete();
         Media::whereStatusId($status->id)
-            ->get()
-            ->each(function ($media) {
-                MediaDeletePipeline::dispatch($media)->onQueue('mmo');
-            });
+        ->get()
+        ->each(function($media) {
+            MediaDeletePipeline::dispatch($media)->onQueue('mmo');
+        });
         $mediaTags = MediaTag::where('status_id', $status->id)->get();
-        foreach ($mediaTags as $mtag) {
+        foreach($mediaTags as $mtag) {
             $not = Notification::whereItemType('App\MediaTag')
                 ->whereItemId($mtag->id)
                 ->first();
-            if ($not) {
+            if($not) {
                 NotificationService::del($not->profile_id, $not->id);
                 $not->forceDeleteQuietly();
             }

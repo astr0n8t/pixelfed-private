@@ -19,7 +19,7 @@ return [
 		'copyLink' => 'Bağlantıyı Kopyala',
 		'delete' => 'Sil',
 		'error' => 'Hata',
-		'errorMsg' => 'Bir sorun oluştu. Lütfen daha sonra tekrar deneyin.',
+		'errorMsg' => 'Bir şeyler yanlış gitti. Lütfen daha sonra tekrar deneyiniz.',
 		'oops' => 'Hay aksi!',
 		'other' => 'Diğer',
 		'readMore' => 'Daha fazlası',
@@ -124,7 +124,7 @@ return [
 		'followRequested' => 'Takip İsteği',
 		'joined' => 'Katıldı',
 
-		'emptyCollections' => 'Herhangi bir derleme bulunmuyor',
+		'emptyCollections' => 'Herhangi bir koleksiyon bulunmuyor',
 		'emptyPosts' => 'Herhangi bir gönderi bulunmuyor',
 	],
 

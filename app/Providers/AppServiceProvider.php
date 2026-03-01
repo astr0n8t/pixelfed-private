@@ -21,23 +21,22 @@ use App\Observers\UserFilterObserver;
 use App\Observers\UserObserver;
 use App\Profile;
 use App\Services\AccountService;
-use App\Services\UserOidcService;
 use App\Status;
 use App\StatusHashtag;
 use App\User;
 use App\UserFilter;
 use Auth;
 use Horizon;
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Pulse\Facades\Pulse;
+use Illuminate\Http\Request;
 use URL;
 
 class AppServiceProvider extends ServiceProvider
@@ -113,8 +112,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->app->bind(UserOidcService::class, function () {
-            return UserOidcService::build();
-        });
+        //
     }
 }

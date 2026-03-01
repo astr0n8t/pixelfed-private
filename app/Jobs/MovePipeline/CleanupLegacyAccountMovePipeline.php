@@ -95,7 +95,6 @@ class CleanupLegacyAccountMovePipeline implements ShouldQueue
 
         if ($oldProfile) {
             $oldProfile->moved_to_profile_id = $targetAccount['id'];
-            $oldProfile->followers_count = 0;
             $oldProfile->save();
             AccountService::del($oldProfile->id);
             AccountService::del($targetAccount['id']);

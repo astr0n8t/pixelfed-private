@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Services\NotificationAppGatewayService;
+use App\Services\PushNotificationService;
 use Illuminate\Console\Command;
 
 use function Laravel\Prompts\select;
@@ -50,12 +51,11 @@ class PushGatewayRefresh extends Command
                 $recheck = NotificationAppGatewayService::forceSupportRecheck();
                 if ($recheck) {
                     $this->info('Success! Push Notifications are now active!');
-
                     return;
                 } else {
                     $this->error('Error, please ensure you have a valid API key.');
                     $this->line(' ');
-                    $this->line('For more info, visit https://pixelfed-glitch.github.io/docs/running-pixelfed/native/push-notifications.html');
+                    $this->line('For more info, visit https://docs.pixelfed.org/running-pixelfed/push-notifications.html');
                     $this->line(' ');
 
                     return;

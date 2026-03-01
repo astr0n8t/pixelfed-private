@@ -12,9 +12,6 @@
         <uri>{{$profile['url']}}</uri>
     </author>
 
-    <icon>{{$profile['avatar']}}</icon>
-    <logo>{{$profile['avatar']}}</logo>
-
     <link rel="alternate" type="text/html" href="{{$profile['url']}}" />
     <link rel="self" type="application/atom+xml" href="{{$permalink}}" />
 

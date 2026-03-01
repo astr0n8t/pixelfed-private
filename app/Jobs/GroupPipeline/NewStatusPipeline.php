@@ -3,7 +3,6 @@
 namespace App\Jobs\GroupPipeline;
 
 use App\Hashtag;
-use App\Jobs\MentionPipeline\MentionPipeline;
 use App\Mention;
 use App\Models\GroupPost;
 use App\Models\GroupPostHashtag;
@@ -59,7 +58,7 @@ class NewStatusPipeline implements ShouldQueue
         }
 
         if (count($this->mentions)) {
-            $this->storeMentions();
+            $this->storeMentions($this->mentions);
         }
     }
 
@@ -90,6 +89,10 @@ class NewStatusPipeline implements ShouldQueue
                 );
 
             });
+        }
+
+        if (count($this->mentions)) {
+            $this->storeMentions();
         }
         StatusService::del($status->id);
     }

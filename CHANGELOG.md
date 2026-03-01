@@ -1,120 +1,5 @@
 # Release Notes
 
-## [v0.12.6+private.0.1.0]
-
-### Merged Upstream Changes
-- Merged pixelfed-glitch/pixelfed v0.12.5-glitch.1.11.0 through v0.12.6-glitch.1.12.1
-- Includes story upload fixes, MariaDB compatibility improvements, PHP 8.4 support, OIDC support, custom filters, pinned posts, and more
-
-### Preserved Fork Features
-- RestrictedAccess middleware with full API/OAuth/invite/storage path allowlist
-- User invite controller extensions
-- Signed storage URLs for private instance access
-- Custom invite routes (/i/invites, /i/invites/create) in SPA
-- Invites menu item in navbar
-
-## [v0.12.6-glitch.1.12.1](https://github.com/pixelfed-glitch/pixelfed/compare/v0.12.6-glitch.1.12.0...v0.12.6-glitch.1.12.1)
-
-### Glitch Updates
-- Fix malformed database guard (#67) + remove obsolete notify ([079615d](https://github.com/pixelfed-glitch/pixelfed/commit/079615d))
-- Fix story not handling uploads properly + more formats allowed ([3ec5233](https://github.com/pixelfed-glitch/pixelfed/commit/3ec5233))
-- Better handling of stories duration + fixes on stories error handling ([8ea6437](https://github.com/pixelfed-glitch/pixelfed/commit/8ea6437))
-
-## [v0.12.6-glitch.1.12.0](https://github.com/pixelfed-glitch/pixelfed/compare/v0.12.5-glitch.1.11.0...v0.12.6-glitch.1.12.0)
-
-### Glitch Updates
-- Fixes on MariaDB handling ([b62cca9](https://github.com/pixelfed-glitch/pixelfed/commit/b62cca9))
-- Updated database schema dumps ([733f30e](https://github.com/pixelfed-glitch/pixelfed/commit/733f30e))
-- Update on docker setup and environment variables ([16b2e5c](https://github.com/pixelfed-glitch/pixelfed/commit/16b2e5c), [c695de4](https://github.com/pixelfed-glitch/pixelfed/commit/c695de4), [6c4678a](https://github.com/pixelfed-glitch/pixelfed/commit/6c4678a))
-- Several fixes on CI, dev and install scripts ([56e1ad8](https://github.com/pixelfed-glitch/pixelfed/commit/56e1ad8), [74f1afb](https://github.com/pixelfed-glitch/pixelfed/commit/74f1afb), [dac64d6](https://github.com/pixelfed-glitch/pixelfed/commit/dac64d6), [235d1b2](https://github.com/pixelfed-glitch/pixelfed/commit/235d1b2), [664a111](https://github.com/pixelfed-glitch/pixelfed/commit/664a111), [066698a](https://github.com/pixelfed-glitch/pixelfed/commit/066698a), [77c5e3a](https://github.com/pixelfed-glitch/pixelfed/commit/77c5e3a), [716d67c](https://github.com/pixelfed-glitch/pixelfed/commit/716d67c))
-- Documentation and code cleanup ([7df1429](https://github.com/pixelfed-glitch/pixelfed/commit/7df1429))
-
-### Added (from Upstream)
-- Update Status storage, add SanitizerService to fix spacing in html stripped content ([3686c9212](https://github.com/pixelfed/pixelfed/commit/3686c9212))
-- Update app config, add description and rule env variables ([0980519a9](https://github.com/pixelfed/pixelfed/commit/0980519a9))
-- Update InstanceService, fix total post count when config_cache is disabled ([f0bc9d66e](https://github.com/pixelfed/pixelfed/commit/f0bc9d66e))
-- Update media storage pipeline, improve support for non-local filesystems ([2e719bd00](https://github.com/pixelfed/pixelfed/commit/2e719bd00))
-
-### Updates (from Upstream)
-- Update Places, improve cache invalidation/ttl ([ece23d751](https://github.com/pixelfed/pixelfed/commit/ece23d751))
-- Update ComposeController, add addl compose settings data ([9048ab52c](https://github.com/pixelfed/pixelfed/commit/9048ab52c))
-- Update Admin Users dashboard ([b6bc1e50e](https://github.com/pixelfed/pixelfed/commit/b6bc1e50e))
-- Update TransformImports command, fix IG import bug ([c692c7655](https://github.com/pixelfed/pixelfed/commit/c692c7655))
-- Update ImportService and TransformImports to fix race condition bug ([a8d1d0f2e](https://github.com/pixelfed/pixelfed/commit/a8d1d0f2e))
-- Update ComposeController, prioritize followed users and follower_count first ([10eb1a8ac](https://github.com/pixelfed/pixelfed/commit/10eb1a8ac))
-- Update ComposeController, fix user tagging endpoint ([2a9c28b81](https://github.com/pixelfed/pixelfed/commit/2a9c28b81))
-- Update RemoteStatusDelete, fix decrement logic ([4ab85248e](https://github.com/pixelfed/pixelfed/commit/4ab85248e))
-- Update DangerZone middleware to skip sudo mode for OIDC configurations. Fixes #6057 ([062ec5520](https://github.com/pixelfed/pixelfed/commit/062ec5520))
-- Update curated onboarding username max length ([ab378b8fc](https://github.com/pixelfed/pixelfed/commit/ab378b8fc))
-- Update AppRegister controller, add scheduled cleanup task to delete older than 90d ([c319dfbcc](https://github.com/pixelfed/pixelfed/commit/c319dfbcc))
-- Update MediaCloudUrlRewrite command, add avatar support. Fixes #6069 ([506fe14c1](https://github.com/pixelfed/pixelfed/commit/506fe14c1))
-- Update Notifications component, fix pagination and dark mode ([154dd4b4d](https://github.com/pixelfed/pixelfed/commit/154dd4b4d))
-- Update DirectMessageController, add mutuals endpoint ([86af73455](https://github.com/pixelfed/pixelfed/commit/86af73455))
-- Update HomeSettings, remove unnecessary relation query ([35424ccb4](https://github.com/pixelfed/pixelfed/commit/35424ccb4))
-- Update ApiV1Dot1Controller, add story report support ([f5dced0f7](https://github.com/pixelfed/pixelfed/commit/f5dced0f7))
-- Update StoryView resource, include viewed_at timestamp ([d361b0dca](https://github.com/pixelfed/pixelfed/commit/d361b0dca))
-- Update AP Inbox, handle Story View with the new StoryIndexService markSeen method ([ab8d0ff46](https://github.com/pixelfed/pixelfed/commit/ab8d0ff46))
-- Update StoryFetch pipeline job, make more robust and add StoryIndexService indexStory support ([fd3df358b](https://github.com/pixelfed/pixelfed/commit/fd3df358b))
-- Update StoryExpire pipeline job, add StoryIndexService removeStory support ([5a263e89e](https://github.com/pixelfed/pixelfed/commit/5a263e89e))
-- Update StoryController, add StoryIndexService s markSeen support for webUI endpoint ([44914a514](https://github.com/pixelfed/pixelfed/commit/44914a514))
-- Update StoryApiV1Controller, add new v1.2 endpoints ([97badbbdd](https://github.com/pixelfed/pixelfed/commit/97badbbdd))
-- Update StoryIndexService, improve markSeen handling ([3296a7a58](https://github.com/pixelfed/pixelfed/commit/3296a7a58))
-- Update StoryIndexService, fix markSeen method ([e09291775](https://github.com/pixelfed/pixelfed/commit/e09291775))
-- Update StoryComposeController, add StoryIndexService support ([6c701b335](https://github.com/pixelfed/pixelfed/commit/6c701b335))
-- Update StoryIndexService, improve predis + phpredis support ([564d8d109](https://github.com/pixelfed/pixelfed/commit/564d8d109))
-- Update StoryApiV1Controller, add missing validation rule ([76d9ded69](https://github.com/pixelfed/pixelfed/commit/76d9ded69))
-- Update StoryIndexService, improve predis/phpredis support ([53b74bf16](https://github.com/pixelfed/pixelfed/commit/53b74bf16))
-- Update StoryApiV1Controller, improve text overlay validation regex for improved support ([8fb44e316](https://github.com/pixelfed/pixelfed/commit/8fb44e316))
-- Update StoryIndexService, improve redis compatability ([dbba52303](https://github.com/pixelfed/pixelfed/commit/dbba52303))
-- Update StoryFetch, fix mass assignment bug preventing proper model creation ([1e3147028](https://github.com/pixelfed/pixelfed/commit/1e3147028))
-- Update StoryRotateMedia job, handle StoryIndexService cache invalidation ([e2a64c730](https://github.com/pixelfed/pixelfed/commit/e2a64c730))
-- Update ApiV1StoryController, fix viewer pagination ([5d4674daa](https://github.com/pixelfed/pixelfed/commit/5d4674daa))
-- Update StoryApiV1Controller, reduce min story size to 10kb ([f195102b3](https://github.com/pixelfed/pixelfed/commit/f195102b3))
-- Update ApiV1Dot1Controller, fix Story report follower check ([ec21eec50](https://github.com/pixelfed/pixelfed/commit/ec21eec50))
-
-## [v0.12.5+glitch.1.11.0](https://github.com/pixelfed-glitch/pixelfed/compare/v0.12.5-glitch.1.10.1...v0.12.5-glitch.1.11.0)
-
-### Added (from Upstream)
-- Pinned Posts ([2f655d000](https://github.com/pixelfed/pixelfed/commit/2f655d000))
-- Custom Filters ([#5928](https://github.com/pixelfed/pixelfed/pull/5928)) ([437d742ac](https://github.com/pixelfed/pixelfed/commit/437d742ac))
-- Legal Notice page ([#5606](https://github.com/pixelfed/pixelfed/pull/5606)) ([c72fa0529](https://github.com/pixelfed/pixelfed/commit/c72fa0529))
-- OIDC Support ([#5608](https://github.com/pixelfed/pixelfed/pull/5608)) ([c72fa0529](https://github.com/pixelfed/pixelfed/commit/c72fa0529))
-- Avif, HEIC, webp, libvips support + Preserve ICC color profiles  ([ab9c13fe0](https://github.com/pixelfed/pixelfed/commit/ab9c13fe0))
-- Added StoryIndexService, an optimized fan-out-on-write service for story carousel generation/rendering ([950fc0474](https://github.com/pixelfed/pixelfed/commit/950fc0474))
-
-### Updates (from Upstream)
-- Update PublicApiController, use pixelfed entities for /api/pixelfed/v1/accounts/id/statuses with bookmarked state ([5ddb6d842](https://github.com/pixelfed/pixelfed/commit/5ddb6d842))
-- Update Profile.vue, fix pagination ([2ea107805](https://github.com/pixelfed/pixelfed/commit/2ea107805))
-- Update ProfileMigrationController, fix race condition by chaining batched jobs ([3001365025](https://github.com/pixelfed/pixelfed/commit/3001365025))
-- Update Instance total post, add optional estimation for huge status tables ([5a5821fe8](https://github.com/pixelfed/pixelfed/commit/5a5821fe8))
-- Update ApiV1Controller, fix notifications favourited/reblogged/bookmarked state. Fixes #5901 ([8a86808a0](https://github.com/pixelfed/pixelfed/commit/8a86808a0))
-- Update ApiV1Controller, fix relationship fields. Fixes #5900 ([245ab3bc4](https://github.com/pixelfed/pixelfed/commit/245ab3bc4))
-- Update instance config, return proper matrix limits. Fixes #4780 ([473201908](https://github.com/pixelfed/pixelfed/commit/473201908))
-- Update SearchApiV2Service, fix offset bug. Fixes #5875 ([0a98b7ad2](https://github.com/pixelfed/pixelfed/commit/0a98b7ad2))
-- Update ApiV1Controller, add better direct error message. Fixes #4789 ([658fe6898](https://github.com/pixelfed/pixelfed/commit/658fe6898))
-- Update DiscoverController, improve public hashtag feed. Fixes #5866 ([32fc3180c](https://github.com/pixelfed/pixelfed/commit/32fc3180c))
-- Update report views, fix missing forms ([475d1d627](https://github.com/pixelfed/pixelfed/commit/475d1d627))
-- Update private settings, change "Private Account" to "Manually Review Follow Requests" ([31dd1ab35](https://github.com/pixelfed/pixelfed/commit/31dd1ab35))
-- Update ReportController, fix type validation ([ccc7f2fc6](https://github.com/pixelfed/pixelfed/commit/ccc7f2fc6))
-- Update footer to use legalNotice i18n ([0e59098da](https://github.com/pixelfed/pixelfed/commit/0e59098da))
-- Update sidebar with gap padding for footer links ([dbd8289fe](https://github.com/pixelfed/pixelfed/commit/dbd8289fe))
-- Update translations for Stories ([0a4dc7724](https://github.com/pixelfed/pixelfed/commit/0a4dc7724))
-- Update translations for Auth ([756102696](https://github.com/pixelfed/pixelfed/commit/756102696))
-- Update HttpSignatures, auto generate instance actor if missing ([bb16c95b1](https://github.com/pixelfed/pixelfed/commit/bb16c95b1))
-- Update CreateNote to use cached MediaService attachments ([6a7307104](https://github.com/pixelfed/pixelfed/commit/6a7307104))
-- Update ComposeController, fix cache invalidation order ([ae47ba73d](https://github.com/pixelfed/pixelfed/commit/ae47ba73d))
-- Update ApiV1Controller, fix cache invalidation order ([4747266b0](https://github.com/pixelfed/pixelfed/commit/4747266b0))
-- Update CreateNote, improve media attachement handling by leveraging the MediaService cache ([7ae61a74a](https://github.com/pixelfed/pixelfed/commit/7ae61a74a))
-- Update ActivityPub attachements, use Document type by default ([51ce7e1f0](https://github.com/pixelfed/pixelfed/commit/51ce7e1f0))
-- Update MediaService, improve activitypub format ([837014e06](https://github.com/pixelfed/pixelfed/commit/837014e06))
-- Update StatusController, fix mimeTypeCheck ([7f7387ee4](https://github.com/pixelfed/pixelfed/commit/7f7387ee4))
-- Update MediaTransformer, return proper image type ([0dff48adb](https://github.com/pixelfed/pixelfed/commit/0dff48adb))
-- Update StoryComposeController, fix intervention/image v3 support ([86fbeeec3](https://github.com/pixelfed/pixelfed/commit/86fbeeec3))
-- Update StoryController, fix intervention/image v3 support ([9d89425e6](https://github.com/pixelfed/pixelfed/commit/9d89425e6))
-- Update Groups ImageResizePipeline with intervention/image v3 support ([616e37066](https://github.com/pixelfed/pixelfed/commit/616e37066))
-- Update app config, add Str alias ([5539dd0e1](https://github.com/pixelfed/pixelfed/commit/5539dd0e1))
-- Update PlaceController, fix show method ([f81a4acdc](https://github.com/pixelfed/pixelfed/commit/f81a4acdc))
-
 ## [v0.12.5+glitch.1.10.1](https://github.com/pixelfed-glitch/pixelfed/compare/v0.12.4-glitch.1.10.0...v0.12.5-glitch.1.10.1)
 
 - I heard you like bumping versions (just following upstream but no changes happened, so I won't bump glitch version itself)
@@ -509,7 +394,7 @@
 ## [v0.11.9-glitch.1.0.1](https://github.com/pixelfed-glitch/pixelfed/compare/v0.11.9-glitch.1.0.0...v0.11.9-glitch.1.0.1)
 
 ### Glitch improvements
--  Fix nginx permissions ([#6](https://github.com/pixelfed-glitch/pixelfed/pull/6)) ([dbb9fed](https://github.com/pixelfed-glitch/pixelfed/commit/dbb9fed))
+-  Fix nginx permissions ([#6](https://github.com/pixelfed-glitch/pixelfed/pull/6)) ([dbb9fed](https://github.com/pixelfed-glitch/pixelfed/commit/dbb9fed9b6b4c9cbdcba039ea208e71a29b12171))
 
 ## [v0.11.9-glitch.1.0.0](https://github.com/pixelfed-glitch/pixelfed/compare/v0.11.9...v0.11.9-glitch.1.0.0)
 
@@ -1794,7 +1679,7 @@
 - Updated ```notification``` api endpoint to use ```NotificationService``` ([f4039ce2](https://github.com/pixelfed/pixelfed/commit/f4039ce2)) ([6ef7597](https://github.com/pixelfed/pixelfed/commit/6ef7597))
 - Update footer to use localization for the ```Places``` link ([39712714](https://github.com/pixelfed/pixelfed/commit/39712714))
 - Updated ComposeModal.vue, added a caption counter. Fixes [#1722](https://github.com/pixelfed/pixelfed/issues/1722). ([009c6ee8](https://github.com/pixelfed/pixelfed/commit/009c6ee8))
-- Updated Notifications to use the NotificationService ([f4039ce2](https://github.com/pixelfed/pixelfed/commit/f4039ce))
+- Updated Notifications to use the NotificationService ([f4039ce2](https://github.com/pixelfed/pixelfed/commit/f4039ce218f93a5578225dfdba66f0359c8fc72c))
 - Updated PrivacySettings controller, clear cache after updating ([d8d11d7b](https://github.com/pixelfed/pixelfed/commit/d8d11d7b))
 - Updated BaseApiController, add timestamp to signed media previews for client side cache invalidation ([73c08987](https://github.com/pixelfed/pixelfed/commit/73c08987))
 - Updated AdminInstanceController, remove db transaction from instance scan ([5773434a](https://github.com/pixelfed/pixelfed/commit/5773434a))
@@ -1904,7 +1789,7 @@
 - Added ```software``` back to AccountTransformer [93c687c7](https://github.com/pixelfed/pixelfed/commit/93c687c7)
 
 ### Fixed
-- Fixed cache bug in privacy and terms pages [#1712](https://github.com/pixelfed/pixelfed/commit/fe522da)
+- Fixed cache bug in privacy and terms pages [#1712](https://github.com/pixelfed/pixelfed/commit/fe522da8db7a8b0d7c18d405abcb885f8678f35c)
 
 ### Changed
 
@@ -1913,7 +1798,7 @@
 
 ### Added
 - Added Welsh translations [#1706](https://github.com/pixelfed/pixelfed/pull/1706)
-- Added Api v1 controller [85835f5a](https://github.com/pixelfed/pixelfed/commit/85835f5)
+- Added Api v1 controller [85835f5a](https://github.com/pixelfed/pixelfed/commit/85835f5a6712dea0562df4be897087de5305750f)
 - Added database migration that adds a language column to the users table [c87d8c16](https://github.com/pixelfed/pixelfed/commit/c87d8c16)
 - Added persistent preferred language [18bc9c30](https://github.com/pixelfed/pixelfed/commit/18bc9c30)
 
@@ -1928,17 +1813,17 @@
 - Cache ProfileController [#1700](https://github.com/pixelfed/pixelfed/pull/1700)
 - Updated ComposeUI v4, made cropping optional [#1702](https://github.com/pixelfed/pixelfed/pull/1702)
 - Updated DiscoverController, limit Loops to local only posts [#1703](https://github.com/pixelfed/pixelfed/pull/1703)
-- Namespaced internal apis [3c306c5e](https://github.com/pixelfed/pixelfed/commit/3c306c5)
-- Updated .env.example with proper remote follow variable [0697f780](https://github.com/pixelfed/pixelfed/commit/0697f78)
-- Updated show all comments view [0a5eaa31](https://github.com/pixelfed/pixelfed/pull/1708/commits/0a5eaa3)
-- Updated language page layout [01fb5af](https://github.com/pixelfed/pixelfed/pull/1708/commits/01fb5af)
-- Updated privacy policy page layout [a4229d5](https://github.com/pixelfed/pixelfed/pull/1708/commits/a4229d5)
-- Updated terms page layout [4f8c5e5](https://github.com/pixelfed/pixelfed/pull/1708/commits/4f8c5e5)
+- Namespaced internal apis [3c306c5e](https://github.com/pixelfed/pixelfed/commit/3c306c5e179d35dbe19a6a1bd9533350e4b96524)
+- Updated .env.example with proper remote follow variable [0697f780](https://github.com/pixelfed/pixelfed/commit/0697f780d3a5cba72148f0a767d5a35124a3d9b4)
+- Updated show all comments view [0a5eaa31](https://github.com/pixelfed/pixelfed/pull/1708/commits/0a5eaa3118cb09c61d3e5442fe3bf8439a2a12af)
+- Updated language page layout [01fb5af](https://github.com/pixelfed/pixelfed/pull/1708/commits/01fb5af19e803488c5794b545d218771f6fce6d7)
+- Updated privacy policy page layout [a4229d5](https://github.com/pixelfed/pixelfed/pull/1708/commits/a4229d5d30faea11e7a72d122c4a5762d867aaf3)
+- Updated terms page layout [4f8c5e5](https://github.com/pixelfed/pixelfed/pull/1708/commits/4f8c5e5519949c63c702c724a00d8575db4e0014)
 - Update v1 API, added /api/v1/instance endpoint [951b6fa0](https://github.com/pixelfed/pixelfed/commit/951b6fa0) [9dc2234b](https://github.com/pixelfed/pixelfed/commit/99dc2234b)
 
 ## Deprecated
 - Remove deprecated profile following/followers [#1697](https://github.com/pixelfed/pixelfed/pull/1697)
-- Remove old comment permalink [05f6598](https://github.com/pixelfed/pixelfed/pull/1708/commits/05f6598)
+- Remove old comment permalink [05f6598](https://github.com/pixelfed/pixelfed/pull/1708/commits/05f659896d903e1ff41dba810f125d721fa057e7)
 
 
 ## [v0.10.3 (2019-09-08)](https://github.com/pixelfed/pixelfed/compare/v0.10.2...v0.10.3)

@@ -480,14 +480,14 @@ function await-database-ready()
     load-config-files
 
     case "${DB_CONNECTION:-}" in
-        mariadb)
+        mysql)
             # shellcheck disable=SC2154
             while ! echo "SELECT 1" | mariadb --user="${DB_USERNAME}" --password="${DB_PASSWORD}" --host="${DB_HOST}" --port="${DB_PORT}" "${DB_DATABASE}" --silent >/dev/null; do
                 staggered-sleep
             done
             ;;
 
-        mysql)
+        mariadb)
             # shellcheck disable=SC2154
             while ! echo "SELECT 1" | mysql --user="${DB_USERNAME}" --password="${DB_PASSWORD}" --host="${DB_HOST}" --port="${DB_PORT}" "${DB_DATABASE}" --silent >/dev/null; do
                 staggered-sleep
@@ -612,19 +612,4 @@ function as-boolean()
             ;;
 
     esac
-}
-
-# @description Remove leading and trailing spaces from input
-# @arg $@ string The string to trim
-function trim-whitespace()
-{
-    local var="$*"
-
-    # remove leading whitespace characters
-    var="${var#"${var%%[![:space:]]*}"}"
-
-    # remove trailing whitespace characters
-    var="${var%"${var##*[![:space:]]}"}"
-
-    printf '%s' "$var"
 }

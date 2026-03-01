@@ -170,5 +170,12 @@ return [
             'port'              => env('REDIS_PORT', 6379),
             'database'          => env('REDIS_DATABASE_PULSE', 2),
         ],
+
     ],
+
+	'dbal'              => [
+	    'types'             => [
+	        'timestamp'         => TimestampType::class,
+	    ],
+	],
 ];

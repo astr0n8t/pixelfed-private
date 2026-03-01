@@ -2,9 +2,10 @@
 
 namespace App\Util\ActivityPub\Validator;
 
+use Validator;
 use Closure;
 use Illuminate\Validation\Rule;
-use Validator;
+use \App\Rules\SameHostDomain;
 
 class UpdatePersonValidator
 {
@@ -15,7 +16,7 @@ class UpdatePersonValidator
             'id' => 'required|string|url',
             'type' => [
                 'required',
-                Rule::in(['Update']),
+                Rule::in(['Update'])
             ],
             'actor' => 'required|url',
             'object' => 'required',
@@ -23,19 +24,19 @@ class UpdatePersonValidator
                 'required',
                 'url',
                 'same:actor',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
             'object.type' => [
                 'required',
-                Rule::in(['Person']),
+                Rule::in(['Person'])
             ],
             'object.publicKey' => 'required',
             'object.publicKey.id' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
@@ -43,7 +44,7 @@ class UpdatePersonValidator
                 'required',
                 'url',
                 'same:actor',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
@@ -51,7 +52,7 @@ class UpdatePersonValidator
             'object.url' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
@@ -61,28 +62,28 @@ class UpdatePersonValidator
             'object.inbox' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
             'object.outbox' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
             'object.following' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
             'object.followers' => [
                 'required',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
             ],
@@ -95,10 +96,10 @@ class UpdatePersonValidator
             'object.endpoints.sharedInbox' => [
                 'sometimes',
                 'url',
-                function (string $attribute, mixed $value, Closure $fail) use ($payload) {
+                function (string $attribute, mixed $value, Closure $fail) use($payload) {
                     self::sameHost($attribute, $value, $fail, $payload['actor']);
                 },
-            ],
+            ]
         ])->passes();
 
         return $valid;
@@ -106,13 +107,13 @@ class UpdatePersonValidator
 
     public static function sameHost(string $attribute, mixed $value, Closure $fail, string $comparedHost)
     {
-        if (empty($value)) {
-            $fail('The '.$attribute.' is invalid or empty');
+        if(empty($value)) {
+            $fail('The ' . $attribute . ' is invalid or empty');
         }
         $host = parse_url($value, PHP_URL_HOST);
         $idHost = parse_url($comparedHost, PHP_URL_HOST);
         if ($host !== $idHost) {
-            $fail('The '.$attribute.' is invalid');
+            $fail('The ' . $attribute . ' is invalid');
         }
     }
 }

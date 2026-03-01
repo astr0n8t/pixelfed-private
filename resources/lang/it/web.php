@@ -27,7 +27,7 @@ return [
 		'proceed' => 'Procedi',
 		'next' => 'Avanti',
 		'close' => 'Chiudi',
-		'clickHere' => 'clicca qui',
+		'clickHere' => 'cclicca qui',
 
 		'sensitive' => 'Sensibile',
 		'sensitiveContent' => 'Contenuto Sensibile',
@@ -82,7 +82,7 @@ return [
 	'notifications' => [
 		'liked' => 'ha messo like a',
 		'commented' => 'ha commentato il tuo',
-		'reacted' => 'ha reagito al tuo',
+		'reacted' => 'ha reagito a',
 		'shared' => 'ha condiviso il tuo',
 		'tagged' => 'ti ha taggato in',
 

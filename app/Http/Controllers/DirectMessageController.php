@@ -11,7 +11,6 @@ use App\Models\Conversation;
 use App\Notification;
 use App\Profile;
 use App\Services\AccountService;
-use App\Services\FollowerService;
 use App\Services\MediaBlocklistService;
 use App\Services\MediaPathService;
 use App\Services\MediaService;
@@ -603,16 +602,6 @@ class DirectMessageController extends Controller
             });
 
         return $results;
-    }
-
-    public function composeMutuals(Request $request)
-    {
-        $user = $request->user();
-        if ($user->has_roles && ! UserRoleService::can('can-direct-message', $user->id)) {
-            return [];
-        }
-
-        return response()->json(FollowerService::getMutualsWithProfiles($user->profile_id, 10));
     }
 
     public function read(Request $request)

@@ -20,9 +20,10 @@ class MediaStorageService
 {
     public static function store(Media $media)
     {
-        if ((bool) config_cache('pixelfed.cloud_storage') == true && config('filesystems.default') === 'local') {
+        if ((bool) config_cache('pixelfed.cloud_storage') == true) {
             (new self)->cloudStore($media);
         }
+
     }
 
     public static function move(Media $media)
@@ -31,7 +32,7 @@ class MediaStorageService
             return;
         }
 
-        if ((bool) config_cache('pixelfed.cloud_storage') == true && config('filesystems.default') === 'local') {
+        if ((bool) config_cache('pixelfed.cloud_storage') == true) {
             return (new self)->cloudMove($media);
         }
 
@@ -82,11 +83,11 @@ class MediaStorageService
             (new self)->localToCloud($media);
         }
 
-        if ($media->status_id && config_cache('pixelfed.cloud_storage') && ! config('pixelfed.media_fast_process')) {
+        if ($media->status_id && config_cache('pixelfed.cloud_storage') && !config('pixelfed.media_fast_process')) {
             $still_processing = Media::whereStatusId($media->status_id)
                 ->whereNull('cdn_url')
                 ->exists();
-            if (! $still_processing) {
+            if (!$still_processing) {
                 // In this configuration, publishing the status is delayed until the media uploads
                 // Since all media have been processed, we can kick the NewStatusPipeline job
                 // N.B. there's a timing condition with multiple MediaStorageService workers matching this if statement
@@ -102,9 +103,6 @@ class MediaStorageService
     protected function localToCloud($media)
     {
         $path = storage_path('app/'.$media->media_path);
-        $thumb = null;
-        $thumbname = null;
-
         if ($media->thumbnail_path) {
             $thumb = storage_path('app/'.$media->thumbnail_path);
         }
@@ -137,7 +135,6 @@ class MediaStorageService
             }
         }
         if ($media->status_id) {
-            Cache::forget('pf:status:ap:v1:sid:'.$media->status_id);
             Cache::forget('status:transformer:media:attachments:'.$media->status_id);
             MediaService::del($media->status_id);
             StatusService::del($media->status_id, false);
@@ -159,7 +156,6 @@ class MediaStorageService
         }
 
         $mimes = [
-            'image/jpg',
             'image/jpeg',
             'image/png',
             'video/mp4',
@@ -188,7 +184,6 @@ class MediaStorageService
                 $ext = '.gif';
                 break;
 
-            case 'image/jpg':
             case 'image/jpeg':
                 $ext = '.jpg';
                 break;
@@ -242,7 +237,6 @@ class MediaStorageService
 
         $mimes = [
             'application/octet-stream',
-            'image/jpg',
             'image/jpeg',
             'image/png',
         ];
@@ -273,7 +267,7 @@ class MediaStorageService
         }
 
         $base = ($local ? 'public/cache/' : 'cache/').'avatars/'.$avatar->profile_id;
-        $ext = ($head['mime'] == 'image/png') ? 'png' : 'jpg';
+        $ext = $head['mime'] == 'image/jpeg' ? 'jpg' : 'png';
         $path = 'avatar_'.strtolower(Str::random(random_int(3, 6))).'.'.$ext;
         $tmpBase = storage_path('app/remcache/');
         $tmpPath = 'avatar_'.$avatar->profile_id.'-'.$path;
@@ -286,7 +280,7 @@ class MediaStorageService
 
         $mimeCheck = Storage::mimeType('remcache/'.$tmpPath);
 
-        if (! $mimeCheck || ! in_array($mimeCheck, ['image/png', 'image/jpeg', 'image/jpg'])) {
+        if (! $mimeCheck || ! in_array($mimeCheck, ['image/png', 'image/jpeg'])) {
             $avatar->last_fetched_at = now();
             $avatar->save();
             unlink($tmpName);
@@ -328,9 +322,7 @@ class MediaStorageService
         }
 
         $path = storage_path('app/'.$media->media_path);
-        $thumb = null;
-        $thumbname = null;
-
+        $thumb = false;
         if ($media->thumbnail_path) {
             $thumb = storage_path('app/'.$media->thumbnail_path);
             $pt = explode('/', $media->thumbnail_path);

@@ -6,7 +6,6 @@ use App\Services\NotificationAppGatewayService;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class FollowPushNotifyPipeline implements ShouldQueue
 {
@@ -30,28 +29,9 @@ class FollowPushNotifyPipeline implements ShouldQueue
      */
     public function handle(): void
     {
-        $pushToken = $this->pushToken;
-        $actor = $this->actor;
-
-        // Verify push token exists
-        if (! $pushToken) {
-            Log::info('FollowPushNotifyPipeline: Push token not provided, skipping job');
-
-            return;
-        }
-
-        // Verify actor exists
-        if (! $actor) {
-            Log::info('FollowPushNotifyPipeline: Actor not provided, skipping job');
-
-            return;
-        }
-
         try {
-            NotificationAppGatewayService::send($pushToken, 'follow', $actor);
+            NotificationAppGatewayService::send($this->pushToken, 'follow', $this->actor);
         } catch (Exception $e) {
-            Log::warning("FollowPushNotifyPipeline: Failed to send Follow notification to {$actor} :".$e->getMessage());
-
             return;
         }
     }

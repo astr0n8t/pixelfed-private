@@ -9,6 +9,7 @@ return [
     'notifications' =>          'Bildirimler',
     'password' =>               'Parola',
     'privacy' =>                'Gizlilik',
+    'relationships' =>          'İlişkiler',
     'security' =>               'Güvenlik',
     'timelines' =>              'Akış',
     'applications' =>           'Uygulamalar',

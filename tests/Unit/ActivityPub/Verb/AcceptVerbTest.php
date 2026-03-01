@@ -3,7 +3,6 @@
 namespace Tests\Unit\ActivityPub\Verb;
 
 use App\Util\ActivityPub\Validator\Accept;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AcceptVerbTest extends TestCase
@@ -78,19 +77,19 @@ class AcceptVerbTest extends TestCase
         ];
     }
 
-    #[Test]
+    /** @test */
     public function basic_accept()
     {
         $this->assertTrue(Accept::validate($this->validAccept));
     }
 
-    #[Test]
+    /** @test */
     public function invalid_accept()
     {
         $this->assertFalse(Accept::validate($this->invalidAccept));
     }
 
-    #[Test]
+    /** @test */
     public function mastodon_accept()
     {
         $this->assertTrue(Accept::validate($this->mastodonAccept));

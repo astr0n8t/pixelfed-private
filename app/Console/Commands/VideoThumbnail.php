@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\VideoPipeline\VideoThumbnail as Pipeline;
-use App\Media;
 use Illuminate\Console\Command;
+
+use App\Media;
+use App\Jobs\VideoPipeline\VideoThumbnail as Pipeline; 
 
 class VideoThumbnail extends Command
 {
@@ -41,10 +42,10 @@ class VideoThumbnail extends Command
     {
         $limit = 10;
         $videos = Media::whereMime('video/mp4')
-            ->whereNull('thumbnail_path')
-            ->take($limit)
-            ->get();
-        foreach ($videos as $video) {
+                        ->whereNull('thumbnail_path')
+                        ->take($limit)
+                        ->get();
+        foreach($videos as $video) {
             Pipeline::dispatch($video);
         }
     }

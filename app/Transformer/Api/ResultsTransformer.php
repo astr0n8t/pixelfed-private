@@ -6,39 +6,37 @@ use League\Fractal;
 
 class ResultsTransformer extends Fractal\TransformerAbstract
 {
-    protected $defaultIncludes = [
-        'accounts',
-        'statuses',
-        'hashtags',
-    ];
 
-    public function transform($results)
-    {
-        return [
-            'accounts' => [],
-            'statuses' => [],
-            'hashtags' => [],
-        ];
-    }
+	protected $defaultIncludes = [
+		'accounts',
+		'statuses',
+		'hashtags',
+	];
 
-    public function includeAccounts($results)
-    {
-        $accounts = $results->accounts;
+	public function transform($results)
+	{
+		return [
+			'accounts' => [],
+			'statuses' => [],
+			'hashtags' => []
+		];
+	}
 
-        return $this->collection($accounts, new AccountTransformer);
-    }
+	public function includeAccounts($results)
+	{
+		$accounts = $results->accounts;
+		return $this->collection($accounts, new AccountTransformer());
+	}
 
-    public function includeStatuses($results)
-    {
-        $statuses = $results->statuses;
+	public function includeStatuses($results)
+	{
+		$statuses = $results->statuses;
+		return $this->collection($statuses, new StatusTransformer());
+	}
 
-        return $this->collection($statuses, new StatusTransformer);
-    }
-
-    public function includeTags($results)
-    {
-        $hashtags = $results->hashtags;
-
-        return $this->collection($hashtags, new HashtagTransformer);
-    }
+	public function includeTags($results)
+	{
+		$hashtags = $results->hashtags;
+		return $this->collection($hashtags, new HashtagTransformer());
+	}
 }

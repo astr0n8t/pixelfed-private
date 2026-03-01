@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ImportPost;
-use App\Services\ImportService;
 use Illuminate\Console\Command;
+use App\Models\ImportPost;
+use Storage;
+use App\Services\ImportService;
 
 class ImportUploadGarbageCollection extends Command
 {
@@ -27,17 +28,17 @@ class ImportUploadGarbageCollection extends Command
      */
     public function handle()
     {
-        if (! config('import.instagram.enabled')) {
+        if(!config('import.instagram.enabled')) {
             return;
         }
 
         $ips = ImportPost::whereNull('status_id')->where('skip_missing_media', true)->take(100)->get();
 
-        if (! $ips->count()) {
+        if(!$ips->count()) {
             return;
         }
 
-        foreach ($ips as $ip) {
+        foreach($ips as $ip) {
             $pid = $ip->profile_id;
             $ip->delete();
             ImportService::getPostCount($pid, true);

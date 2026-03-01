@@ -2,12 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Profile;
 use App\User;
+use App\Profile;
 use Illuminate\Console\Command;
-
-use function Laravel\Prompts\confirm;
 use function Laravel\Prompts\search;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\confirm;
 
 class ReclaimUsername extends Command
 {
@@ -32,22 +32,20 @@ class ReclaimUsername extends Command
     {
         $username = search(
             label: 'What username would you like to reclaim?',
-            options: fn (string $search) => strlen($search) > 0 ? $this->getUsernameOptions($search) : [],
+            options: fn (string $search) => strlen($search) > 0  ? $this->getUsernameOptions($search) : [],
             required: true
         );
 
         $user = User::whereUsername($username)->withTrashed()->first();
         $profile = Profile::whereUsername($username)->withTrashed()->first();
 
-        if (! $user && ! $profile) {
+        if (!$user && !$profile) {
             $this->error("No user or profile found with username: {$username}");
-
             return Command::FAILURE;
         }
 
         if ($user->delete_after === null || $user->status !== 'deleted') {
             $this->error("Cannot reclaim an active account: {$username}");
-
             return Command::FAILURE;
         }
 
@@ -56,9 +54,8 @@ class ReclaimUsername extends Command
             default: false
         );
 
-        if (! $confirm) {
+        if (!$confirm) {
             $this->info('Operation cancelled.');
-
             return Command::SUCCESS;
         }
 
@@ -73,7 +70,6 @@ class ReclaimUsername extends Command
         }
 
         $this->info('Username reclaimed successfully!');
-
         return Command::SUCCESS;
     }
 

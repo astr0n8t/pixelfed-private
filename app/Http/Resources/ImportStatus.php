@@ -2,13 +2,10 @@
 
 namespace App\Http\Resources;
 
-use App\Services\StatusService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\StatusService;
 
-/**
- * @property int $status_id
- */
 class ImportStatus extends JsonResource
 {
     /**

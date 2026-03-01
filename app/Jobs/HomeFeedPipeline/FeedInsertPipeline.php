@@ -2,34 +2,30 @@
 
 namespace App\Jobs\HomeFeedPipeline;
 
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
+use App\UserFilter;
 use App\Models\UserDomainBlock;
 use App\Services\FollowerService;
 use App\Services\HomeTimelineService;
 use App\Services\StatusService;
-use App\UserFilter;
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
-use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
 
-class FeedInsertPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
+class FeedInsertPipeline implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $sid;
-
     protected $pid;
 
     public $timeout = 900;
-
     public $tries = 3;
-
     public $maxExceptions = 1;
-
     public $failOnTimeout = true;
 
     /**
@@ -44,7 +40,7 @@ class FeedInsertPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
      */
     public function uniqueId(): string
     {
-        return 'hts:feed:insert:sid:'.$this->sid;
+        return 'hts:feed:insert:sid:' . $this->sid;
     }
 
     /**
@@ -72,31 +68,13 @@ class FeedInsertPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
     public function handle(): void
     {
         $sid = $this->sid;
-        $pid = $this->pid;
-
-        // Verify required IDs are provided
-        if (! $sid) {
-            Log::info('FeedInsertPipeline: Missing status ID, skipping job');
-
-            return;
-        }
-        if (! $pid) {
-            Log::info('FeedInsertPipeline: Missing profile ID, skipping job');
-
-            return;
-        }
-
         $status = StatusService::get($sid, false);
 
-        if (! $status || ! isset($status['account']) || ! isset($status['account']['id'], $status['url'])) {
-            Log::info("FeedInsertPipeline: Status {$sid} not found or invalid, skipping job");
-
+        if(!$status || !isset($status['account']) || !isset($status['account']['id'], $status['url'])) {
             return;
         }
 
-        if (! in_array($status['pf_type'], ['photo', 'photo:album', 'video', 'video:album', 'photo:video:album'])) {
-            Log::info("FeedInsertPipeline: Status {$sid} type {$status['pf_type']} not supported, skipping job");
-
+        if(!in_array($status['pf_type'], ['photo', 'photo:album', 'video', 'video:album', 'photo:video:album'])) {
             return;
         }
 
@@ -104,14 +82,14 @@ class FeedInsertPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
 
         $ids = FollowerService::localFollowerIds($this->pid);
 
-        if (! $ids || ! count($ids)) {
+        if(!$ids || !count($ids)) {
             return;
         }
 
         $domain = strtolower(parse_url($status['url'], PHP_URL_HOST));
         $skipIds = [];
 
-        if (strtolower(config('pixelfed.domain.app')) !== $domain) {
+        if(strtolower(config('pixelfed.domain.app')) !== $domain) {
             $skipIds = UserDomainBlock::where('domain', $domain)->pluck('profile_id')->toArray();
         }
 
@@ -121,14 +99,14 @@ class FeedInsertPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
             ->pluck('user_id')
             ->toArray();
 
-        if ($filters && count($filters)) {
+        if($filters && count($filters)) {
             $skipIds = array_merge($skipIds, $filters);
         }
 
         $skipIds = array_unique(array_values($skipIds));
 
-        foreach ($ids as $id) {
-            if (! in_array($id, $skipIds)) {
+        foreach($ids as $id) {
+            if(!in_array($id, $skipIds)) {
                 HomeTimelineService::add($id, $this->sid);
             }
         }

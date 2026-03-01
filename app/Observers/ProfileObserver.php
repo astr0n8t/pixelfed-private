@@ -17,6 +17,7 @@ class ProfileObserver
     /**
      * Handle the Profile "created" event.
      *
+     * @param  \App\Profile  $profile
      * @return void
      */
     public function created(Profile $profile)
@@ -27,6 +28,7 @@ class ProfileObserver
     /**
      * Handle the Profile "updated" event.
      *
+     * @param  \App\Profile  $profile
      * @return void
      */
     public function updated(Profile $profile)
@@ -37,6 +39,7 @@ class ProfileObserver
     /**
      * Handle the Profile "deleted" event.
      *
+     * @param  \App\Profile  $profile
      * @return void
      */
     public function deleted(Profile $profile)
@@ -47,6 +50,7 @@ class ProfileObserver
     /**
      * Handle the Profile "restored" event.
      *
+     * @param  \App\Profile  $profile
      * @return void
      */
     public function restored(Profile $profile)
@@ -57,6 +61,7 @@ class ProfileObserver
     /**
      * Handle the Profile "force deleted" event.
      *
+     * @param  \App\Profile  $profile
      * @return void
      */
     public function forceDeleted(Profile $profile)

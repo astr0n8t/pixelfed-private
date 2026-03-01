@@ -2,18 +2,17 @@
 
 namespace App\Services;
 
-use Aws\S3\Exception\S3Exception;
+use Storage;
+use Illuminate\Http\File;
 use Exception;
 use GuzzleHttp\Exception\ClientException;
+use Aws\S3\Exception\S3Exception;
 use GuzzleHttp\Exception\ConnectException;
-use Illuminate\Http\File;
-use Illuminate\Support\Facades\Log;
 use League\Flysystem\UnableToWriteFile;
-use Storage;
 
 class ResilientMediaStorageService
 {
-    public static $attempts = 0;
+    static $attempts = 0;
 
     public static function store($storagePath, $path, $name)
     {
@@ -24,11 +23,10 @@ class ResilientMediaStorageService
 
     public static function handleStore($storagePath, $path, $name)
     {
-        return retry(3, function () use ($storagePath, $path, $name) {
+        return retry(3, function() use($storagePath, $path, $name) {
             $baseDisk = (bool) config_cache('pixelfed.cloud_storage') ? config('filesystems.cloud') : 'local';
             $disk = Storage::disk($baseDisk);
             $file = $disk->putFileAs($storagePath, new File($path), $name, 'public');
-
             return $disk->url($file);
         }, random_int(100, 500));
     }
@@ -36,20 +34,15 @@ class ResilientMediaStorageService
     public static function handleResilientStore($storagePath, $path, $name)
     {
         $attempts = 0;
-
-        return retry(4, function () use ($storagePath, $path, $name) {
+        return retry(4, function() use($storagePath, $path, $name, $attempts) {
             self::$attempts++;
             usleep(100000);
             $baseDisk = self::$attempts > 1 ? self::getAltDriver() : config('filesystems.cloud');
             try {
                 $disk = Storage::disk($baseDisk);
                 $file = $disk->putFileAs($storagePath, new File($path), $name, 'public');
-
-                return $disk->url($file);
-            } catch (S3Exception|ClientException|ConnectException|UnableToWriteFile|Exception $e) {
-                Log::warning("ResilientMediaStorageService: Failed to handle Resilient Store {$file} : ".$e->getMessage());
-                throw $e;
-            }
+            } catch (S3Exception | ClientException | ConnectException | UnableToWriteFile | Exception $e) {}
+            return $disk->url($file);
         }, function (int $attempt, Exception $exception) {
             return $attempt * 200;
         });
@@ -58,17 +51,16 @@ class ResilientMediaStorageService
     public static function getAltDriver()
     {
         $drivers = [];
-        if (config('filesystems.disks.alt-primary.enabled')) {
+        if(config('filesystems.disks.alt-primary.enabled')) {
             $drivers[] = 'alt-primary';
         }
-        if (config('filesystems.disks.alt-secondary.enabled')) {
+        if(config('filesystems.disks.alt-secondary.enabled')) {
             $drivers[] = 'alt-secondary';
         }
-        if (empty($drivers)) {
+        if(empty($drivers)) {
             return false;
         }
         $key = array_rand($drivers, 1);
-
         return $drivers[$key];
     }
 }

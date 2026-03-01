@@ -2,8 +2,8 @@
 
 namespace App\Rules;
 
-use Illuminate\Contracts\Validation\InvokableRule;
 use Illuminate\Support\Str;
+use Illuminate\Contracts\Validation\InvokableRule;
 
 class MaxMultiLine implements InvokableRule
 {
@@ -26,7 +26,8 @@ class MaxMultiLine implements InvokableRule
     {
         $realCount = Str::length($value) - Str::substrCount($value, "\r\n");
 
-        if ($realCount > $this->maxCharacters) {
+        if($realCount > $this->maxCharacters)
+        {
             $fail('validation.max.string')->translate(['max' => $this->maxCharacters]);
         }
     }

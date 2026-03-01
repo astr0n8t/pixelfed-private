@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Internal\SoftwareUpdateService;
 use Illuminate\Http\Request;
+use App\Services\Internal\SoftwareUpdateService;
 
 class SoftwareUpdateController extends Controller
 {
@@ -16,7 +16,6 @@ class SoftwareUpdateController extends Controller
     public function getSoftwareUpdateCheck(Request $request)
     {
         $res = SoftwareUpdateService::get();
-
         return $res;
     }
 }

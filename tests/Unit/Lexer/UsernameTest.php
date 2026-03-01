@@ -4,18 +4,17 @@ namespace Tests\Unit\Lexer;
 
 use App\Util\Lexer\Autolink;
 use App\Util\Lexer\Extractor;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UsernameTest extends TestCase
 {
-    #[Test]
+    /** @test * */
     public function genericUsername()
     {
         $username = '@dansup';
         $entities = Extractor::create()->extract($username);
         $autolink = Autolink::create()->autolink($username);
-        $expectedAutolink = '<a class="u-url mention" href="' . config('app.url') . '/dansup" rel="external nofollow noopener" target="_blank">@dansup</a>';
+        $expectedAutolink = '<a class="u-url mention" href="https://pixelfed.dev/dansup" rel="external nofollow noopener" target="_blank">@dansup</a>';
         $expectedEntity = [
             'hashtags' => [],
             'urls' => [],
@@ -39,13 +38,13 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function usernameWithPeriod()
     {
         $username = '@dansup.two';
         $autolink = Autolink::create()->autolink($username);
         $entities = Extractor::create()->extract($username);
-        $expectedAutolink = '<a class="u-url mention" href="' . config('app.url') . '/dansup.two" rel="external nofollow noopener" target="_blank">@dansup.two</a>';
+        $expectedAutolink = '<a class="u-url mention" href="https://pixelfed.dev/dansup.two" rel="external nofollow noopener" target="_blank">@dansup.two</a>';
         $expectedEntity = [
             'hashtags' => [],
             'urls' => [],
@@ -69,13 +68,13 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function usernameWithDash()
     {
         $username = '@dansup-too';
         $autolink = Autolink::create()->autolink($username);
         $entities = Extractor::create()->extract($username);
-        $expectedAutolink = '<a class="u-url mention" href="' . config('app.url') . '/dansup-too" rel="external nofollow noopener" target="_blank">@dansup-too</a>';
+        $expectedAutolink = '<a class="u-url mention" href="https://pixelfed.dev/dansup-too" rel="external nofollow noopener" target="_blank">@dansup-too</a>';
         $expectedEntity = [
             'hashtags' => [],
             'urls' => [],
@@ -99,13 +98,13 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function usernameWithUnderscore()
     {
         $username = '@dansup_too';
         $autolink = Autolink::create()->autolink($username);
         $entities = Extractor::create()->extract($username);
-        $expectedAutolink = '<a class="u-url mention" href="' . config('app.url') . '/dansup_too" rel="external nofollow noopener" target="_blank">@dansup_too</a>';
+        $expectedAutolink = '<a class="u-url mention" href="https://pixelfed.dev/dansup_too" rel="external nofollow noopener" target="_blank">@dansup_too</a>';
         $expectedEntity = [
             'hashtags' => [],
             'urls' => [],
@@ -129,13 +128,13 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function multipleMentions()
     {
         $text = 'hello @dansup and @pixelfed.team from @username_underscore';
         $autolink = Autolink::create()->autolink($text);
         $entities = Extractor::create()->extract($text);
-        $expectedAutolink = 'hello <a class="u-url mention" href="' . config('app.url') . '/dansup" rel="external nofollow noopener" target="_blank">@dansup</a> and <a class="u-url mention" href="' . config('app.url') . '/pixelfed.team" rel="external nofollow noopener" target="_blank">@pixelfed.team</a> from <a class="u-url mention" href="' . config('app.url') . '/username_underscore" rel="external nofollow noopener" target="_blank">@username_underscore</a>';
+        $expectedAutolink = 'hello <a class="u-url mention" href="https://pixelfed.dev/dansup" rel="external nofollow noopener" target="_blank">@dansup</a> and <a class="u-url mention" href="https://pixelfed.dev/pixelfed.team" rel="external nofollow noopener" target="_blank">@pixelfed.team</a> from <a class="u-url mention" href="https://pixelfed.dev/username_underscore" rel="external nofollow noopener" target="_blank">@username_underscore</a>';
         $expectedEntity = [
             'hashtags' => [],
             'urls' => [],
@@ -176,17 +175,17 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function germanUmlatsAutolink()
     {
         $mentions = "@März and @königin and @Glück";
         $autolink = Autolink::create()->autolink($mentions);
 
-        $expectedAutolink = '<a class="u-url mention" href="' . config('app.url') . '/März" rel="external nofollow noopener" target="_blank">@März</a> and <a class="u-url mention" href="' . config('app.url') . '/königin" rel="external nofollow noopener" target="_blank">@königin</a> and <a class="u-url mention" href="' . config('app.url') . '/Glück" rel="external nofollow noopener" target="_blank">@Glück</a>';
+        $expectedAutolink = '<a class="u-url mention" href="https://pixelfed.dev/März" rel="external nofollow noopener" target="_blank">@März</a> and <a class="u-url mention" href="https://pixelfed.dev/königin" rel="external nofollow noopener" target="_blank">@königin</a> and <a class="u-url mention" href="https://pixelfed.dev/Glück" rel="external nofollow noopener" target="_blank">@Glück</a>';
         $this->assertEquals($expectedAutolink, $autolink);
     }
 
-    #[Test]
+    /** @test * */
     public function germanUmlatsExtractor()
     {
         $mentions = "@März and @königin and @Glück";
@@ -230,13 +229,13 @@ class UsernameTest extends TestCase
         $this->assertEquals($expectedEntity, $entities);
     }
 
-    #[Test]
+    /** @test * */
     public function germanUmlatsWebfingerAutolink()
     {
         $mentions = "hello @märz@example.org!";
         $autolink = Autolink::create()->autolink($mentions);
 
-        $expectedAutolink = 'hello <a class="u-url list-slug" href="' . config('app.url') . '/@märz@example.org" rel="external nofollow noopener" target="_blank">@märz@example.org</a>!';
+        $expectedAutolink = 'hello <a class="u-url list-slug" href="https://pixelfed.dev/@märz@example.org" rel="external nofollow noopener" target="_blank">@märz@example.org</a>!';
         $this->assertEquals($expectedAutolink, $autolink);
     }
 }

@@ -2,14 +2,18 @@
 
 namespace App\Events\Notification;
 
-use App\Status;
-use App\Transformer\Api\StatusTransformer;
 use Illuminate\Broadcasting\Channel;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Broadcasting\PrivateChannel;
+use Illuminate\Broadcasting\PresenceChannel;
+use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Broadcasting\InteractsWithSockets;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcastNow;
-use Illuminate\Foundation\Events\Dispatchable;
-use Illuminate\Queue\SerializesModels;
+use App\Status;
+use App\Transformer\Api\StatusTransformer;
 use League\Fractal;
+use League\Fractal\Serializer\ArraySerializer;
+use League\Fractal\Pagination\IlluminatePaginatorAdapter;
 
 class NewPublicPost implements ShouldBroadcastNow
 {
@@ -39,11 +43,10 @@ class NewPublicPost implements ShouldBroadcastNow
 
     public function broadcastWith()
     {
-        $resource = new Fractal\Resource\Item($this->status, new StatusTransformer);
+        $resource = new Fractal\Resource\Item($this->status, new StatusTransformer());
         $res = $this->fractal->createData($resource)->toArray();
-
         return [
-            'entity' => $res,
+            'entity' => $res
         ];
     }
 

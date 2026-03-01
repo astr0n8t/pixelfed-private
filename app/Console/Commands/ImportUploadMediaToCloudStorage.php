@@ -2,10 +2,9 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\ImportPipeline\ImportMediaToCloudPipeline;
-use App\Models\ImportPost;
 use Illuminate\Console\Command;
-
+use App\Models\ImportPost;
+use App\Jobs\ImportPipeline\ImportMediaToCloudPipeline;
 use function Laravel\Prompts\progress;
 
 class ImportUploadMediaToCloudStorage extends Command
@@ -29,12 +28,11 @@ class ImportUploadMediaToCloudStorage extends Command
      */
     public function handle()
     {
-        if (
+        if(
             (bool) config('import.instagram.storage.cloud.enabled') === false ||
             (bool) config_cache('pixelfed.cloud_storage') === false
         ) {
             $this->error('Aborted. Cloud storage is not enabled for IG imports.');
-
             return;
         }
 
@@ -46,7 +44,7 @@ class ImportUploadMediaToCloudStorage extends Command
 
         $posts = ImportPost::whereUploadedToS3(false)->take($limit)->get();
 
-        foreach ($posts as $post) {
+        foreach($posts as $post) {
             ImportMediaToCloudPipeline::dispatch($post)->onQueue('low');
             $progress->advance();
         }

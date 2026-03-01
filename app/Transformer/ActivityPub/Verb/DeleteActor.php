@@ -15,9 +15,10 @@ class DeleteActor extends Fractal\TransformerAbstract
             'type' => 'Delete',
             'actor' => $profile->permalink(),
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public',
+                'https://www.w3.org/ns/activitystreams#Public'
             ],
-            'object' => $profile->permalink(),
+            'object' => $profile->permalink()
         ];
     }
+
 }

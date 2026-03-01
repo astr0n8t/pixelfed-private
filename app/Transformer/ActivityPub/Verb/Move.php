@@ -9,9 +9,9 @@ class Move extends Fractal\TransformerAbstract
 {
     public function transform(ProfileMigration $migration)
     {
-        $objUrl = $migration->profile->permalink();
-        $id = $migration->profile->permalink('#moves/'.$migration->id);
-        $to = $migration->profile->permalink('/followers');
+        $objUrl = $migration->target->permalink();
+        $id = $migration->target->permalink('#moves/'.$migration->id);
+        $to = $migration->target->permalink('/followers');
 
         return [
             '@context' => 'https://www.w3.org/ns/activitystreams',
@@ -19,7 +19,7 @@ class Move extends Fractal\TransformerAbstract
             'actor' => $objUrl,
             'type' => 'Move',
             'object' => $objUrl,
-            'target' => $migration->target->permalink(),
+            'target' => $migration->profile->permalink(),
             'to' => $to,
         ];
     }

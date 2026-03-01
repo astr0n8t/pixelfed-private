@@ -10,6 +10,5 @@ class ConfigCache extends Model
     use HasFactory;
 
     protected $table = 'config_cache';
-
     public $guarded = [];
 }

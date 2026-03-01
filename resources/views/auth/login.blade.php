@@ -7,7 +7,7 @@
             <div class="card shadow-none border">
                 <div class="card-header bg-transparent p-3">
                     <h4 class="font-weight-bold mb-0 text-center">
-                        {{ __('auth.loginTitle') }}
+                        Account Login
                     </h4>
                 </div>
 
@@ -25,7 +25,7 @@
                         <div class="form-group row mb-0">
 
                             <div class="col-md-12">
-                                <label for="email" class="small font-weight-bold text-muted mb-0">{{__("auth.emailAddress")}}</label>
+                                <label for="email" class="small font-weight-bold text-muted mb-0">Email Address</label>
                                 <input id="email" type="email" class="form-control{{ $errors->has('email') ? ' is-invalid' : '' }}" name="email" value="{{ old('email') }}" placeholder="{{__('Email')}}" required autofocus>
 
                                 @if ($errors->has('email'))
@@ -45,7 +45,7 @@
                         <div class="form-group row mb-0">
 
                             <div class="col-md-12">
-                                <label for="password" class="small font-weight-bold text-muted mb-0">{{ __("auth.password")}}</label>
+                                <label for="password" class="small font-weight-bold text-muted mb-0">Password</label>
                                 <input id="password" type="password" class="form-control{{ $errors->has('password') ? ' is-invalid' : '' }}" name="password" placeholder="{{__('Password')}}" required>
 
                                 @if ($errors->has('password'))
@@ -56,7 +56,7 @@
 
                                 <p class="help-text small text-right mb-0">
                                     <a href="{{ route('password.request') }}" class="small text-muted font-weight-bold">
-                                        {{ __('auth.forgot') }}
+                                        {{ __('Forgot Password') }}
                                     </a>
                                 </p>
                             </div>
@@ -68,7 +68,7 @@
                                     <label>
                                         <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
                                         <span class="font-weight-bold ml-1 text-muted">
-                                            {{ __('auth.remember') }}
+                                            {{ __('Remember Me') }}
                                         </span>
                                     </label>
                                 </div>
@@ -90,7 +90,7 @@
                         @endif
 
                         <button type="submit" class="btn btn-primary btn-block btn-lg font-weight-bold rounded-pill">
-                            {{ __('auth.login') }}
+                            {{ __('Login') }}
                         </button>
 
                     </form>
@@ -104,29 +104,18 @@
                         <div class="form-group row mb-0">
                             <div class="col-md-12">
                                 <button type="submit" class="btn btn-primary btn-sm btn-block rounded-pill font-weight-bold" style="background: linear-gradient(#6364FF, #563ACC);">
-                                    {{__("auth.signInMastodon")}}
+                                    Sign-in with Mastodon
                                 </button>
                             </div>
                         </div>
                     </form>
                     @endif
 
-                    @if( config('remote-auth.oidc.enabled') )
-                    <hr>
-                    <div class="form-group row mb-0">
-                        <div class="col-md-12">
-                            <a href="/auth/oidc/start" class="btn btn-primary btn-sm btn-block rounded-pill font-weight-bold" style="background: linear-gradient(#6364FF, #563ACC);">
-                                Sign-in with OIDC
-                            </a>
-                        </div>
-                    </div>
-                    @endif
-
                     @if((bool) config_cache('pixelfed.open_registration') || (bool) config_cache('instance.curated_registration.enabled'))
                     <hr>
 
                     <p class="text-center font-weight-bold mb-0">
-                        <a href="/register">{{ __("auth.register")}}</a>
+                        <a href="/register">Register</a>
                     </p>
                     @endif
                 </div>

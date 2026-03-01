@@ -2,11 +2,12 @@
 
 namespace App\Console\Commands;
 
-use App\Models\ImportPost;
-use App\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Storage;
+use App\User;
+use App\Models\ImportPost;
+use App\Services\ImportService;
 
 class ImportRemoveDeletedAccounts extends Command
 {
@@ -31,7 +32,7 @@ class ImportRemoveDeletedAccounts extends Command
      */
     public function handle()
     {
-        $skipMinId = Cache::remember(self::CACHE_KEY, 864000, function () {
+        $skipMinId = Cache::remember(self::CACHE_KEY, now()->addMinutes(60), function() {
             return 1;
         });
 
@@ -42,13 +43,13 @@ class ImportRemoveDeletedAccounts extends Command
             ->limit(500)
             ->pluck('id');
 
-        if (! $deletedIds || ! $deletedIds->count()) {
+        if(!$deletedIds || !$deletedIds->count()) {
             return;
         }
 
-        foreach ($deletedIds as $did) {
-            if (Storage::exists('imports/'.$did)) {
-                Storage::deleteDirectory('imports/'.$did);
+        foreach($deletedIds as $did) {
+            if(Storage::exists('imports/' . $did)) {
+                Storage::deleteDirectory('imports/' . $did);
             }
 
             ImportPost::where('user_id', $did)->delete();

@@ -3,7 +3,6 @@
 namespace Tests\Unit\ActivityPub\Verb;
 
 use App\Util\ActivityPub\Validator\Like;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LikeTest extends TestCase
@@ -45,7 +44,7 @@ class LikeTest extends TestCase
         ];
     }
 
-    #[Test]
+    /** @test */
     public function basic_like()
     {
         $this->assertTrue(Like::validate($this->basicLike));

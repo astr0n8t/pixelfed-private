@@ -2,31 +2,28 @@
 
 namespace App\Jobs\HomeFeedPipeline;
 
-use App\Services\FollowerService;
-use App\Services\HomeTimelineService;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Log;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
+use App\Services\FollowerService;
+use App\Services\StatusService;
+use App\Services\HomeTimelineService;
 
-class FeedRemoveRemotePipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
+class FeedRemoveRemotePipeline implements ShouldQueue, ShouldBeUniqueUntilProcessing
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $sid;
-
     protected $pid;
 
     public $timeout = 900;
-
     public $tries = 3;
-
     public $maxExceptions = 1;
-
     public $failOnTimeout = true;
 
     /**
@@ -41,7 +38,7 @@ class FeedRemoveRemotePipeline implements ShouldBeUniqueUntilProcessing, ShouldQ
      */
     public function uniqueId(): string
     {
-        return 'hts:feed:remove:remote:sid:'.$this->sid;
+        return 'hts:feed:remove:remote:sid:' . $this->sid;
     }
 
     /**
@@ -68,27 +65,10 @@ class FeedRemoveRemotePipeline implements ShouldBeUniqueUntilProcessing, ShouldQ
      */
     public function handle(): void
     {
-        $sid = $this->sid;
-        $pid = $this->pid;
+        $ids = FollowerService::localFollowerIds($this->pid);
 
-        // Verify status ID exists
-        if (! $sid) {
-            Log::info('FeedRemoveRemotePipeline: Status ID not provided, skipping job');
-
-            return;
-        }
-
-        // Verify profile ID exists
-        if (! $pid) {
-            Log::info('FeedRemoveRemotePipeline: Profile ID not provided, skipping job');
-
-            return;
-        }
-
-        $ids = FollowerService::localFollowerIds($pid);
-
-        foreach ($ids as $id) {
-            HomeTimelineService::rem($id, $sid);
+        foreach($ids as $id) {
+            HomeTimelineService::rem($id, $this->sid);
         }
     }
 }

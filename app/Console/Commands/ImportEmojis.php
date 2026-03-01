@@ -21,6 +21,7 @@ class ImportEmojis extends Command
                             {--overwrite : Overwrite existing emojis}
                             {--disabled : Import all emojis as disabled}';
 
+
     /**
      * The console command description.
      *
@@ -37,9 +38,8 @@ class ImportEmojis extends Command
     {
         $path = $this->argument('path');
 
-        if (! file_exists($path) || ! mime_content_type($path) == 'application/x-tar') {
+        if (!file_exists($path) || !mime_content_type($path) == 'application/x-tar') {
             $this->error('Path does not exist or is not a tarfile');
-
             return Command::FAILURE;
         }
 
@@ -52,9 +52,8 @@ class ImportEmojis extends Command
 
         foreach (new \RecursiveIteratorIterator($tar) as $entry) {
             $this->line("Processing {$entry->getFilename()}");
-            if (! $entry->isFile() || ! $this->isImage($entry) || ! $this->isEmoji($entry->getPathname())) {
+            if (!$entry->isFile() || !$this->isImage($entry) || !$this->isEmoji($entry->getPathname())) {
                 $failed++;
-
                 continue;
             }
 
@@ -74,21 +73,20 @@ class ImportEmojis extends Command
 
             $customEmoji = CustomEmoji::whereShortcode($shortcode)->first();
 
-            if ($customEmoji && ! $this->option('overwrite')) {
+            if ($customEmoji && !$this->option('overwrite')) {
                 $skipped++;
-
                 continue;
             }
 
-            $emoji = $customEmoji ?? new CustomEmoji;
+            $emoji = $customEmoji ?? new CustomEmoji();
             $emoji->shortcode = $shortcode;
             $emoji->domain = config('pixelfed.domain.app');
             $emoji->disabled = $this->option('disabled');
             $emoji->save();
 
-            $fileName = $emoji->id.'.'.$extension;
+            $fileName = $emoji->id . '.' . $extension;
             Storage::putFileAs('public/emoji', $entry->getPathname(), $fileName);
-            $emoji->media_path = 'emoji/'.$fileName;
+            $emoji->media_path = 'emoji/' . $fileName;
             $emoji->save();
             $imported++;
             Cache::forget('pf:custom_emoji');
@@ -98,7 +96,7 @@ class ImportEmojis extends Command
         $this->line("Skipped: {$skipped}");
         $this->line("Failed: {$failed}");
 
-        // delete file
+        //delete file
         unlink(str_replace('.tar.gz', '.tar', $path));
 
         return Command::SUCCESS;
@@ -107,13 +105,12 @@ class ImportEmojis extends Command
     private function isImage($file)
     {
         $image = getimagesize($file->getPathname());
-
         return $image !== false;
     }
 
     private function isEmoji($filename)
     {
-        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/webp', 'image/jpg'];
+        $allowedMimeTypes = ['image/png', 'image/jpeg', 'image/webp'];
         $mimeType = mime_content_type($filename);
 
         return in_array($mimeType, $allowedMimeTypes);

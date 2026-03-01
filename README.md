@@ -4,6 +4,8 @@
 <a href="https://github.com/astr0n8t/pixelfed-private/actions/"><img src="https://github.com/astr0n8t/pixelfed-private/actions/workflows/docker.yml/badge.svg" alt="Docker Build"></a>
 </p>
 
+## Introduction
+
 This is a fork of Pixelfed Glitch.
 
 Pixelfed is a free and ethical photo sharing platform, powered by ActivityPub federation.
@@ -11,11 +13,7 @@ Pixelfed is a free and ethical photo sharing platform, powered by ActivityPub fe
 This fork enables you to run a private/restricted instance without federation requiring an account to view and with working user invites.  The official mobile apps are still compatible while remaining restricted.
 
 <p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-dark.jpg">
-  <source media="(prefers-color-scheme: light)" srcset="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-light.jpg">
-  <img alt="Pixelfed web user interface in light mode" src="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-light.jpg">
-</picture>
+<img src="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-screenshot.jpg">
 </p>
 
 ## Documentation

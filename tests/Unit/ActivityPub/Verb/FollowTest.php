@@ -3,7 +3,6 @@
 namespace Tests\Unit\ActivityPub\Verb;
 
 use App\Util\ActivityPub\Validator\Follow;
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class FollowTest extends TestCase
@@ -45,7 +44,7 @@ class FollowTest extends TestCase
         ];
     }
 
-    #[Test]
+    /** @test */
     public function basic_follow()
     {
         $this->assertTrue(Follow::validate($this->basicFollow));

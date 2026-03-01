@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
@@ -11,7 +12,6 @@ class AdminMessage extends Mailable
     use Queueable, SerializesModels;
 
     protected $msg;
-
     /**
      * Create a new message instance.
      *
@@ -29,10 +29,9 @@ class AdminMessage extends Mailable
      */
     public function build()
     {
-        $admins = config('pixelfed.domain.app').' admins';
-
+        $admins = config('pixelfed.domain.app') . ' admins';
         return $this->markdown('emails.notification.admin_message')
             ->with(['msg' => $this->msg])
-            ->subject('Message from '.$admins);
+            ->subject('Message from ' . $admins);
     }
 }

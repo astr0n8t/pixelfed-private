@@ -2,9 +2,10 @@
 
 namespace App\Services;
 
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Redis;
 use App\Hashtag;
 use App\StatusHashtag;
-use Illuminate\Support\Facades\Cache;
 
 class TrendingHashtagService
 {
@@ -12,45 +13,44 @@ class TrendingHashtagService
 
     public static function key($k = null)
     {
-        return self::CACHE_KEY.$k;
+        return self::CACHE_KEY . $k;
     }
 
     public static function getBannedHashtags()
     {
-        return Cache::remember(self::key(':is_banned'), 1209600, function () {
+        return Cache::remember(self::key(':is_banned'), now()->addMinutes(60), function() {
             return Hashtag::whereIsBanned(true)->pluck('id')->toArray();
         });
     }
 
     public static function getBannedHashtagNames()
     {
-        return Cache::remember(self::key(':is_banned:names'), 1209600, function () {
+        return Cache::remember(self::key(':is_banned:names'), now()->addMinutes(60), function() {
             return Hashtag::find(self::getBannedHashtags())->pluck('name')->toArray();
         });
     }
 
     public static function getNonTrendingHashtags()
     {
-        return Cache::remember(self::key(':can_trend'), 1209600, function () {
+        return Cache::remember(self::key(':can_trend'), now()->addMinutes(60), function() {
             return Hashtag::whereCanTrend(false)->pluck('id')->toArray();
         });
     }
 
     public static function getNsfwHashtags()
     {
-        return Cache::remember(self::key(':is_nsfw'), 1209600, function () {
+        return Cache::remember(self::key(':is_nsfw'), now()->addMinutes(60), function() {
             return Hashtag::whereIsNsfw(true)->pluck('id')->toArray();
         });
     }
 
     public static function getMinRecentId()
     {
-        return Cache::remember(self::key('-min-id'), 86400, function () {
+        return Cache::remember(self::key('-min-id'), now()->addMinutes(60), function() {
             $minId = StatusHashtag::where('created_at', '>', now()->subMinutes(config('trending.hashtags.recency_mins')))->first();
-            if (! $minId) {
+            if(!$minId) {
                 return 0;
             }
-
             return $minId->id;
         });
     }
@@ -61,7 +61,7 @@ class TrendingHashtagService
 
         $skipIds = array_merge(self::getBannedHashtags(), self::getNonTrendingHashtags(), self::getNsfwHashtags());
 
-        return Cache::remember(self::CACHE_KEY, config('trending.hashtags.ttl'), function () use ($minId, $skipIds) {
+        return Cache::remember(self::CACHE_KEY, now()->addMinutes(60), function() use($minId, $skipIds) {
             return StatusHashtag::select('hashtag_id', \DB::raw('count(*) as total'))
                 ->whereNotIn('hashtag_id', $skipIds)
                 ->where('id', '>', $minId)
@@ -69,18 +69,17 @@ class TrendingHashtagService
                 ->orderBy('total', 'desc')
                 ->take(config('trending.hashtags.limit'))
                 ->get()
-                ->map(function ($h) {
+                ->map(function($h) {
                     $hashtag = Hashtag::find($h->hashtag_id);
-                    if (! $hashtag) {
+                    if(!$hashtag) {
                         return;
                     }
-
                     return [
                         'id' => $h->hashtag_id,
                         'total' => $h->total,
                         'name' => '#'.$hashtag->name,
                         'hashtag' => $hashtag->name,
-                        'url' => $hashtag->url(),
+                        'url' => $hashtag->url()
                     ];
                 })
                 ->filter()

@@ -4,7 +4,6 @@ namespace App\Jobs\AvatarPipeline;
 
 use App\Avatar;
 use App\Profile;
-use App\Util\Media\ImageDriverManager;
 use Cache;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
@@ -13,10 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Str;
-use Intervention\Image\Encoders\AvifEncoder;
-use Intervention\Image\Encoders\JpegEncoder;
-use Intervention\Image\Encoders\PngEncoder;
-use Intervention\Image\Encoders\WebpEncoder;
+use Image as Intervention;
 use Storage;
 
 class AvatarOptimize implements ShouldQueue
@@ -54,42 +50,14 @@ class AvatarOptimize implements ShouldQueue
     {
         $avatar = $this->profile->avatar;
         $file = storage_path("app/$avatar->media_path");
-        $fileInfo = pathinfo($file);
-        $extension = strtolower($fileInfo['extension'] ?? 'jpg');
-
-        $imageManager = ImageDriverManager::createImageManager();
-
-        $quality = config_cache('pixelfed.image_quality');
-
-        $encoder = null;
-        switch ($extension) {
-            case 'jpeg':
-            case 'jpg':
-                $encoder = new JpegEncoder($quality);
-                break;
-            case 'png':
-                $encoder = new PngEncoder;
-                break;
-            case 'webp':
-                $encoder = new WebpEncoder($quality);
-                break;
-            case 'avif':
-                $encoder = new AvifEncoder($quality);
-                break;
-            case 'heic':
-                $encoder = new JpegEncoder($quality);
-                $extension = 'jpg';
-                break;
-            default:
-                $encoder = new JpegEncoder($quality);
-                $extension = 'jpg';
-        }
 
         try {
-            $img = $imageManager->read($file);
-            $img = $img->coverDown(200, 200);
-            $encoded = $encoder->encode($img);
-            file_put_contents($file, $encoded->toString());
+            $img = Intervention::make($file)->orientate();
+            $img->fit(200, 200, function ($constraint) {
+                $constraint->upsize();
+            });
+            $quality = config_cache('pixelfed.image_quality');
+            $img->save($file, $quality);
 
             $avatar = Avatar::whereProfileId($this->profile->id)->firstOrFail();
             $avatar->change_count = ++$avatar->change_count;
@@ -104,7 +72,7 @@ class AvatarOptimize implements ShouldQueue
                 $avatar->cdn_url = null;
                 $avatar->save();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
         }
     }
 

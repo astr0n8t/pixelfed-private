@@ -6,16 +6,17 @@ return [
     'email' =>                  'Email',
     'invites' =>                'Convites',
     'media' =>                  'Mídia',
-    'filters' =>                'Filtros',
     'notifications' =>          'Notificações',
     'password' =>               'Senha',
     'privacy' =>                'Privacidade',
+    'relationships' =>          'Relacionamentos',
     'security' =>               'Segurança',
     'timelines' =>              'Linhas do Tempo',
     'applications' =>           'Aplicativos',
     'developers' =>             'Desenvolvedores',
     'import' =>                 'Importar',
     'export' =>                 'Exportar',
+    'labs' =>                   'Laboratórios',
     'parental_controls' =>      'Controles Parentais',
 
     'submit' =>                 'Enviar',
@@ -133,7 +134,6 @@ return [
     'relationships.unfollow' =>                                                 'Deixar de seguir',
     'relationships.mute' =>                                                     'Silenciar',
     'relationships.block' =>                                                    'Bloquear',
-    'relationships.removeFollow' =>                                             'Remover Seguidor',
     'relationships.mute_successful' =>                                          'Silenciamento bem-sucedido',
     'relationships.you_have_successfully_muted_that_user' =>                    'Você silenciou com sucesso esse usuário',
     'relationships.block_successful' =>                                         'Bloqueio bem-sucedido',
@@ -185,6 +185,4 @@ return [
     'labs' =>                                                                   'Laboratórios',
     'labs.experimental_features' =>                                             'Recursos experimentais',
     'labs.use_dark_mode_theme' =>                                               'Usar tema de modo escuro.',
-
-    
 ];

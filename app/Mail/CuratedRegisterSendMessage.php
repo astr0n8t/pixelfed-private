@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -28,7 +29,7 @@ class CuratedRegisterSendMessage extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Your '.config('pixelfed.domain.app').' Registration Update',
+            subject: 'Your ' . config('pixelfed.domain.app') . ' Registration Update',
         );
     }
 

@@ -18,7 +18,7 @@ await-database-ready
 acquire-lock
 
 # Run the migrate:status command and capture output
-output=$(run-as-runtime-user php artisan migrate:status --pending || :)
+output=$(run-as-runtime-user php artisan migrate:status || :)
 
 # By default we have no new migrations
 declare -i new_migrations=0

@@ -3,6 +3,7 @@
 namespace App\Transformer\Api;
 
 use App\Profile;
+use App\Services\AccountService;
 use App\Services\PronounService;
 use App\User;
 use App\UserSetting;
@@ -79,6 +80,6 @@ class AccountTransformer extends Fractal\TransformerAbstract
 
     protected function includeRelationship(Profile $profile)
     {
-        return $this->item($profile, new RelationshipTransformer);
+        return $this->item($profile, new RelationshipTransformer());
     }
 }

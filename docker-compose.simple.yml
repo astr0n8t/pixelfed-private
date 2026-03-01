@@ -28,7 +28,6 @@ services:
     ports:
       - "8080:80"
     environment:
-      TZ: "${TZ:?error}"
       # Used by Pixelfed Docker init script
       DOCKER_SERVICE_NAME: "web"
       ENTRYPOINT_SKIP_SCRIPTS: ${ENTRYPOINT_SKIP_SCRIPTS:-}
@@ -52,7 +51,6 @@ services:
       - ./cache:/var/www/bootstrap/cache
       - "./.env:/var/www/.env"
     environment:
-      TZ: "${TZ:?error}"
       # Used by Pixelfed Docker init script
       DOCKER_SERVICE_NAME: "worker"
       ENTRYPOINT_SKIP_SCRIPTS: any
@@ -77,7 +75,6 @@ services:
       - ./cache:/var/www/bootstrap/cache
       - "./.env:/var/www/.env"
     environment:
-      TZ: "${TZ:?error}"
       # Used by Pixelfed Docker init script
       DOCKER_SERVICE_NAME: "cron"
       ENTRYPOINT_SKIP_SCRIPTS: any

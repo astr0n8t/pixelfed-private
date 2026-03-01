@@ -14,29 +14,20 @@ use App\Notification;
 use App\Report;
 use App\Services\FollowerService;
 use App\Services\MediaPathService;
-use App\Services\StoryIndexService;
 use App\Services\StoryService;
 use App\Services\UserRoleService;
 use App\Status;
 use App\Story;
-use App\Util\Media\ImageDriverManager;
 use FFMpeg;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Intervention\Image\Encoders\JpegEncoder;
-use Intervention\Image\Encoders\PngEncoder;
-use Intervention\Image\Encoders\WebpEncoder;
+use Image as Intervention;
 use Storage;
+use Illuminate\Support\Facades\URL;
+
 
 class StoryComposeController extends Controller
 {
-    protected $imageManager;
-
-    public function __construct()
-    {
-        $this->imageManager = ImageDriverManager::createImageManager();
-    }
-
     public function apiV1Add(Request $request)
     {
         abort_if(! (bool) config_cache('instance.stories.enabled') || ! $request->user(), 404);
@@ -45,45 +36,34 @@ class StoryComposeController extends Controller
             'file' => function () {
                 return [
                     'required',
-                    'mimetypes:'.config_cache('pixelfed.media_types'),
+                    'mimetypes:image/jpeg,image/png,video/mp4',
                     'max:'.config_cache('pixelfed.max_photo_size'),
                 ];
             },
         ]);
 
         $user = $request->user();
-        abort_if($user->has_roles && ! UserRoleService::can('can-use-stories', $user->id), 403, __('Invalid permissions for this action'));
+        abort_if($user->has_roles && ! UserRoleService::can('can-use-stories', $user->id), 403, 'Invalid permissions for this action');
         $count = Story::whereProfileId($user->profile_id)
             ->whereActive(true)
             ->where('expires_at', '>', now())
             ->count();
 
         if ($count >= Story::MAX_PER_DAY) {
-            abort(418, __('You have reached your limit for new Stories today.'));
+            abort(418, 'You have reached your limit for new Stories today.');
         }
 
-        $path = null;
         $photo = $request->file('file');
-
-        try {
-            [$path, $duration, $mimeType] = $this->storePhoto($photo, $user);
-        }
-        catch (\Exception $e) {
-            return response()->json([
-                'message' => $e->getMessage(),
-            ], 422);
-        }
-
-        $disk = Storage::disk(config('filesystems.default'));
+        $path = $this->storePhoto($photo, $user);
 
         $story = new Story;
-        $story->duration = $duration;
+        $story->duration = 3;
         $story->profile_id = $user->profile_id;
-        $story->mime = $mimeType;
-        $story->type = Str::startsWith($mimeType, 'video') ? 'video' : 'photo';
+        $story->type = Str::endsWith($photo->getMimeType(), 'mp4') ? 'video' : 'photo';
+        $story->mime = $photo->getMimeType();
         $story->path = $path;
         $story->local = true;
-        $story->size = $disk->size($path);
+        $story->size = $photo->getSize();
         $story->bearcap_token = str_random(64);
         $story->expires_at = now()->addMinutes(1440);
         $story->save();
@@ -92,13 +72,29 @@ class StoryComposeController extends Controller
 
         $res = [
             'code' => 200,
-            'msg' => __('Successfully added'),
+            'msg' => 'Successfully added',
             'media_id' => (string) $story->id,
-            'media_url' => (config('filesystems.default') === 'local') ?
-                url(Storage::url($url)).'?v='.time() :
-                $disk->url($url).'?v='.time(),
+            'media_url' => url(URL::temporarySignedRoute(
+                'storage.file',
+                now()->addMinutes(60),
+                ['file' => $story->path, 'user_id' => auth()->id()]
+            )).'?v='.time(),
             'media_type' => $story->type,
         ];
+
+        if ($story->type === 'video') {
+            $video = FFMpeg::open($path);
+            $duration = $video->getDurationInSeconds();
+            $res['media_duration'] = $duration;
+            if ($duration > 500) {
+                Storage::delete($story->path);
+                $story->delete();
+
+                return response()->json([
+                    'message' => 'Video duration cannot exceed 60 seconds',
+                ], 422);
+            }
+        }
 
         return $res;
     }
@@ -106,94 +102,27 @@ class StoryComposeController extends Controller
     protected function storePhoto($photo, $user)
     {
         $mimes = explode(',', config_cache('pixelfed.media_types'));
-        if (in_array($photo->getMimeType(), $mimes) == false) {
-            abort(400, __('Unauthorized media type'));
+        if (in_array($photo->getMimeType(), [
+            'image/jpeg',
+            'image/png',
+            'video/mp4',
+        ]) == false) {
+            abort(400, 'Invalid media type');
 
             return;
         }
 
-        $disk = Storage::disk(config('filesystems.default'));
         $storagePath = MediaPathService::story($user->profile);
-        $filename = Str::random(random_int(2, 12)).'_'.Str::random(random_int(32, 35)).'_'.Str::random(random_int(1, 14));
-        $originalExtension = strtolower($photo->extension());
-        $originalPath = $photo->storePubliclyAs($storagePath, $filename.'.'.$originalExtension);
-        $encodedPath = null;
-        $mimeType = null;
-        $duration = config_cache('instance.stories.duration.preferred');
-
-        try {
-            $img = null;
-
-            if (Str::startsWith($photo->getMimeType(),'image')
-                && ($img = $this->imageManager->read($disk->get($originalPath)))
-                && $img && !$img->isAnimated()) {
-                $quality = config_cache('pixelfed.image_quality');
-
-                switch ($originalExtension) {
-                    case 'png':
-                        $encoder = new PngEncoder;
-                        $outputExtension = 'png';
-                        $mimeType = 'image/png';
-                        break;
-                    case 'webp':
-                        $encoder = new WebpEncoder($quality);
-                        $outputExtension = 'webp';
-                        $mimeType = 'image/webp';
-                        break;
-                    case 'jpeg':
-                    case 'jpg':
-                    case 'gif':
-                    case 'avif':
-                    case 'heic':
-                    default:
-                        $encoder = new JpegEncoder($quality);
-                        $outputExtension = 'jpg';
-                        $mimeType = 'image/jpeg';
-                }
-
-                $encoded = $img->encode($encoder);
-
-                $encodedPath = $storagePath.'/'.$filename.'.'.$outputExtension;
-                $disk->put($encodedPath, (string) $encoded);
-                if ($outputExtension !== $originalExtension) $disk->delete($originalPath);
-            }
-            else {
-                $video = FFMpeg::fromDisk(config('filesystems.default'))->open($originalPath);
-                $duration = $video->getDurationInSeconds();
-                $outputExtension = 'webm';
-                $mimeType = 'video/webm';
-
-                if ($duration > config_cache('instance.stories.duration.max')) {
-                    throw new \Exception(__('Stories cannot exceed :time seconds', ['time' => config_cache('instance.stories.duration.max')]), 1);
-                } else if ($duration < config_cache('instance.stories.duration.min')) {
-                    throw new \Exception(__('Stories cannot be shorter than :time seconds', ['time' => config_cache('instance.stories.duration.min')]), 1);
-                }
-
-                $format = new \FFMpeg\Format\Video\WebM;
-                
-                // Transparency encoding with auto_alt_ref does not work with GIF https://github.com/PHP-FFMpeg/PHP-FFMpeg/issues/254
-                if ($photo->extension() === "gif") {
-                    $format = $format->setAdditionalParameters(["-auto-alt-ref", "0"]);
-                }
-
-                $encodedPath = $storagePath.'/'.$filename.'.'.$outputExtension;
-                $video->export()->inFormat($format)->save($encodedPath);
-                if ($outputExtension !== $originalExtension) $disk->delete($originalPath);
-            }
-
-        } catch(DecodeException $e) {
-            throw new \Exception(__('Could not decode provided image format (:error)', ['error' => $e->getMessage()]), 1, $e);
-
-            if ($disk->exists($originalPath)) $disk->delete($originalPath);
-            if ($disk->exists($encodedPath)) $disk->delete($encodedPath);
-        } catch (\Exception $e) {
-            throw new \Exception($e->getMessage(), 1, $e);
-
-            if ($disk->exists($originalPath)) $disk->delete($originalPath);
-            if ($disk->exists($encodedPath)) $disk->delete($encodedPath);
+        $path = $photo->storePubliclyAs($storagePath, Str::random(random_int(2, 12)).'_'.Str::random(random_int(32, 35)).'_'.Str::random(random_int(1, 14)).'.'.$photo->extension());
+        if (in_array($photo->getMimeType(), ['image/jpeg', 'image/png'])) {
+            $fpath = storage_path('app/'.$path);
+            $img = Intervention::make($fpath);
+            $img->orientate();
+            $img->save($fpath, config_cache('pixelfed.image_quality'));
+            $img->destroy();
         }
 
-        return [$encodedPath, $duration, $mimeType];
+        return $path;
     }
 
     public function cropPhoto(Request $request)
@@ -217,61 +146,19 @@ class StoryComposeController extends Controller
 
         $story = Story::whereProfileId($user->profile_id)->findOrFail($id);
 
-        $localFs = config('filesystems.default') === 'local';
+        $path = storage_path('app/'.$story->path);
 
-        if ($localFs) {
-            $path = storage_path('app/'.$story->path);
-
-            if (! is_file($path)) {
-                abort(400, 'Invalid or missing media.');
-            }
-        } else {
-            $disk = Storage::disk(config('filesystems.default'));
-
-            if (! $disk->exists($story->path)) {
-                abort(400, 'Invalid or missing media.');
-            }
+        if (! is_file($path)) {
+            abort(400, 'Invalid or missing media.');
         }
 
         if ($story->type === 'photo') {
-            $quality = config_cache('pixelfed.image_quality');
-
-            if ($localFs) {
-                $path = storage_path('app/'.$story->path);
-                $extension = pathinfo($path, PATHINFO_EXTENSION);
-
-                $img = $this->imageManager->read($path);
-                $img = $img->crop($width, $height, $x, $y);
-                $img = $img->coverDown(1080, 1920);
-
-                if (in_array(strtolower($extension), ['jpg', 'jpeg'])) {
-                    $encoder = new JpegEncoder($quality);
-                } else {
-                    $encoder = new PngEncoder;
-                }
-
-                $encoded = $img->encode($encoder);
-                file_put_contents($path, (string) $encoded);
-            } else {
-                $disk = Storage::disk(config('filesystems.default'));
-                $extension = pathinfo($story->path, PATHINFO_EXTENSION);
-
-                $fileContent = $disk->get($story->path);
-
-                $img = $this->imageManager->read($fileContent);
-                $img = $img->crop($width, $height, $x, $y);
-                $img = $img->coverDown(1080, 1920);
-
-                if (in_array(strtolower($extension), ['jpg', 'jpeg'])) {
-                    $encoder = new JpegEncoder($quality);
-                } else {
-                    $encoder = new PngEncoder;
-                }
-
-                $encoded = $img->encode($encoder);
-
-                $disk->put($story->path, (string) $encoded);
-            }
+            $img = Intervention::make($path);
+            $img->crop($width, $height, $x, $y);
+            $img->resize(1080, 1920, function ($constraint) {
+                $constraint->aspectRatio();
+            });
+            $img->save($path, config_cache('pixelfed.image_quality'));
         }
 
         return [
@@ -303,9 +190,6 @@ class StoryComposeController extends Controller
         $story->can_react = $request->input('can_react');
         $story->save();
 
-        $index = app(StoryIndexService::class);
-        $index->indexStory($story);
-
         StoryService::delLatest($story->profile_id);
         StoryFanout::dispatch($story)->onQueue('story');
         StoryService::addRotateQueue($story->id);
@@ -327,9 +211,6 @@ class StoryComposeController extends Controller
         $story->active = false;
         $story->save();
 
-        $index = app(StoryIndexService::class);
-        $index->removeStory($story->id, $story->profile_id);
-
         StoryDelete::dispatch($story)->onQueue('story');
 
         return [
@@ -350,7 +231,7 @@ class StoryComposeController extends Controller
     public function createPoll(Request $request)
     {
         abort_if(! (bool) config_cache('instance.stories.enabled') || ! $request->user(), 404);
-        abort_if(! config('instance.polls.enabled'), 404);
+        abort_if(! config_cache('instance.polls.enabled'), 404);
 
         return $request->all();
     }
@@ -537,11 +418,6 @@ class StoryComposeController extends Controller
         ]);
         $status->save();
 
-        $localFs = config('filesystems.default') === 'local';
-        $mediaUrl = $localFs
-            ? url(Storage::url($story->path))
-            : Storage::disk(config('filesystems.default'))->url($story->path);
-
         $dm = new DirectMessage;
         $dm->to_id = $story->profile_id;
         $dm->from_id = $pid;
@@ -551,7 +427,11 @@ class StoryComposeController extends Controller
             'story_username' => $story->profile->username,
             'story_actor_username' => $request->user()->username,
             'story_id' => $story->id,
-            'story_media_url' => $mediaUrl,
+            'story_media_url' => url(URL::temporarySignedRoute(
+                'storage.file',
+                now()->addMinutes(60),
+                ['file' => $story->path, 'user_id' => auth()->id()]
+            )),
             'reaction' => $text,
         ]);
         $dm->save();
@@ -614,11 +494,6 @@ class StoryComposeController extends Controller
         ]);
         $status->save();
 
-        $localFs = config('filesystems.default') === 'local';
-        $mediaUrl = $localFs
-            ? url(Storage::url($story->path))
-            : Storage::disk(config('filesystems.default'))->url($story->path);
-
         $dm = new DirectMessage;
         $dm->to_id = $story->profile_id;
         $dm->from_id = $pid;
@@ -628,7 +503,11 @@ class StoryComposeController extends Controller
             'story_username' => $story->profile->username,
             'story_actor_username' => $request->user()->username,
             'story_id' => $story->id,
-            'story_media_url' => $mediaUrl,
+            'story_media_url' => url(URL::temporarySignedRoute(
+                'storage.file',
+                now()->addMinutes(60),
+                ['file' => $story->path, 'user_id' => auth()->id()]
+            )),
             'caption' => $text,
         ]);
         $dm->save();

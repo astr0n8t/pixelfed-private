@@ -3,7 +3,7 @@
 return [
 
 	'common' => [
-		'comment' => 'Kommentér',
+		'comment' => 'Comment',
 		'commented' => 'Kommenterede',
 		'comments' => 'Kommentarer',
 		'like' => 'Synes om',
@@ -13,7 +13,7 @@ return [
 		'shared' => 'Delt',
 		'shares' => 'Delinger',
 		'unshare' => 'Fjern deling',
-		'bookmark' => 'Bogmærk',
+		'bookmark' => 'Bookmark',
 
 		'cancel' => 'Annuller',
 		'copyLink' => 'Kopier link',
@@ -41,7 +41,7 @@ return [
 
 	'navmenu' => [
 		'search' => 'Søg',
-		'admin' => 'Admin-kontrolpanel',
+		'admin' => 'Admin Dashboard',
 
 		// Timelines
 		'homeFeed' => 'Home Feed',
@@ -124,20 +124,20 @@ return [
 		'followRequested' => 'Følg anmodet',
 		'joined' => 'Blev medlem',
 
-		'emptyCollections' => 'Vi kan ikke finde nogen samlinger',
-		'emptyPosts' => 'Vi kan ikke finde nogen indlæg',
+		'emptyCollections' => 'We can\'t seem to find any collections',
+		'emptyPosts' => 'We can\'t seem to find any posts',
 	],
 
 	'menu' => [
 		'viewPost' => 'Se opslag',
 		'viewProfile' => 'Se profil',
 		'moderationTools' => 'Moderatorværktøjer',
-		'report' => 'Anmeld',
-		'archive' => 'Arkivér',
-		'unarchive' => 'Anuller arkivering',
-		'embed' => 'Indlejr',
+		'report' => 'Report',
+		'archive' => 'Archive',
+		'unarchive' => 'Unarchive',
+		'embed' => 'Embed',
 
-		'selectOneOption' => 'Vælg en af følgende muligheder',
+		'selectOneOption' => 'Select one of the following options',
 		'unlistFromTimelines' => 'Skjul fra tidslinje',
 		'addCW' => 'Tilføj indholdsadvarsel',
 		'removeCW' => 'Fjern indholdsadvarsel',

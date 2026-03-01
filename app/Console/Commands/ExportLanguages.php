@@ -27,7 +27,7 @@ class ExportLanguages extends Command
      */
     public function __construct()
     {
-        parent::__construct();
+    	parent::__construct();
     }
 
     /**
@@ -37,39 +37,38 @@ class ExportLanguages extends Command
      */
     public function handle()
     {
-        if (config('app.env') !== 'local') {
-            $this->error('This command is meant for development purposes and should only be run in a local environment');
+    	if(config('app.env') !== 'local') {
+    		$this->error('This command is meant for development purposes and should only be run in a local environment');
+    		return Command::FAILURE;
+    	}
 
-            return Command::FAILURE;
-        }
+    	$path = base_path('resources/lang');
+    	$langs = [];
 
-        $path = base_path('resources/lang');
-        $langs = [];
+    	foreach (new \DirectoryIterator($path) as $io) {
+    		$name = $io->getFilename();
+    		$skip = ['vendor'];
+    		if($io->isDot() || in_array($name, $skip)) {
+    			continue;
+    		}
 
-        foreach (new \DirectoryIterator($path) as $io) {
-            $name = $io->getFilename();
-            $skip = ['vendor'];
-            if ($io->isDot() || in_array($name, $skip)) {
-                continue;
-            }
+    		if($io->isDir()) {
+    			array_push($langs, $name);
+    		}
+    	}
 
-            if ($io->isDir()) {
-                array_push($langs, $name);
-            }
-        }
+    	$exportDir = resource_path('assets/js/i18n/');
+    	$exportDirAlt = public_path('_lang/');
 
-        $exportDir = resource_path('assets/js/i18n/');
-        $exportDirAlt = public_path('_lang/');
+    	foreach($langs as $lang) {
+    		$strings = \Lang::get('web', [], $lang);
+    		$json = json_encode($strings, JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES);
+    		$path = "{$exportDir}{$lang}.json";
+    		file_put_contents($path, $json);
+    		$pathAlt = "{$exportDirAlt}{$lang}.json";
+    		file_put_contents($pathAlt, $json);
+    	}
 
-        foreach ($langs as $lang) {
-            $strings = \Lang::get('web', [], $lang);
-            $json = json_encode($strings, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-            $path = "{$exportDir}{$lang}.json";
-            file_put_contents($path, $json);
-            $pathAlt = "{$exportDirAlt}{$lang}.json";
-            file_put_contents($pathAlt, $json);
-        }
-
-        return Command::SUCCESS;
+    	return Command::SUCCESS;
     }
 }

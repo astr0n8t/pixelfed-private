@@ -23,12 +23,12 @@ class StatusStatelessTransformer extends Fractal\TransformerAbstract
     {
         $taggedPeople = MediaTagService::get($status->id);
         $poll = $status->type === 'poll' ? PollService::get($status->id) : null;
-        $rendered = $status->caption ? nl2br(Autolink::create()->autolink($status->caption)) : '';
+        $rendered = $status->caption ? nl2br(Autolink::create()->autolink($status->caption)) : "";
 
         return [
             '_v' => 1,
             'id' => (string) $status->id,
-            // 'gid'						=> $status->group_id ? (string) $status->group_id : null,
+            //'gid'						=> $status->group_id ? (string) $status->group_id : null,
             'shortcode' => HashidService::encode($status->id),
             'uri' => $status->url(),
             'url' => $status->url(),
@@ -69,7 +69,6 @@ class StatusStatelessTransformer extends Fractal\TransformerAbstract
             'tags' => StatusHashtagService::statusTags($status->id),
             'poll' => $poll,
             'edited_at' => $status->edited_at ? str_replace('+00:00', 'Z', $status->edited_at->format(DATE_RFC3339_EXTENDED)) : null,
-            'pinned' => (bool) $status->pinned_order,
         ];
     }
 }

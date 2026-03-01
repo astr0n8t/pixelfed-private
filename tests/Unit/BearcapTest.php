@@ -3,12 +3,11 @@
 namespace Tests\Unit;
 
 use App\Util\Lexer\Bearcap;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class BearcapTest extends TestCase
 {
-    #[Test]
+    /** @test */
     public function validTest()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=https://pixelfed.test/stories/admin/337892163734081536';
@@ -20,7 +19,7 @@ class BearcapTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    #[Test]
+    /** @test */
     public function invalidTokenParameterName()
     {
         $str = 'bear:?token=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=https://pixelfed.test/stories/admin/337892163734081536';
@@ -28,7 +27,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function invalidUrlParameterName()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&url=https://pixelfed.test/stories/admin/337892163734081536';
@@ -36,7 +35,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function invalidScheme()
     {
         $str = 'bearcap:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&url=https://pixelfed.test/stories/admin/337892163734081536';
@@ -44,7 +43,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function missingToken()
     {
         $str = 'bear:?u=https://pixelfed.test/stories/admin/337892163734081536';
@@ -52,7 +51,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function missingUrl()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2';
@@ -60,7 +59,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function invalidHttpUrl()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=http://pixelfed.test/stories/admin/337892163734081536';
@@ -68,7 +67,7 @@ class BearcapTest extends TestCase
         $this->assertFalse($actual);
     }
 
-    #[Test]
+    /** @test */
     public function invalidUrlSchema()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=phar://pixelfed.test/stories/admin/337892163734081536';

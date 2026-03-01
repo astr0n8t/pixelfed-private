@@ -3,7 +3,6 @@
 namespace App\Transformer\ActivityPub\Verb;
 
 use App\Models\CustomEmoji;
-use App\Services\MediaService;
 use App\Status;
 use App\Util\Lexer\Autolink;
 use Illuminate\Support\Str;
@@ -54,7 +53,7 @@ class UpdateNote extends Fractal\TransformerAbstract
         $emoji = array_merge($emojis, $mentions);
         $tags = array_merge($emoji, $hashtags);
 
-        $content = $status->caption ? nl2br(Autolink::create()->autolink($status->caption)) : '';
+        $content = $status->caption ? nl2br(Autolink::create()->autolink($status->caption)) : "";
         $latestEdit = $status->edits()->latest()->first();
 
         return [
@@ -108,7 +107,14 @@ class UpdateNote extends Fractal\TransformerAbstract
                 'to' => $status->scopeToAudience('to'),
                 'cc' => $status->scopeToAudience('cc'),
                 'sensitive' => (bool) $status->is_nsfw,
-                'attachment' => MediaService::activitypub($status->id, true),
+                'attachment' => $status->media()->orderBy('order')->get()->map(function ($media) {
+                    return [
+                        'type' => $media->activityVerb(),
+                        'mediaType' => $media->mime,
+                        'url' => $media->url(),
+                        'name' => $media->caption,
+                    ];
+                })->toArray(),
                 'tag' => $tags,
                 'commentsEnabled' => (bool) ! $status->comments_disabled,
                 'updated' => $latestEdit->created_at->toAtomString(),

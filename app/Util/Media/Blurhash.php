@@ -2,62 +2,58 @@
 
 namespace App\Util\Media;
 
-use App\Media;
 use App\Util\Blurhash\Blurhash as BlurhashEngine;
+use App\Media;
 
-class Blurhash
-{
-    const DEFAULT_HASH = 'U4Rfzst8?bt7ogayj[j[~pfQ9Goe%Mj[WBay';
+class Blurhash {
 
-    public static function generate(Media $media, $path = false)
-    {
-        if (! in_array($media->mime, ['image/png', 'image/jpeg', 'image/jpg', 'video/mp4'])) {
-            return self::DEFAULT_HASH;
-        }
+	const DEFAULT_HASH = 'U4Rfzst8?bt7ogayj[j[~pfQ9Goe%Mj[WBay';
 
-        if ($media->thumbnail_path == null) {
-            return self::DEFAULT_HASH;
-        }
+	public static function generate(Media $media)
+	{
+		if(!in_array($media->mime, ['image/png', 'image/jpeg', 'video/mp4'])) {
+			return self::DEFAULT_HASH;
+		}
 
-        if ($path) {
-            $file = $path;
-        } else {
-            $localFs = config('filesystems.default') === 'local';
-            $file = storage_path('app/'.$media->thumbnail_path);
-        }
+		if($media->thumbnail_path == null) {
+			return self::DEFAULT_HASH;
+		}
 
-        if (! is_file($file)) {
-            return self::DEFAULT_HASH;
-        }
+		$file  = storage_path('app/' . $media->thumbnail_path);
 
-        $image = imagecreatefromstring(file_get_contents($file));
-        if (! $image) {
-            return self::DEFAULT_HASH;
-        }
-        $width = imagesx($image);
-        $height = imagesy($image);
+		if(!is_file($file)) {
+			return self::DEFAULT_HASH;
+		}
 
-        $pixels = [];
-        for ($y = 0; $y < $height; $y++) {
-            $row = [];
-            for ($x = 0; $x < $width; $x++) {
-                $index = imagecolorat($image, $x, $y);
-                $colors = imagecolorsforindex($image, $index);
+		$image = imagecreatefromstring(file_get_contents($file));
+		if(!$image) {
+			return self::DEFAULT_HASH;
+		}
+		$width = imagesx($image);
+		$height = imagesy($image);
 
-                $row[] = [$colors['red'], $colors['green'], $colors['blue']];
-            }
-            $pixels[] = $row;
-        }
+		$pixels = [];
+		for ($y = 0; $y < $height; ++$y) {
+			$row = [];
+			for ($x = 0; $x < $width; ++$x) {
+				$index = imagecolorat($image, $x, $y);
+				$colors = imagecolorsforindex($image, $index);
 
-        imagedestroy($image);
+				$row[] = [$colors['red'], $colors['green'], $colors['blue']];
+			}
+			$pixels[] = $row;
+		}
 
-        $components_x = 4;
-        $components_y = 4;
-        $blurhash = BlurhashEngine::encode($pixels, $components_x, $components_y);
-        if (strlen($blurhash) > 191) {
-            return self::DEFAULT_HASH;
-        }
+		// Free the allocated GdImage object from memory:
+		imagedestroy($image);
 
-        return $blurhash;
-    }
+		$components_x = 4;
+		$components_y = 4;
+		$blurhash = BlurhashEngine::encode($pixels, $components_x, $components_y);
+		if(strlen($blurhash) > 191) {
+			return self::DEFAULT_HASH;
+		}
+		return $blurhash;
+	}
+
 }

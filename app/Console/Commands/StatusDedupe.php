@@ -2,10 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\StatusPipeline\StatusDelete;
+use Illuminate\Console\Command;
 use App\Status;
 use DB;
-use Illuminate\Console\Command;
+use App\Jobs\StatusPipeline\StatusDelete;
 
 class StatusDedupe extends Command
 {
@@ -41,9 +41,8 @@ class StatusDedupe extends Command
     public function handle()
     {
 
-        if (config('database.default') == 'pgsql') {
+        if(config('database.default') == 'pgsql') {
             $this->info('This command is not compatible with Postgres, we are working on a fix.');
-
             return;
         }
         DB::table('statuses')
@@ -53,13 +52,13 @@ class StatusDedupe extends Command
             ->groupBy('uri')
             ->orderBy('created_at')
             ->having('occurences', '>', 1)
-            ->chunk(50, function ($statuses) {
-                foreach ($statuses as $status) {
+            ->chunk(50, function($statuses) {
+                foreach($statuses as $status) {
                     $this->info("Found duplicate: $status->uri");
                     Status::whereUri($status->uri)
                         ->where('id', '!=', $status->id)
                         ->get()
-                        ->map(function ($status) {
+                        ->map(function($status) {
                             $this->info("Deleting Duplicate ID: $status->id");
                             StatusDelete::dispatch($status);
                         });

@@ -2,8 +2,8 @@
 
 namespace App\Console\Commands;
 
-use App\User;
 use Illuminate\Console\Command;
+use App\User;
 
 class UserTable extends Command
 {

@@ -43,6 +43,7 @@ class InstanceUpdateTotalLocalPosts extends Command
         }
         $this->updateAndCache();
         Cache::forget('api:nodeinfo');
+
     }
 
     protected function checkForCache()
@@ -62,30 +63,14 @@ class InstanceUpdateTotalLocalPosts extends Command
 
     protected function updateAndCache()
     {
+        $count = DB::table('statuses')->whereNull(['url', 'deleted_at'])->count();
+        $realCount = DB::table('statuses')->whereNull(['url', 'in_reply_to_id', 'reblog_of_id', 'deleted_at'])->count();
         $res = [
-            'count' => $this->getTotalLocalPosts(),
-            'realCount' => $this->getRealTotalLocalPosts(),
+            'count' => $count,
+            'realCount' => $realCount,
         ];
         Storage::put('total_local_posts.json', json_encode($res, JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT));
         ConfigCacheService::put('instance.stats.total_local_posts', $res['count']);
         ConfigCacheService::put('instance.stats.real_total_local_posts', $res['realCount']);
-    }
-
-    protected function getTotalLocalPosts()
-    {
-        return DB::table('statuses')
-            ->whereNull('deleted_at')
-            ->where('local', true)
-            ->whereNot('type', 'share')
-            ->count();
-    }
-
-    protected function getRealTotalLocalPosts()
-    {
-        return DB::table('statuses')
-            ->whereNull(['url', 'in_reply_to_id', 'reblog_of_id', 'deleted_at'])
-            ->where('local', true)
-            ->whereNot('type', 'share')
-            ->count();
     }
 }

@@ -38,11 +38,12 @@ class Kernel extends HttpKernel
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
             \Laravel\Passport\Http\Middleware\CreateFreshApiToken::class,
-            // 'restricted',
+            'restricted',
         ],
 
         'api' => [
             'bindings',
+            'restricted',
         ],
     ];
 
@@ -54,23 +55,23 @@ class Kernel extends HttpKernel
      * @var array
      */
     protected $routeMiddleware = [
-        'api.admin' => \App\Http\Middleware\Api\Admin::class,
-        'admin' => \App\Http\Middleware\Admin::class,
-        'auth' => \Illuminate\Auth\Middleware\Authenticate::class,
-        'auth.basic' => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
-        'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
+        'api.admin'     => \App\Http\Middleware\Api\Admin::class,
+        'admin'         => \App\Http\Middleware\Admin::class,
+        'auth'          => \Illuminate\Auth\Middleware\Authenticate::class,
+        'auth.basic'    => \Illuminate\Auth\Middleware\AuthenticateWithBasicAuth::class,
+        'bindings'      => \Illuminate\Routing\Middleware\SubstituteBindings::class,
         'cache.headers' => \Illuminate\Http\Middleware\SetCacheHeaders::class,
-        'can' => \Illuminate\Auth\Middleware\Authorize::class,
-        'dangerzone' => \App\Http\Middleware\DangerZone::class,
-        'localization' => \App\Http\Middleware\Localization::class,
-        'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
-        'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
-        'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
-        'twofactor' => \App\Http\Middleware\TwoFactorAuth::class,
-        'validemail' => \App\Http\Middleware\EmailVerificationCheck::class,
-        'interstitial' => \App\Http\Middleware\AccountInterstitial::class,
-        'scopes' => \Laravel\Passport\Http\Middleware\CheckScopes::class,
-        'scope' => \Laravel\Passport\Http\Middleware\CheckForAnyScope::class,
-        // 'restricted'    => \App\Http\Middleware\RestrictedAccess::class,
+        'can'           => \Illuminate\Auth\Middleware\Authorize::class,
+        'dangerzone'    => \App\Http\Middleware\DangerZone::class,
+        'localization'  => \App\Http\Middleware\Localization::class,
+        'guest'         => \App\Http\Middleware\RedirectIfAuthenticated::class,
+        'signed'        => \Illuminate\Routing\Middleware\ValidateSignature::class,
+        'throttle'      => \Illuminate\Routing\Middleware\ThrottleRequests::class,
+        'twofactor'     => \App\Http\Middleware\TwoFactorAuth::class,
+        'validemail'    => \App\Http\Middleware\EmailVerificationCheck::class,
+        'interstitial'  => \App\Http\Middleware\AccountInterstitial::class,
+        'scopes'        => \Laravel\Passport\Http\Middleware\CheckScopes::class,
+        'scope'         => \Laravel\Passport\Http\Middleware\CheckForAnyScope::class,
+        'restricted'    => \App\Http\Middleware\RestrictedAccess::class,
     ];
 }

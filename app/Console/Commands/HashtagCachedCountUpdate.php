@@ -2,9 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Hashtag;
-use DB;
 use Illuminate\Console\Command;
+use App\Hashtag;
+use App\StatusHashtag;
+use DB;
 
 class HashtagCachedCountUpdate extends Command
 {
@@ -30,20 +31,19 @@ class HashtagCachedCountUpdate extends Command
         $limit = $this->option('limit');
         $tags = Hashtag::whereNull('cached_count')->limit($limit)->get();
         $count = count($tags);
-        if (! $count) {
+        if(!$count) {
             return;
         }
 
         $bar = $this->output->createProgressBar($count);
         $bar->start();
 
-        foreach ($tags as $tag) {
+        foreach($tags as $tag) {
             $count = DB::table('status_hashtags')->whereHashtagId($tag->id)->count();
-            if (! $count) {
+            if(!$count) {
                 $tag->cached_count = 0;
                 $tag->saveQuietly();
                 $bar->advance();
-
                 continue;
             }
             $tag->cached_count = $count;
@@ -52,6 +52,6 @@ class HashtagCachedCountUpdate extends Command
         }
         $bar->finish();
         $this->line(' ');
-
+        return;
     }
 }

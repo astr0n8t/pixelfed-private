@@ -1,5 +1,3 @@
-import VueI18n from 'vue-i18n';
-
 require('./polyfill');
 window._ = require('lodash');
 window.Popper = require('popper.js').default;
@@ -21,7 +19,7 @@ if (token) {
 window.App = window.App || {};
 
 window.App.redirect = function() {
-	document.querySelectorAll('a').forEach(function(i,k) {
+	document.querySelectorAll('a').forEach(function(i,k) { 
 		let a = i.getAttribute('href');
 		if(a && a.length > 5 && a.startsWith('https://')) {
 			let url = new URL(a);
@@ -33,23 +31,7 @@ window.App.redirect = function() {
 }
 
 window.App.boot = function() {
-    Vue.use(VueI18n);
-
-    let i18nMessages = {
-        en: require('./i18n/en.json'),
-        pt: require('./i18n/pt.json'),
-    };
-    let locale = document.querySelector('html').getAttribute('lang');
-
-    const i18n = new VueI18n({
-    locale: locale, // set locale
-    fallbackLocale: 'en',
-    messages: i18nMessages
-});
-    new Vue({
-        el: '#content',
-        i18n,
-    });
+	new Vue({ el: '#content'});
 }
 
 window.addEventListener("load", () => {
@@ -85,8 +67,8 @@ window.App.util = {
 			console.log('Unsupported method.');
 		}),
 	},
-	time: (function() {
-		return new Date;
+	time: (function() { 
+		return new Date; 
 	}),
 	version: 1,
 	format: {
@@ -96,7 +78,7 @@ window.App.util = {
 			}
 			return new Intl.NumberFormat(locale, { notation: notation , compactDisplay: "short" }).format(count);
 		}),
-        timeAgo: (function(ts) {
+        timeAgo: function(ts) {
             const date = new Date(ts);
             const now = new Date();
 
@@ -129,7 +111,7 @@ window.App.util = {
             }
 
             return Math.floor(seconds) + "s";
-        }),
+        },
 		timeAhead: (function(ts, short = true) {
 			let date = Date.parse(ts);
 			let diff = date - Date.parse(new Date());
@@ -172,9 +154,9 @@ window.App.util = {
 				tag = '/i/redirect?url=' + encodeURIComponent(tag);
 			}
 
-			return tag;
+			return tag; 
 		})
-	},
+	}, 
 	filters: [
 			['1984','filter-1977'],
 			['Azen','filter-aden'],

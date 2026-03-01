@@ -2,12 +2,11 @@
 
 namespace Tests\Feature;
 
-use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class LoginTest extends TestCase
 {
-    #[Test]
+    /** @test */
     public function view_login_page()
     {
         $response = $this->get('login');
