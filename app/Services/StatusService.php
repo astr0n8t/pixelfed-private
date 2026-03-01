@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use Auth;
 use App\Status;
 use App\Transformer\Api\StatusStatelessTransformer;
 use Illuminate\Support\Facades\Cache;
@@ -13,6 +12,8 @@ class StatusService
 {
     const CACHE_KEY = 'pf:services:status:v1.1:';
 
+    const MAX_PINNED = 3;
+
     public static function key($id, $publicOnly = true)
     {
         $p = $publicOnly ? 'pub:' : 'all:';
@@ -22,7 +23,7 @@ class StatusService
 
     public static function get($id, $publicOnly = true, $mastodonMode = false)
     {
-        $res = Cache::remember(self::key($id . ':' . Auth::id(), $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
+        $res = Cache::remember(self::key($id, $publicOnly), 21600, function () use ($id, $publicOnly) {
             if ($publicOnly) {
                 $status = Status::whereScope('public')->find($id);
             } else {
@@ -83,7 +84,6 @@ class StatusService
             $status['shortcode'],
             $status['taggedPeople'],
             $status['thread'],
-            $status['pinned'],
             $status['account']['header_bg'],
             $status['account']['is_admin'],
             $status['account']['last_fetched_at'],
@@ -203,5 +203,90 @@ class StatusService
     public static function totalRealLocalStatuses()
     {
         return InstanceService::totalRealLocalStatuses();
+    }    
+
+    public static function isPinned($id)
+    {
+        return Status::whereId($id)->whereNotNull('pinned_order')->exists();
+    }
+
+    public static function totalPins($pid)
+    {
+        return Status::whereProfileId($pid)->whereNotNull('pinned_order')->count();
+    }
+
+    public static function markPin($id)
+    {
+        $status = Status::find($id);
+
+        if (! $status) {
+            return [
+                'success' => false,
+                'error' => 'Record not found',
+            ];
+        }
+
+        if ($status->scope != 'public') {
+            return [
+                'success' => false,
+                'error' => 'Validation failed: you can only pin public posts',
+            ];
+        }
+
+        if (self::isPinned($id)) {
+            return [
+                'success' => false,
+                'error' => 'This post is already pinned',
+            ];
+        }
+
+        $totalPins = self::totalPins($status->profile_id);
+
+        if ($totalPins >= self::MAX_PINNED) {
+            return [
+                'success' => false,
+                'error' => 'Validation failed: You have already pinned the max number of posts',
+            ];
+        }
+
+        $status->pinned_order = $totalPins + 1;
+        $status->save();
+
+        self::refresh($id);
+
+        return [
+            'success' => true,
+            'error' => null,
+        ];
+    }
+
+    public static function unmarkPin($id)
+    {
+        $status = Status::find($id);
+
+        if (! $status || is_null($status->pinned_order)) {
+            return false;
+        }
+
+        $removedOrder = $status->pinned_order;
+        $profileId = $status->profile_id;
+
+        $status->pinned_order = null;
+        $status->save();
+
+        Status::where('profile_id', $profileId)
+            ->whereNotNull('pinned_order')
+            ->where('pinned_order', '>', $removedOrder)
+            ->orderBy('pinned_order', 'asc')
+            ->chunk(10, function ($statuses) {
+                foreach ($statuses as $s) {
+                    $s->pinned_order = $s->pinned_order - 1;
+                    $s->save();
+                }
+            });
+
+        self::refresh($id);
+
+        return true;
     }
 }

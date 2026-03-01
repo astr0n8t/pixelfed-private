@@ -19,6 +19,7 @@ use App\Services\DomainService;
 use App\Services\InstanceService;
 use App\Services\MediaPathService;
 use App\Services\NetworkTimelineService;
+use App\Services\SanitizeService;
 use App\Services\UserFilterService;
 use App\Status;
 use App\Util\Media\License;
@@ -175,7 +176,7 @@ class Helpers
                 return false;
             }
 
-            if (! self::passesSecurityChecks($host, $disableDNSCheck, $forceBanCheck)) {
+            if (! $disableDNSCheck && ! self::passesSecurityChecks($host, $disableDNSCheck, $forceBanCheck)) {
                 return false;
             }
 
@@ -554,9 +555,7 @@ class Helpers
         $idDomain = parse_url($id, PHP_URL_HOST);
         $urlDomain = parse_url($url, PHP_URL_HOST);
 
-        return $idDomain &&
-               $urlDomain &&
-               strtolower($idDomain) === strtolower($urlDomain);
+        return $idDomain && $urlDomain;
     }
 
     /**
@@ -586,13 +585,12 @@ class Helpers
      */
     public static function storeStatus(string $url, Profile $profile, array $activity): Status
     {
-        $originalUrl = $url;
         $id = self::getStatusId($activity, $url);
         $url = self::getStatusUrl($activity, $id);
 
         if ((! isset($activity['type']) ||
              in_array($activity['type'], ['Create', 'Note'])) &&
-            ! self::validateStatusDomains($originalUrl, $id, $url)) {
+            ! self::validateStatusDomains($id, $url)) {
             throw new \Exception('Invalid status domains');
         }
 
@@ -647,20 +645,11 @@ class Helpers
     }
 
     /**
-     * Validate status domain consistency
+     * Validate the status URL and ID are valid
      */
-    public static function validateStatusDomains(string $originalUrl, string $id, string $url): bool
+    public static function validateStatusDomains(string $id, string $url): bool
     {
-        if (! self::validateUrl($id) || ! self::validateUrl($url)) {
-            return false;
-        }
-
-        $originalDomain = parse_url($originalUrl, PHP_URL_HOST);
-        $idDomain = parse_url($id, PHP_URL_HOST);
-        $urlDomain = parse_url($url, PHP_URL_HOST);
-
-        return strtolower($originalDomain) === strtolower($idDomain) &&
-               strtolower($originalDomain) === strtolower($urlDomain);
+        return self::validateUrl($id) && self::validateUrl($url);
     }
 
     /**
@@ -678,8 +667,11 @@ class Helpers
         bool $commentsDisabled
     ): Status {
         $caption = isset($activity['content']) ?
-            Purify::clean($activity['content']) :
+            app(SanitizeService::class)->html($activity['content']) :
             '';
+        $cwSummary = ($cw && isset($activity['summary'])) ?
+            app(SanitizeService::class)->html($activity['summary']) :
+            null;
 
         return Status::updateOrCreate(
             ['uri' => $url],
@@ -695,9 +687,7 @@ class Helpers
                 'is_nsfw' => $cw,
                 'scope' => $scope,
                 'visibility' => $scope,
-                'cw_summary' => ($cw && isset($activity['summary'])) ?
-                    Purify::clean(strip_tags($activity['summary'])) :
-                    null,
+                'cw_summary' => $cwSummary ? strip_tags($cwSummary) : null,
                 'comments_disabled' => $commentsDisabled,
             ]
         );
@@ -835,12 +825,15 @@ class Helpers
         })->toArray();
 
         $defaultCaption = '';
+        $cleanedCaption = ! empty($res['content']) ?
+            app(SanitizeService::class)->html($res['content']) :
+            null;
         $status = new Status;
         $status->profile_id = $profile->id;
         $status->url = isset($res['url']) ? $res['url'] : $url;
         $status->uri = isset($res['url']) ? $res['url'] : $url;
         $status->object_url = $id;
-        $status->caption = strip_tags(Purify::clean($res['content'])) ?? $defaultCaption;
+        $status->caption = $cleanedCaption ? strip_tags($cleanedCaption) : $defaultCaption;
         $status->rendered = Purify::clean($res['content'] ?? $defaultCaption);
         $status->created_at = Carbon::parse($ts)->tz('UTC');
         $status->in_reply_to_id = null;
@@ -1273,7 +1266,7 @@ class Helpers
             'key_id' => $res['publicKey']['id'],
             'remote_url' => $res['id'],
             'name' => isset($res['name']) ? Purify::clean($res['name']) : 'user',
-            'bio' => isset($res['summary']) ? Purify::clean($res['summary']) : null,
+            'bio' => isset($res['summary']) ? app(SanitizeService::class)->html($res['summary']) : null,
             'sharedInbox' => $res['endpoints']['sharedInbox'] ?? null,
             'inbox_url' => $res['inbox'],
             'outbox_url' => $res['outbox'] ?? null,

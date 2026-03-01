@@ -10,6 +10,7 @@ use App\Models\ProfileMigration;
 use App\Services\AccountService;
 use App\Services\WebfingerService;
 use App\Util\ActivityPub\Helpers;
+use Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
 
@@ -61,11 +62,17 @@ class ProfileMigrationController extends Controller
             'indexable' => false,
         ]);
         AccountService::del($user->profile_id);
+        Cache::forget('pfc:cached-user:wt:'.strtolower($user->profile->username));
+        Cache::forget('pfc:cached-user:wot:'.strtolower($user->profile->username));
 
         Bus::batch([
-            new ProfileMigrationDeliverMoveActivityPipeline($migration, $user->profile, $newAccount),
-            new ProfileMigrationMoveFollowersPipeline($user->profile_id, $newAccount->id),
-        ])->onQueue('follow')->dispatch();
+            [
+                new ProfileMigrationDeliverMoveActivityPipeline($migration, $user->profile, $newAccount),
+            ],
+            [
+                new ProfileMigrationMoveFollowersPipeline($user->profile_id, $newAccount->id),
+            ],
+        ])->onQueue('move')->dispatch();
 
         return redirect()->back()->with(['status' => 'Succesfully migrated account!']);
     }

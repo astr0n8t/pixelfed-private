@@ -1,19 +1,18 @@
 <?php
 
-namespace App\Models;
+namespace App;
 
-use App\Profile;
 use Illuminate\Database\Eloquent\Model;
 
 class UserInvite extends Model
 {
-	public function sender()
-	{
-		return $this->profile_id;
-	}
+    public function sender()
+    {
+        return $this->belongsTo(Profile::class, 'profile_id');
+    }
 
     public function url()
     {
-        return url('/auth/invite/u/' . $this->token);
+        return url("/i/invite/code/{$this->key}/{$this->token}");
     }
 }
