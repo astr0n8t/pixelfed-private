@@ -51,7 +51,7 @@ class LiveStream extends Model
 
     public function getHlsUrl()
     {
-        $path = Storage::url("live-hls/{$this->stream_id}/index.m3u8");
+        $path = signed_storage_url("live-hls/{$this->stream_id}/index.m3u8");
 
         return url($path);
     }

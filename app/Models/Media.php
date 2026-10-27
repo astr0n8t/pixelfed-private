@@ -147,17 +147,18 @@ class Media extends Model
             return $this->remote_url;
         }
 
-        return url(Storage::url($this->media_path));
+        return signed_storage_url($this->media_path);
     }
 
     public function thumbnailUrl()
     {
-        if ($this->thumbnail_url) {
-            return $this->thumbnail_url;
+        // Local thumbnails are signed on every request; a stored thumbnail_url would expire
+        if (! $this->remote_media && $this->thumbnail_path && ! $this->cdn_url) {
+            return signed_storage_url($this->thumbnail_path);
         }
 
-        if (! $this->remote_media && $this->thumbnail_path) {
-            return url(Storage::url($this->thumbnail_path));
+        if ($this->thumbnail_url) {
+            return $this->thumbnail_url;
         }
 
         if (! $this->thumbnail_path && $this->cdn_url) {
@@ -167,7 +168,7 @@ class Media extends Model
         if ($this->media_path && $this->mime && in_array($this->mime, ['image/jpeg', 'image/png', 'image/jpg'])) {
             return $this->remote_media || Str::startsWith($this->media_path, 'http') ?
                 $this->media_path :
-                url(Storage::url($this->media_path));
+                signed_storage_url($this->media_path);
         }
 
         return url(Storage::url('public/no-preview.png'));

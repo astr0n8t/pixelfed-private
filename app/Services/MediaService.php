@@ -6,6 +6,7 @@ use App\Models\Media;
 use App\Transformer\Api\MediaTransformer;
 use App\Util\Media\License;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class MediaService
@@ -14,7 +15,7 @@ class MediaService
 
     public static function get($statusId)
     {
-        return Cache::remember(self::CACHE_KEY.$statusId, now()->addMinutes(60), function () use ($statusId) {
+        return Cache::remember(self::CACHE_KEY.$statusId.':'.Auth::id(), now()->addMinutes(60), function () use ($statusId) {
             $media = Media::whereStatusId($statusId)->orderBy('order')->get();
             if (! $media) {
                 return [];

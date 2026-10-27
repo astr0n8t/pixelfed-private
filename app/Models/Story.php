@@ -136,7 +136,7 @@ class Story extends Model
 
     public function mediaUrl()
     {
-        return url(Storage::url($this->path));
+        return signed_storage_url($this->path);
     }
 
     public function bearcapUrl()

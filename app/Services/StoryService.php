@@ -69,7 +69,7 @@ class StoryService
                     'seen' => isset($seen[$s->id]),
                     'created_at' => $s->created_at->toAtomString(),
                     'expires_at' => $s->expires_at->toAtomString(),
-                    'media' => url(Storage::url($s->path)),
+                    'media' => signed_storage_url($s->path),
                     'can_reply' => (bool) $s->can_reply,
                     'can_react' => (bool) $s->can_react,
                     'poll' => null,

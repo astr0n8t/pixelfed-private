@@ -80,7 +80,7 @@ class StoryApiV1Controller extends Controller
                 'id' => (string) $s->id,
                 'pid' => (string) $s->profile_id,
                 'type' => $s->type,
-                'src' => url(Storage::url($s->path)),
+                'src' => signed_storage_url($s->path),
                 'duration' => $s->duration ?? 3,
                 'seen' => StoryService::hasSeen($pid, $s->id),
                 'created_at' => $s->created_at->format('c'),
@@ -133,7 +133,7 @@ class StoryApiV1Controller extends Controller
                     return [
                         'id' => (string) $s->id,
                         'type' => $s->type,
-                        'src' => url(Storage::url($s->path)),
+                        'src' => signed_storage_url($s->path),
                         'duration' => $s->duration,
                         'seen' => true,
                         'created_at' => $s->created_at->format('c'),
@@ -202,7 +202,7 @@ class StoryApiV1Controller extends Controller
                 'id' => (string) $s->id,
                 'pid' => (string) $s->profile_id,
                 'type' => $s->type,
-                'src' => url(Storage::url($s->path)),
+                'src' => signed_storage_url($s->path),
                 'duration' => $s->duration ?? 3,
                 'seen' => StoryService::hasSeen($pid, $s->id),
                 'created_at' => $s->created_at->format('c'),
@@ -266,7 +266,7 @@ class StoryApiV1Controller extends Controller
                     return [
                         'id' => (string) $s->id,
                         'type' => $s->type,
-                        'src' => url(Storage::url($s->path)),
+                        'src' => signed_storage_url($s->path),
                         'duration' => $s->duration,
                         'seen' => true,
                         'created_at' => $s->created_at->format('c'),
@@ -325,7 +325,7 @@ class StoryApiV1Controller extends Controller
             'code' => 200,
             'msg' => 'Successfully added',
             'media_id' => (string) $story->id,
-            'media_url' => url(Storage::url($url)).'?v='.time(),
+            'media_url' => signed_storage_url($url, ['v' => time()]),
             'media_type' => $story->type,
         ];
 
@@ -718,7 +718,7 @@ class StoryApiV1Controller extends Controller
                 'story_username' => $story->profile->username,
                 'story_actor_username' => $request->user()->username,
                 'story_id' => $story->id,
-                'story_media_url' => url(Storage::url($story->path)),
+                'story_media_url' => signed_storage_url($story->path),
                 'caption' => $text,
             ],
             $status->id

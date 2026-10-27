@@ -275,7 +275,7 @@ class Status extends Model
         }
         $path = $media->media_path;
         $hash = is_null($media->processed_at) ? md5('unprocessed') : md5($media->created_at);
-        $url = $media->cdn_url ? $media->cdn_url."?v={$hash}" : url(Storage::url($path)."?v={$hash}");
+        $url = $media->cdn_url ? $media->cdn_url."?v={$hash}" : signed_storage_url($path, ['v' => $hash]);
 
         return $url;
     }

@@ -30,7 +30,7 @@ class StoryVerb extends Fractal\TransformerAbstract
             'can_react' => (bool) $story->can_react,
             'attachment' => [
                 'type' => $type,
-                'url' => url(Storage::url($story->path)),
+                'url' => signed_storage_url($story->path),
                 'mediaType' => $story->mime,
             ],
         ];

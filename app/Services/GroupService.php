@@ -68,6 +68,13 @@ class GroupService
             $res['self'] = self::getSelf($id, $pid);
         }
 
+        // Group images are stored with plain URLs; local files need a fresh signed link
+        foreach (['avatar', 'header'] as $image) {
+            if (isset($res['metadata'][$image]['path']) && config('filesystems.default') === 'local') {
+                $res['metadata'][$image]['url'] = signed_storage_url($res['metadata'][$image]['path']);
+            }
+        }
+
         return $res;
     }
 

@@ -100,7 +100,7 @@ class StoryComposeController extends Controller
             'msg' => __('Successfully added'),
             'media_id' => (string) $story->id,
             'media_url' => (config('filesystems.default') === 'local') ?
-                url(Storage::url($url)).'?v='.time() :
+                signed_storage_url($url, ['v' => time()]) :
                 $disk->url($url).'?v='.time(),
             // GLITCH MODIFIED END
             'media_type' => $story->type,
@@ -553,7 +553,7 @@ class StoryComposeController extends Controller
 
         $localFs = config('filesystems.default') === 'local';
         $mediaUrl = $localFs
-            ? url(Storage::url($story->path))
+            ? signed_storage_url($story->path)
             : Storage::disk(config('filesystems.default'))->url($story->path);
 
         // Shows up in the conversation with the story author, who is
@@ -617,7 +617,7 @@ class StoryComposeController extends Controller
 
         $localFs = config('filesystems.default') === 'local';
         $mediaUrl = $localFs
-            ? url(Storage::url($story->path))
+            ? signed_storage_url($story->path)
             : Storage::disk(config('filesystems.default'))->url($story->path);
 
         // Shows up in the conversation with the story author, who is

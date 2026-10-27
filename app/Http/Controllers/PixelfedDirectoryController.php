@@ -56,7 +56,7 @@ class PixelfedDirectoryController extends Controller
         }
 
         if (isset($res['banner_image']) && ! empty($res['banner_image'])) {
-            $res['banner_image'] = url(Storage::url($res['banner_image']));
+            $res['banner_image'] = signed_storage_url($res['banner_image']);
         }
 
         if (isset($res['favourite_posts'])) {

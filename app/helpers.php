@@ -2,6 +2,7 @@
 
 use App\Services\ConfigCacheService;
 use App\Util\Database\DatabaseDriver;
+use Illuminate\Support\Facades\URL;
 
 if (! function_exists('config_cache')) {
     function config_cache($key)
@@ -66,5 +67,24 @@ if (! function_exists('db_is_sqlite')) {
     function db_is_sqlite(?string $connection = null): bool
     {
         return DatabaseDriver::isSqlite($connection);
+    }
+}
+
+if (! function_exists('signed_storage_url')) {
+    /**
+     * Temporary signed URL for a file on the local disk.
+     *
+     * Files are served by the `storage.file` route instead of the public
+     * storage symlink, so media can only be fetched through links the app
+     * hands out to signed-in users. Links expire after 60 minutes, which is
+     * why cached payloads containing them must not outlive that either.
+     */
+    function signed_storage_url(string $path, array $query = []): string
+    {
+        return URL::temporarySignedRoute(
+            'storage.file',
+            now()->addMinutes(60),
+            ['file' => $path, 'user_id' => auth()->id()] + $query
+        );
     }
 }

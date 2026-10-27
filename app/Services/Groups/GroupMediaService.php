@@ -4,6 +4,7 @@ namespace App\Services\Groups;
 
 use App\Models\GroupMedia;
 use App\Services\HashidService;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 
 class GroupMediaService
@@ -28,7 +29,7 @@ class GroupMediaService
 
     public static function get($statusId)
     {
-        return Cache::remember(self::CACHE_KEY.$statusId, now()->addMinutes(60), function () use ($statusId) {
+        return Cache::remember(self::CACHE_KEY.$statusId.':'.Auth::id(), now()->addMinutes(60), function () use ($statusId) {
             $media = GroupMedia::whereStatusId($statusId)->orderBy('order')->get();
             if (! $media) {
                 return [];

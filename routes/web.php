@@ -44,6 +44,7 @@ use App\Http\Controllers\RemoteOidcController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\SignedStorageController;
 use App\Http\Controllers\SiteController;
 use App\Http\Controllers\SpaController;
 use App\Http\Controllers\StatusController;
@@ -122,6 +123,8 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->grou
     Route::post('auth/sign_up/resend-confirmation', [CuratedRegisterController::class, 'resendConfirmationProcess']);
     Route::get('auth/forgot/email', [UserEmailForgotController::class, 'index'])->name('email.forgot');
     Route::post('auth/forgot/email', [UserEmailForgotController::class, 'store'])->middleware('throttle:10,900,forgotEmail');
+
+    Route::get('storage/{file}', [SignedStorageController::class, 'show'])->middleware('signed')->name('storage.file')->where('file', '.*');
 
     Route::name('passport.')->prefix('oauth')->middleware('oauth-web')->group(function () {
         Route::post('/token', [ApiTokenController::class, 'issueToken'])

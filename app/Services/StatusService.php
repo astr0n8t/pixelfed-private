@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Like;
 use App\Models\Status;
 use App\Transformer\Api\StatusStatelessTransformer;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use League\Fractal;
 use League\Fractal\Serializer\ArraySerializer;
@@ -28,7 +29,8 @@ class StatusService
         $mastodonMode = false,
         $viewerProfileId = null
     ) {
-        $res = Cache::remember(self::key($id, $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
+        // Keyed per viewer: the payload embeds signed media links that carry the viewer id
+        $res = Cache::remember(self::key($id.':'.Auth::id(), $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
             if ($publicOnly) {
                 $status = Status::whereScope('public')->find($id);
             } else {

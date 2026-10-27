@@ -31,7 +31,7 @@ class MediaTransformer extends Fractal\TransformerAbstract
 
         if ((bool) config('media.hls.enabled')) {
             if ($media->hls_transcoded_at != null && $media->hls_path) {
-                $res['hls_manifest'] = url(Storage::url($media->hls_path));
+                $res['hls_manifest'] = signed_storage_url($media->hls_path);
             }
         }
 

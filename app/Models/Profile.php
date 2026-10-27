@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -296,7 +297,7 @@ class Profile extends Model
 
     public function avatarUrl()
     {
-        $url = Cache::remember('avatar:'.$this->id, now()->addMinutes(60), function () {
+        $url = Cache::remember('avatar:'.$this->id.':'.Auth::id(), now()->addMinutes(60), function () {
             $avatar = $this->avatar;
 
             if (! $avatar) {
@@ -337,9 +338,7 @@ class Profile extends Model
                 return Storage::url($path);
             }
 
-            $path = "{$path}?v={$avatar->change_count}";
-
-            return url(Storage::url($path));
+            return signed_storage_url($path, ['v' => $avatar->change_count]);
         });
 
         return $url;
