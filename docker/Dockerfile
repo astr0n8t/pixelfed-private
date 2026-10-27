@@ -8,7 +8,7 @@
 # See: https://nginx.org/
 #
 # renovate: datasource=docker depName=nginx versioning=semver
-ARG NGINX_VERSION="1.27.3"
+ARG NGINX_VERSION="latest"
 
 # See: https://github.com/ddollar/forego
 #
@@ -50,11 +50,11 @@ ARG RUNTIME_GID=33 # often called 'www-data'
 # See: https://hub.docker.com/_/php/tags
 #
 # renovate: datasource=docker depName=php versioning=semver-coerced
-ARG PHP_VERSION="8.4"
+ARG PHP_VERSION="8.5"
 
 # See: https://github.com/docker-library/docs/blob/master/php/README.md#image-variants
 ARG PHP_BASE_TYPE="fpm"
-ARG PHP_DEBIAN_RELEASE="bookworm"
+ARG PHP_DEBIAN_RELEASE="trixie"
 
 # APT extra packages
 ARG APT_PACKAGES_EXTRA=
@@ -84,7 +84,7 @@ ARG NGINX_GPGKEY_PATH="/usr/share/keyrings/nginx-archive-keyring.gpg"
 # Used to copy some docker-entrypoint files for [nginx-runtime]
 #
 # NOTE: Docker will *not* pull this image unless it's referenced (via build target)
-FROM public.ecr.aws/nginx/nginx:${NGINX_VERSION} AS nginx-image
+FROM docker.io/library/nginx:latest AS nginx-image
 
 # Forego is a Procfile "runner" that makes it trival to run multiple
 # processes under a simple init / PID 1 process.
