@@ -120,7 +120,7 @@ ARG TARGETARCH
 ENV GOOS=${TARGETOS}
 ENV GOARCH=${TARGETARCH}
 
-COPY docker/rootfs/shared/docker/install/go-tools.sh /go-tools.sh
+COPY --chmod=756 docker/rootfs/shared/docker/install/go-tools.sh /go-tools.sh
 
 RUN --mount=type=cache,id=pixelfed-go-mod,target=/go/pkg/mod \
     --mount=type=cache,id=pixelfed-go-build-${TARGETARCH},target=/root/.cache/go-build \
@@ -168,7 +168,7 @@ ARG MARIADB_CLIENT_VERSION
 ARG POSTGRESQL_CLIENT_VERSION
 
 # Copy the base layer installer into the image
-COPY docker/rootfs/shared/docker/install/base.sh /docker/install/base.sh
+COPY --chmod=755 docker/rootfs/shared/docker/install/base.sh /docker/install/base.sh
 
 RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
     --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
@@ -331,7 +331,7 @@ ARG PHP_VERSION
 ARG PHP_DEBIAN_RELEASE
 ARG TARGETPLATFORM
 ARG APT_UPGRADE_CACHEBUST=""
-COPY docker/rootfs/shared/docker/install/patch.sh /docker/install/patch.sh
+COPY --chmod=755 docker/rootfs/shared/docker/install/patch.sh /docker/install/patch.sh
 RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
     --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
     echo "apt upgrade cachebust: ${APT_UPGRADE_CACHEBUST}" \
