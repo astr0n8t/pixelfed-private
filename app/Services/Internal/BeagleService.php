@@ -21,7 +21,7 @@ class BeagleService
 
     public static function getDefaultRules()
     {
-        return Cache::remember(self::DEFAULT_RULES_CACHE_KEY, now()->addDays(7), function () {
+        return Cache::remember(self::DEFAULT_RULES_CACHE_KEY, now()->addMinutes(60), function () {
             try {
                 $res = Http::withOptions(['allow_redirects' => false])
                     ->timeout(5)
@@ -56,7 +56,7 @@ class BeagleService
             return [];
         }
 
-        return Cache::remember(self::DISCOVER_CACHE_KEY, now()->addHours(6), function () {
+        return Cache::remember(self::DISCOVER_CACHE_KEY, now()->addMinutes(60), function () {
             try {
                 $res = Http::withOptions(['allow_redirects' => false])
                     ->withHeaders([

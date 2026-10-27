@@ -42,7 +42,7 @@ class ApiV2Controller extends Controller
 
     public function instance(Request $request): JsonResponse
     {
-        $contact = Cache::remember('api:v1:instance-data:contact', 604800, function () {
+        $contact = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
             if (config_cache('instance.admin.pid')) {
                 return AccountService::getMastodon(config_cache('instance.admin.pid'), true);
             }
@@ -53,7 +53,7 @@ class ApiV2Controller extends Controller
                 null;
         });
 
-        $rules = Cache::remember('api:v1:instance-data:rules', 604800, function () {
+        $rules = Cache::remember('api:v1:instance-data:rules', now()->addMinutes(60), function () {
             return config_cache('app.rules') ?
                 collect(json_decode(config_cache('app.rules'), true))
                     ->map(function ($rule, $key) {

@@ -27,7 +27,7 @@ class GroupService
     {
         $res = Cache::remember(
             self::key($id),
-            1209600,
+            now()->addMinutes(60),
             function () use ($id) {
                 $group = (new Group)->withoutRelations()->whereNull('status')->find($id);
 
@@ -291,7 +291,7 @@ class GroupService
 
     public static function categories($onlyActive = true)
     {
-        return Cache::remember(self::key(':categories'), 2678400, function () use ($onlyActive) {
+        return Cache::remember(self::key(':categories'), now()->addMinutes(60), function () use ($onlyActive) {
             return GroupCategory::when($onlyActive, function ($q, $onlyActive) {
                 return $q->whereActive(true);
             })
@@ -303,7 +303,7 @@ class GroupService
 
     public static function categoryById($id)
     {
-        return Cache::remember(self::key(':categorybyid:'.$id), 2678400, function () use ($id) {
+        return Cache::remember(self::key(':categorybyid:'.$id), now()->addMinutes(60), function () use ($id) {
             $category = GroupCategory::find($id);
             if ($category) {
                 return [

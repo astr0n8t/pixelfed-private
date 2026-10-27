@@ -126,7 +126,7 @@ class ActiveSharedInboxService
         }
 
         self::saveCacheToDisk($filteredList);
-        Cache::remember(self::CACHE_KEY_CHECK, 86400, function () {
+        Cache::remember(self::CACHE_KEY_CHECK, now()->addMinutes(60), function () {
             return true;
         });
 

@@ -51,7 +51,7 @@ class FanoutDeletePipeline implements ShouldQueue
         }
 
         try {
-            $audience = Cache::remember('pf:ap:known_instances', now()->addHours(6), function () {
+            $audience = Cache::remember('pf:ap:known_instances', now()->addMinutes(60), function () {
                 return Profile::whereNotNull('sharedInbox')->groupBy('sharedInbox')->pluck('sharedInbox')->toArray();
             });
 

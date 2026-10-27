@@ -86,7 +86,7 @@ class SiteController extends Controller
         // Cache only the page payload and render the view per request, so the
         // layout/footer (config version/domain, canonical url, csrf token) is
         // evaluated on every request rather than baked into a cached HTML blob.
-        Cache::remember('site:help:community-guidelines', now()->addDays(120), function () {
+        Cache::remember('site:help:community-guidelines', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/kb/community-guidelines');
         });
 
@@ -97,7 +97,7 @@ class SiteController extends Controller
 
     public function privacy(Request $request)
     {
-        $page = Cache::remember('site:privacy', now()->addDays(120), function () {
+        $page = Cache::remember('site:privacy', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/privacy');
         });
 
@@ -106,7 +106,7 @@ class SiteController extends Controller
 
     public function terms(Request $request)
     {
-        $page = Cache::remember('site:terms', now()->addDays(120), function () {
+        $page = Cache::remember('site:terms', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/terms');
         });
 
@@ -178,7 +178,7 @@ class SiteController extends Controller
 
     public function legalNotice(Request $request)
     {
-        $page = Cache::remember('site:legal-notice', now()->addDays(120), function () {
+        $page = Cache::remember('site:legal-notice', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/legal-notice');
         });
         abort_if(! $page, 404);

@@ -35,7 +35,7 @@ trait AdminAutospamController
             return AccountInterstitial::whereType('post.autospam')->whereNotNull('appeal_handled_at')->count();
         });
 
-        $thisWeek = Cache::remember('admin-dash:reports:spam-count-stats-this-week ', 86400, function () {
+        $thisWeek = Cache::remember('admin-dash:reports:spam-count-stats-this-week ', now()->addMinutes(60), function () {
             $isPgsql = db_is_pgsql();
             $sr = $isPgsql ? "to_char(created_at, 'MM-YYYY')" : "DATE_FORMAT(created_at, '%m-%Y')";
             $gb = $isPgsql ? [DB::raw($sr)] : DB::raw($sr);

@@ -154,8 +154,8 @@ class DiscoverController extends Controller
         $days = $range == 'monthly' ? 31 : ($range == 'daily' ? 1 : 365);
         $ttls = [
             1 => 1500,
-            31 => 14400,
-            365 => 86400,
+            31 => 3600,
+            365 => 3600,
         ];
         $key = ':api:discover:trending:v2.12:range:'.$days;
 
@@ -268,7 +268,7 @@ class DiscoverController extends Controller
         abort_if(! $request->user(), 404);
         $pid = $request->user()->profile_id;
         abort_if(! $this->config()['insights']['enabled'], 404);
-        $posts = Cache::remember('pf:discover:metro2:accinsights:popular:'.$pid, 43200, function () use ($pid) {
+        $posts = Cache::remember('pf:discover:metro2:accinsights:popular:'.$pid, now()->addMinutes(60), function () use ($pid) {
             return Status::whereProfileId($pid)
                 ->whereNotNull('likes_count')
                 ->orderByDesc('likes_count')
@@ -391,7 +391,7 @@ class DiscoverController extends Controller
 
         $pid = $request->user()->profile_id;
 
-        $ids = Cache::remember('api:v1.1:discover:accounts:popular', 14400, function () {
+        $ids = Cache::remember('api:v1.1:discover:accounts:popular', now()->addMinutes(60), function () {
             return DB::table('profiles')
                 ->where('is_private', false)
                 ->whereNull('status')

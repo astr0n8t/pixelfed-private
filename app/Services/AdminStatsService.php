@@ -38,7 +38,7 @@ class AdminStatsService
 
     public static function storage()
     {
-        return Cache::remember('admin:dashboard:storage:stats', 120000, function () {
+        return Cache::remember('admin:dashboard:storage:stats', now()->addMinutes(60), function () {
             $res = [];
 
             $res['last_updated'] = str_replace('+00:00', 'Z', now()->format(DATE_RFC3339_EXTENDED));
@@ -90,7 +90,7 @@ class AdminStatsService
 
     protected static function additionalData()
     {
-        $ttl = now()->addHours(24);
+        $ttl = now()->addMinutes(60);
 
         return Cache::remember('admin:dashboard:home:data:v0:24hr', $ttl, function () {
             return [
@@ -113,7 +113,7 @@ class AdminStatsService
 
     protected static function additionalDataSummary()
     {
-        $ttl = now()->addHours(24);
+        $ttl = now()->addMinutes(60);
 
         return Cache::remember('admin:dashboard:home:data-summary:v0:24hr', $ttl, function () {
             return [
@@ -129,7 +129,7 @@ class AdminStatsService
 
     protected static function postsGraph()
     {
-        $ttl = now()->addHours(12);
+        $ttl = now()->addMinutes(60);
 
         return Cache::remember('admin:dashboard:home:data-postsGraph:v0.1:24hr', $ttl, function () {
             $gb = db_is_pgsql() ? ['statuses.id', 'created_at'] : DB::raw('Date(created_at)');

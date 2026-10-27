@@ -28,7 +28,7 @@ class StatusService
         $mastodonMode = false,
         $viewerProfileId = null
     ) {
-        $res = Cache::remember(self::key($id, $publicOnly), 21600, function () use ($id, $publicOnly) {
+        $res = Cache::remember(self::key($id, $publicOnly), now()->addMinutes(60), function () use ($id, $publicOnly) {
             if ($publicOnly) {
                 $status = Status::whereScope('public')->find($id);
             } else {

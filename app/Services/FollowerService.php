@@ -90,7 +90,7 @@ class FollowerService
      */
     public static function getFollowingIds($pid)
     {
-        return Cache::remember('profile:following:'.$pid, 1209600, function () use ($pid) {
+        return Cache::remember('profile:following:'.$pid, now()->addMinutes(60), function () use ($pid) {
             return Follower::whereProfileId($pid)
                 ->pluck('following_id')
                 ->push($pid)
@@ -194,7 +194,7 @@ class FollowerService
     {
         $key = 'pf:services:follower:audience:'.$pid;
         $bannedDomains = InstanceService::getBannedDomains();
-        $domains = Cache::remember($key, 432000, function () use ($pid, $bannedDomains) {
+        $domains = Cache::remember($key, now()->addMinutes(60), function () use ($pid, $bannedDomains) {
             $profile = Profile::whereNull(['status', 'domain'])->find($pid);
             if (! $profile) {
                 return [];
@@ -415,7 +415,7 @@ class FollowerService
     public static function localFollowerIds($pid, $limit = 0)
     {
         $key = self::FOLLOWERS_LOCAL_KEY.$pid;
-        $res = Cache::remember($key, 7200, function () use ($pid) {
+        $res = Cache::remember($key, now()->addMinutes(60), function () use ($pid) {
             return DB::table('followers')
                 ->join('profiles', 'followers.profile_id', '=', 'profiles.id')
                 ->where('followers.following_id', $pid)

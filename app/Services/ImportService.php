@@ -245,7 +245,7 @@ class ImportService
             Cache::forget($key);
         }
 
-        return intval(Cache::remember($key, 21600, function () use ($profileId) {
+        return intval(Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)->whereSkipMissingMedia(false)->count();
         }));
     }
@@ -254,7 +254,7 @@ class ImportService
     {
         $key = self::CACHE_KEY.'attemptsByProfileId:'.$profileId;
 
-        return intval(Cache::remember($key, 21600, function () use ($profileId) {
+        return intval(Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)
                 ->whereSkipMissingMedia(false)
                 ->get()
@@ -279,7 +279,7 @@ class ImportService
             Cache::forget($key);
         }
 
-        return Cache::remember($key, 21600, function () use ($profileId) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)
                 ->get()
                 ->filter(function ($ip) {

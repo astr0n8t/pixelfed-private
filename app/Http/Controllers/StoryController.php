@@ -56,7 +56,7 @@ class StoryController extends StoryComposeController
                 ->get();
         });
 
-        $self = Cache::remember('pf:stories:recent-self:'.$pid, 21600, function () use ($pid) {
+        $self = Cache::remember('pf:stories:recent-self:'.$pid, now()->addMinutes(60), function () use ($pid) {
             return Story::whereProfileId($pid)
                 ->whereActive(true)
                 ->orderByDesc('id')

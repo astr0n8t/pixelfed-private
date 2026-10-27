@@ -63,7 +63,7 @@ class CollectionService
 
     public static function getCollection($id)
     {
-        $collection = Cache::remember(self::CACHE_KEY.'get:'.$id, 86400, function () use ($id) {
+        $collection = Cache::remember(self::CACHE_KEY.'get:'.$id, now()->addMinutes(60), function () use ($id) {
             $collection = Collection::find($id);
             if (! $collection) {
                 return false;
@@ -117,7 +117,7 @@ class CollectionService
             'updated_at' => $collection->updated_at,
             'published_at' => $collection->published_at,
         ];
-        Cache::put(self::CACHE_KEY.'get:'.$id, $res, 86400);
+        Cache::put(self::CACHE_KEY.'get:'.$id, $res, 3600);
         $res['avatar'] = $account['avatar'];
         $res['username'] = $account['username'];
         $res['post_count'] = self::count($id);

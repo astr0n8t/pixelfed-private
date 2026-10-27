@@ -42,21 +42,21 @@ class InstanceService
 
     public static function getBannedDomains()
     {
-        return Cache::remember(self::CACHE_KEY_BANNED_DOMAINS, 1209600, function () {
+        return Cache::remember(self::CACHE_KEY_BANNED_DOMAINS, now()->addMinutes(60), function () {
             return Instance::whereBanned(true)->pluck('domain')->toArray();
         });
     }
 
     public static function getUnlistedDomains()
     {
-        return Cache::remember(self::CACHE_KEY_UNLISTED_DOMAINS, 1209600, function () {
+        return Cache::remember(self::CACHE_KEY_UNLISTED_DOMAINS, now()->addMinutes(60), function () {
             return Instance::whereUnlisted(true)->pluck('domain')->toArray();
         });
     }
 
     public static function getNsfwDomains()
     {
-        return Cache::remember(self::CACHE_KEY_NSFW_DOMAINS, 1209600, function () {
+        return Cache::remember(self::CACHE_KEY_NSFW_DOMAINS, now()->addMinutes(60), function () {
             return Instance::whereAutoCw(true)->pluck('domain')->toArray();
         });
     }
@@ -65,7 +65,7 @@ class InstanceService
     {
         $key = 'instances:software:'.strtolower($domain);
 
-        return Cache::remember($key, 86400, function () use ($domain) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($domain) {
             $instance = Instance::whereDomain($domain)->first();
             if (! $instance) {
                 return;
@@ -77,7 +77,7 @@ class InstanceService
 
     public static function stats()
     {
-        return Cache::remember(self::CACHE_KEY_STATS, 86400, function () {
+        return Cache::remember(self::CACHE_KEY_STATS, now()->addMinutes(60), function () {
             return [
                 'total_count' => Instance::count(),
                 'new_count' => Instance::where('created_at', '>', now()->subDays(14))->count(),

@@ -23,7 +23,7 @@ class AccountService
 
     public static function get($id, $softFail = false)
     {
-        $res = Cache::remember(self::CACHE_KEY.$id, 43200, function () use ($id) {
+        $res = Cache::remember(self::CACHE_KEY.$id, now()->addMinutes(60), function () use ($id) {
             $fractal = new Fractal\Manager;
             $fractal->setSerializer(new ArraySerializer);
             $profile = Profile::find($id);
@@ -85,7 +85,7 @@ class AccountService
 
     public static function settings($id)
     {
-        return Cache::remember('profile:compose:settings:'.$id, 604800, function () use ($id) {
+        return Cache::remember('profile:compose:settings:'.$id, now()->addMinutes(60), function () use ($id) {
             $settings = UserSetting::whereUserId($id)->first();
             if (! $settings) {
                 return self::defaultSettings();
@@ -119,7 +119,7 @@ class AccountService
     {
         $key = self::CACHE_PF_ACCT_SETTINGS_KEY.$pid;
 
-        return Cache::remember($key, 604800, function () use ($pid) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($pid) {
             $user = User::with('profile')->whereProfileId($pid)->whereNull('status')->first();
             if (! $user) {
                 return [];
@@ -224,7 +224,7 @@ class AccountService
     {
         $key = self::CACHE_KEY.'u2id:'.hash('sha256', $username);
 
-        return Cache::remember($key, 14400, function () use ($username) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($username) {
             if (Str::contains($username, '@') && ! Str::startsWith($username, '@')) {
                 $username = "@{$username}";
             }
@@ -252,7 +252,7 @@ class AccountService
             return false;
         }
 
-        return Cache::remember('pf:acct:settings:hidden-followers:'.$id, 43200, function () use ($id) {
+        return Cache::remember('pf:acct:settings:hidden-followers:'.$id, now()->addMinutes(60), function () use ($id) {
             $user = User::whereProfileId($id)->first();
             if (! $user) {
                 return false;
@@ -273,7 +273,7 @@ class AccountService
             return false;
         }
 
-        return Cache::remember('pf:acct:settings:hidden-following:'.$id, 43200, function () use ($id) {
+        return Cache::remember('pf:acct:settings:hidden-following:'.$id, now()->addMinutes(60), function () use ($id) {
             $user = User::whereProfileId($id)->first();
             if (! $user) {
                 return false;

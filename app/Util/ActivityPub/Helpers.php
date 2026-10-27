@@ -777,7 +777,7 @@ class Helpers
         $hash = hash('sha256', $host);
         $key = self::URL_CACHE_PREFIX."valid-dns:sha256-{$hash}";
 
-        return Cache::remember($key, self::CACHE_TTL, function () use ($host) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($host) {
             return DomainService::hasValidDns($host);
         });
     }
@@ -2303,7 +2303,7 @@ class Helpers
         $fallback = [$username, $actorHost];
         $key = 'pf:helpers:verified-handle:'.hash('sha256', $actorId.'|'.$username);
 
-        return Cache::remember($key, now()->addHours(12), function () use ($username, $actorHost, $actorId, $fallback) {
+        return Cache::remember($key, now()->addMinutes(60), function () use ($username, $actorHost, $actorId, $fallback) {
             $record = FetchCacheService::getJson("https://{$actorHost}/.well-known/webfinger?resource=acct:{$username}@{$actorHost}");
             $subject = is_array($record) && is_string($record['subject'] ?? null) ? $record['subject'] : null;
 

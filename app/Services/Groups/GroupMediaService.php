@@ -28,7 +28,7 @@ class GroupMediaService
 
     public static function get($statusId)
     {
-        return Cache::remember(self::CACHE_KEY.$statusId, 21600, function () use ($statusId) {
+        return Cache::remember(self::CACHE_KEY.$statusId, now()->addMinutes(60), function () use ($statusId) {
             $media = GroupMedia::whereStatusId($statusId)->orderBy('order')->get();
             if (! $media) {
                 return [];

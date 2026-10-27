@@ -177,7 +177,7 @@ class HomeTimelineService
 
     protected static function followingForWarm($id): array
     {
-        $following = Cache::remember('profile:following:'.$id, 1209600, function () use ($id) {
+        $following = Cache::remember('profile:following:'.$id, now()->addMinutes(60), function () use ($id) {
             $following = Follower::whereProfileId($id)->pluck('following_id');
 
             return $following->push($id)->toArray();

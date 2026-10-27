@@ -202,7 +202,7 @@ class Profile extends Model
 
     public function followingCount($short = false)
     {
-        $count = Cache::remember('profile:following_count:'.$this->id, now()->addMonths(1), function () {
+        $count = Cache::remember('profile:following_count:'.$this->id, now()->addMinutes(60), function () {
             if ($this->domain == null && $this->user->settings->show_profile_following_count == false) {
                 return 0;
             }
@@ -220,7 +220,7 @@ class Profile extends Model
 
     public function followerCount($short = false)
     {
-        $count = Cache::remember('profile:follower_count:'.$this->id, now()->addMonths(1), function () {
+        $count = Cache::remember('profile:follower_count:'.$this->id, now()->addMinutes(60), function () {
             if ($this->domain == null && $this->user->settings->show_profile_follower_count == false) {
                 return 0;
             }
@@ -296,7 +296,7 @@ class Profile extends Model
 
     public function avatarUrl()
     {
-        $url = Cache::remember('avatar:'.$this->id, 1209600, function () {
+        $url = Cache::remember('avatar:'.$this->id, now()->addMinutes(60), function () {
             $avatar = $this->avatar;
 
             if (! $avatar) {

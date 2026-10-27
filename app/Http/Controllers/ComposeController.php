@@ -365,7 +365,7 @@ class ComposeController extends Controller
             [$raw, $country] = array_map('trim', explode(',', $raw, 2));
         }
 
-        $popular = Cache::remember('pf:search:location:v1:popular', 1209600, function () {
+        $popular = Cache::remember('pf:search:location:v1:popular', now()->addMinutes(60), function () {
             $minId = SnowflakeService::byDate(now()->subDays(290));
             if (db_is_pgsql()) {
                 return Status::selectRaw('id, place_id, count(place_id) as pc')

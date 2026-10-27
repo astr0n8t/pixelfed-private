@@ -13,7 +13,7 @@ class MobileController extends Controller
 
     public function terms(Request $request)
     {
-        $page = Cache::remember('site:terms', now()->addDays(120), function () {
+        $page = Cache::remember('site:terms', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/terms');
         });
 
@@ -22,7 +22,7 @@ class MobileController extends Controller
 
     public function privacy(Request $request)
     {
-        $page = Cache::remember('site:privacy', now()->addDays(120), function () {
+        $page = Cache::remember('site:privacy', now()->addMinutes(60), function () {
             return $this->cachedPage('/site/privacy');
         });
 

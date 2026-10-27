@@ -165,7 +165,7 @@ class PixelfedDirectoryController extends Controller
         ];
 
         $statusesCount = InstanceService::totalLocalStatuses();
-        $usersCount = Cache::remember('api:nodeinfo:users', 43200, function () {
+        $usersCount = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
             // GLITCH MODIFIED: count only active users (null status)
             return User::whereNull('status')->count(); # Only get null status - these are the "active" users
         });

@@ -20,7 +20,7 @@ class NotificationService
 
     const MISS_KEY = 'service:notification:miss:';
 
-    const ITEM_CACHE_TTL = 86400;
+    const ITEM_CACHE_TTL = 3600;
 
     const MISS_CACHE_TTL = 600;
 

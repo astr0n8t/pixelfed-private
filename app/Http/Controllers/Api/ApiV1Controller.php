@@ -2039,7 +2039,7 @@ class ApiV1Controller extends Controller
     public function instance(Request $request)
     {
         $res = Cache::remember('api:v1:instance-data-response-v1', 1800, function () {
-            $contact = Cache::remember('api:v1:instance-data:contact', 604800, function () {
+            $contact = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
                 if (config_cache('instance.admin.pid')) {
                     return AccountService::getMastodon(config_cache('instance.admin.pid'), true);
                 }
@@ -2050,7 +2050,7 @@ class ApiV1Controller extends Controller
                     null;
             });
 
-            $stats = Cache::remember('api:v1:instance-data:stats:v0', 43200, function () {
+            $stats = Cache::remember('api:v1:instance-data:stats:v0', now()->addMinutes(60), function () {
                 return [
                     // GLITCH MODIFIED: count only active users (null status)
                     'user_count' => (int) User::whereNull('status')->count(), # Only get null status - these are the "active" users,
@@ -2059,7 +2059,7 @@ class ApiV1Controller extends Controller
                 ];
             });
 
-            $rules = Cache::remember('api:v1:instance-data:rules', 604800, function () {
+            $rules = Cache::remember('api:v1:instance-data:rules', now()->addMinutes(60), function () {
                 return config_cache('app.rules') ?
                     collect(json_decode(config_cache('app.rules'), true))
                         ->map(function ($rule, $key) {
@@ -4982,7 +4982,7 @@ class ApiV1Controller extends Controller
 
         $pid = $request->user()->profile_id;
 
-        $pool = Cache::remember('api:v1.1:discover:accounts:popular:pool:v1', 14400, function () {
+        $pool = Cache::remember('api:v1.1:discover:accounts:popular:pool:v1', now()->addMinutes(60), function () {
             return DB::table('profiles')
                 ->where('is_private', false)
                 ->whereNull('status')
@@ -5036,7 +5036,7 @@ class ApiV1Controller extends Controller
             $cursor = null;
         }
 
-        $pool = Cache::remember('api:v1.1:discover:accounts:popular:pool:v2', 14400, function () {
+        $pool = Cache::remember('api:v1.1:discover:accounts:popular:pool:v2', now()->addMinutes(60), function () {
             return DB::table('profiles')
                 ->select('id', 'followers_count')
                 ->where('is_private', false)
@@ -5198,7 +5198,7 @@ class ApiV1Controller extends Controller
         }
 
         return $this->json(
-            Cache::remember(InstanceService::CACHE_KEY_API_PEERS_LIST, now()->addHours(24), function () {
+            Cache::remember(InstanceService::CACHE_KEY_API_PEERS_LIST, now()->addMinutes(60), function () {
                 return Instance::whereNotNull('nodeinfo_last_fetched')
                     ->whereBanned(false)
                     ->where('nodeinfo_last_fetched', '>', now()->subDays(8))

@@ -24,7 +24,7 @@ class PlaceService
             return [];
         }
 
-        return Cache::remember(self::STATUSES_CACHE_KEY.$placeId, now()->addDays(4), function () use ($placeId) {
+        return Cache::remember(self::STATUSES_CACHE_KEY.$placeId, now()->addMinutes(60), function () use ($placeId) {
             return Status::select('id')
                 ->wherePlaceId($placeId)
                 ->whereScope('public')

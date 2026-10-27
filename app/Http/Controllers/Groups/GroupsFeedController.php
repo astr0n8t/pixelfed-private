@@ -150,7 +150,7 @@ class GroupsFeedController extends Controller
         //  });
         // return $posts;
 
-        Cache::remember('api:v1:timelines:public:cache_check', 10368000, function () use ($id) {
+        Cache::remember('api:v1:timelines:public:cache_check', now()->addMinutes(60), function () use ($id) {
             if (GroupFeedService::count($id) == 0) {
                 GroupFeedService::warmCache($id, true, 400);
             }

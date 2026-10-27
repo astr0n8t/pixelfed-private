@@ -66,7 +66,7 @@ class CustomEmoji extends Model
 
         return Str::matchAll(self::SCAN_RE, $text)
             ->map(function ($match) use ($activitypub) {
-                $tag = Cache::remember(self::CACHE_KEY.$match, 14400, function () use ($match) {
+                $tag = Cache::remember(self::CACHE_KEY.$match, now()->addMinutes(60), function () use ($match) {
                     $emoji = self::orderBy('id')->whereDisabled(false)->whereShortcode(':'.$match.':')->first();
 
                     if (! $emoji) {

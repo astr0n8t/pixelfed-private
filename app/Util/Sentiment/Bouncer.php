@@ -24,7 +24,7 @@ class Bouncer
         }
 
         $exemptionKey = 'pf:bouncer_v0:exemption_by_pid:'.$status->profile_id;
-        $exemptionTtl = now()->addDays(12);
+        $exemptionTtl = now()->addMinutes(60);
 
         if ($status->in_reply_to_id != null &&
             $status->in_reply_to_profile_id == $status->profile_id
@@ -65,7 +65,7 @@ class Bouncer
         }
 
         $recentKey = 'pf:bouncer_v0:recent_by_pid:'.$status->profile_id;
-        $recentTtl = now()->addHours(28);
+        $recentTtl = now()->addMinutes(60);
 
         $recent = Cache::remember($recentKey, $recentTtl, function () use ($status) {
             return $status

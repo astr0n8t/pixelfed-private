@@ -212,7 +212,7 @@ class SearchController extends Controller
         $remoteKey = $this->cacheKey.'profiles:remote:'.$this->hash;
         $key = $this->cacheKey.'profiles:'.$this->hash;
         $remoteTtl = now()->addMinutes(15);
-        $ttl = now()->addHours(2);
+        $ttl = now()->addMinutes(60);
         if (Helpers::validateUrl($tag) != false &&
             Helpers::validateLocalUrl($tag) != true &&
             (bool) config_cache('federation.activitypub.enabled') === true &&

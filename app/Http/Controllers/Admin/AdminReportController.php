@@ -123,13 +123,13 @@ trait AdminReportController
                 ->count();
         });
 
-        $monthlyCount = Cache::remember('admin-dash:reports:spam-count:30d', 43200, function () {
+        $monthlyCount = Cache::remember('admin-dash:reports:spam-count:30d', now()->addMinutes(60), function () {
             return AccountInterstitial::whereType('post.autospam')
                 ->where('created_at', '>', now()->subMonth())
                 ->count();
         });
 
-        $totalCount = Cache::remember('admin-dash:reports:spam-count:total', 43200, function () {
+        $totalCount = Cache::remember('admin-dash:reports:spam-count:total', now()->addMinutes(60), function () {
             return AccountInterstitial::whereType('post.autospam')->count();
         });
 
@@ -140,7 +140,7 @@ trait AdminReportController
                 ->exists();
         });
 
-        $avg = Cache::remember('admin-dash:reports:spam-count:avg', 43200, function () {
+        $avg = Cache::remember('admin-dash:reports:spam-count:avg', now()->addMinutes(60), function () {
             if (! db_is_mysql_maria()) {
                 return 0;
             }
@@ -155,7 +155,7 @@ trait AdminReportController
                 ->avg('counter');
         });
 
-        $avgOpen = Cache::remember('admin-dash:reports:spam-count:avgopen', 43200, function () {
+        $avgOpen = Cache::remember('admin-dash:reports:spam-count:avgopen', now()->addMinutes(60), function () {
             if (! db_is_mysql_maria()) {
                 return '0';
             }

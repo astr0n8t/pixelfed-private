@@ -14,7 +14,7 @@ class Nodeinfo
             $activeHalfYear = self::activeUsersHalfYear();
             $activeMonth = self::activeUsersMonthly();
 
-            $users = Cache::remember('api:nodeinfo:users', 43200, function () {
+            $users = Cache::remember('api:nodeinfo:users', now()->addMinutes(60), function () {
                 // GLITCH MODIFIED: count only active users (null status)
                 return User::whereNull('status')->count(); # Only get null status - these are the "active" users
             });
@@ -84,7 +84,7 @@ class Nodeinfo
 
     public static function activeUsersMonthly()
     {
-        return Cache::remember('api:nodeinfo:active-users-monthly', 43200, function () {
+        return Cache::remember('api:nodeinfo:active-users-monthly', now()->addMinutes(60), function () {
             return User::withTrashed()
                 ->select('last_active_at, updated_at')
                 ->where('updated_at', '>', now()->subWeeks(5))
@@ -95,7 +95,7 @@ class Nodeinfo
 
     public static function activeUsersHalfYear()
     {
-        return Cache::remember('api:nodeinfo:active-users-half-year', 43200, function () {
+        return Cache::remember('api:nodeinfo:active-users-half-year', now()->addMinutes(60), function () {
             return User::withTrashed()
                 ->select('last_active_at, updated_at')
                 ->where('last_active_at', '>', now()->subMonths(6))

@@ -74,7 +74,7 @@ class ProfileController extends Controller
         $isBlocked = false;
         if (! $loggedIn) {
             $key = 'profile:settings:'.$user->id;
-            $ttl = now()->addHours(6);
+            $ttl = now()->addMinutes(60);
             $settings = Cache::remember($key, $ttl, function () use ($user) {
                 $s = $user->user?->settings;
 
@@ -109,7 +109,7 @@ class ProfileController extends Controller
             return view('profile.show', ['profile' => $profile, 'settings' => $settings]);
         }
         $key = 'profile:settings:'.$user->id;
-        $ttl = now()->addHours(6);
+        $ttl = now()->addMinutes(60);
         $settings = Cache::remember($key, $ttl, function () use ($user) {
             $s = $user->user?->settings;
 
@@ -155,7 +155,7 @@ class ProfileController extends Controller
         }
         $hash = ($withTrashed ? 'wt:' : 'wot:').strtolower($username);
 
-        return Cache::remember('pfc:cached-user:'.$hash, ($withTrashed ? 14400 : 900), function () use ($username, $withTrashed) {
+        return Cache::remember('pfc:cached-user:'.$hash, ($withTrashed ? 3600 : 900), function () use ($username, $withTrashed) {
             if (! $withTrashed) {
                 return Profile::whereNull(['domain', 'status'])
                     ->whereUsername($username)
@@ -275,7 +275,7 @@ class ProfileController extends Controller
 
         abort_if($aiCheck, 404);
 
-        $enabled = Cache::remember('profile:atom:enabled:'.$profile['id'], 86400, function () use ($profile) {
+        $enabled = Cache::remember('profile:atom:enabled:'.$profile['id'], now()->addMinutes(60), function () use ($profile) {
             $uid = User::whereProfileId($profile['id'])->first();
             if (! $uid) {
                 return false;
@@ -290,7 +290,7 @@ class ProfileController extends Controller
 
         abort_if(! $enabled, 404);
 
-        $data = Cache::remember('pf:atom:user-feed:by-id:'.$profile['id'], 14400, function () use ($pid, $profile) {
+        $data = Cache::remember('pf:atom:user-feed:by-id:'.$profile['id'], now()->addMinutes(60), function () use ($pid, $profile) {
             $items = Status::whereProfileId($pid)
                 ->whereScope('public')
                 ->whereIn('type', ['photo', 'photo:album'])
