@@ -2,36 +2,40 @@
 
 namespace App\Http\Controllers;
 
-use App\Collection;
-use App\CollectionItem;
-use App\Hashtag;
 use App\Jobs\ImageOptimizePipeline\ImageOptimize;
 use App\Jobs\StatusPipeline\NewStatusPipeline;
 use App\Jobs\VideoPipeline\VideoThumbnail;
-use App\Media;
-use App\MediaTag;
+use App\Models\Collection;
+use App\Models\CollectionItem;
+use App\Models\Hashtag;
+use App\Models\Media;
+use App\Models\MediaTag;
+use App\Models\Notification;
 use App\Models\Poll;
-use App\Notification;
-use App\Profile;
+use App\Models\Profile;
+use App\Models\Status;
 use App\Services\AccountService;
 use App\Services\CollectionService;
+use App\Services\DirectMessageService;
 use App\Services\MediaBlocklistService;
 use App\Services\MediaPathService;
 use App\Services\MediaStorageService;
 use App\Services\MediaTagService;
+use App\Services\PlaceService;
+use App\Services\QuoteService;
 use App\Services\SnowflakeService;
+use App\Services\UserFilterService;
 use App\Services\UserRoleService;
 use App\Services\UserStorageService;
-use App\Status;
 use App\Transformer\Api\MediaTransformer;
-use App\UserFilter;
 use App\Util\Media\Filter;
 use App\Util\Media\License;
-use Auth;
-use Cache;
-use DB;
-use Purify;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use League\Fractal;
 use League\Fractal\Serializer\ArraySerializer;
@@ -47,12 +51,12 @@ class ComposeController extends Controller
         $this->fractal->setSerializer(new ArraySerializer);
     }
 
-    public function show(Request $request)
+    public function show(Request $request): View
     {
         return view('status.compose');
     }
 
-    public function mediaUpload(Request $request)
+    public function mediaUpload(Request $request): JsonResponse
     {
         abort_if(! $request->user(), 403);
 
@@ -77,7 +81,7 @@ class ComposeController extends Controller
 
         $limitKey = 'compose:rate-limit:media-upload:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
+        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1250;
@@ -94,7 +98,7 @@ class ComposeController extends Controller
         $sizeInKbs = (int) ceil($fileSize / 1000);
         $updatedAccountSize = (int) $accountSize + (int) $sizeInKbs;
 
-        if ((bool) config_cache('pixelfed.enforce_account_limit') == true) {
+        if ((bool) config_cache('pixelfed.enforce_account_limit') === true) {
             $limit = (int) config_cache('pixelfed.max_account_size');
             if ($updatedAccountSize >= $limit) {
                 abort(403, 'Account size limit reached.');
@@ -103,14 +107,17 @@ class ComposeController extends Controller
 
         $mimes = explode(',', config_cache('pixelfed.media_types'));
 
-        abort_if(in_array($photo->getMimeType(), $mimes) == false, 400, 'Invalid media format');
+        abort_if(in_array($photo->getMimeType(), $mimes) === false, 400, 'Invalid media format');
 
+        // Check the blocklist against the temp upload BEFORE storing, so a
+        // blocked upload never leaves an orphaned file on disk (media:gc only
+        // reaps files that have a Media row).
+        $hash = \hash_file('sha256', $photo->getRealPath());
+        abort_if(MediaBlocklistService::exists($hash) == true, 451);
+
+        $mime = $photo->getMimeType();
         $storagePath = MediaPathService::get($user, 2);
         $path = $photo->storePublicly($storagePath);
-        $hash = \hash_file('sha256', $photo);
-        $mime = $photo->getMimeType();
-
-        abort_if(MediaBlocklistService::exists($hash) == true, 451);
 
         $media = new Media;
         $media->status_id = null;
@@ -133,6 +140,7 @@ class ComposeController extends Controller
             case 'image/jpeg':
             case 'image/png':
             case 'image/webp':
+            case 'image/heic':
             case 'image/avif':
                 ImageOptimize::dispatch($media)->onQueue('mmo');
                 break;
@@ -147,9 +155,7 @@ class ComposeController extends Controller
                 break;
         }
 
-        $user->storage_used = (int) $updatedAccountSize;
-        $user->storage_used_updated_at = now();
-        $user->save();
+        UserStorageService::increaseStorageUsed($user->id, $fileSize);
 
         Cache::forget($limitKey);
         $resource = new Fractal\Resource\Item($media, new MediaTransformer);
@@ -160,25 +166,23 @@ class ComposeController extends Controller
         return response()->json($res);
     }
 
-    public function mediaUpdate(Request $request)
+    public function mediaUpdate(Request $request): array
     {
         $this->validate($request, [
             'id' => 'required',
-            'file' => function () {
-                return [
-                    'required',
-                    'mimetypes:'.config_cache('pixelfed.media_types'),
-                    'max:'.config_cache('pixelfed.max_photo_size'),
-                ];
-            },
+            'file' => [
+                'required',
+                'mimetypes:'.config_cache('pixelfed.media_types'),
+                'max:'.config_cache('pixelfed.max_photo_size'),
+            ],
         ]);
 
-        $user = Auth::user();
+        $user = $request->user();
         abort_if($user->has_roles && ! UserRoleService::can('can-post', $user->id), 403, 'Invalid permissions for this action');
 
         $limitKey = 'compose:rate-limit:media-updates:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
+        $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
             $dailyLimit = Media::whereUserId($user->id)->where('created_at', '>', now()->subDays(1))->count();
 
             return $dailyLimit >= 1500;
@@ -194,13 +198,23 @@ class ComposeController extends Controller
             ->whereNull('status_id')
             ->findOrFail($id);
 
-        $media->save();
+        // Enforce the content blocklist on the replacement bytes, mirroring
+        // mediaUpload — mediaUpdate overwrites the previously-validated file.
+        $hash = \hash_file('sha256', $photo->getRealPath());
+        abort_if(MediaBlocklistService::exists($hash) == true, 451);
 
         $fragments = explode('/', $media->media_path);
         $name = last($fragments);
         array_pop($fragments);
         $dir = implode('/', $fragments);
         $path = $photo->storePubliclyAs($dir, $name);
+
+        // Keep the row in sync with the new bytes.
+        $media->original_sha256 = $hash;
+        $media->mime = $photo->getMimeType();
+        $media->size = $photo->getSize();
+        $media->save();
+
         $res = [
             'url' => $media->url().'?v='.time(),
         ];
@@ -211,7 +225,7 @@ class ComposeController extends Controller
         return $res;
     }
 
-    public function mediaDelete(Request $request)
+    public function mediaDelete(Request $request): JsonResponse
     {
         abort_if(! $request->user(), 403);
 
@@ -223,6 +237,7 @@ class ComposeController extends Controller
 
         $media = Media::whereNull('status_id')
             ->whereUserId(Auth::id())
+            ->notInDirectMessage()
             ->findOrFail($request->input('id'));
 
         MediaStorageService::delete($media, true);
@@ -240,33 +255,50 @@ class ComposeController extends Controller
         abort_if(! $request->user(), 403);
 
         $this->validate($request, [
-            'q' => 'required|string|min:1|max:50',
+            'q' => [
+                'required',
+                'string',
+                'min:1',
+                'max:300',
+            ],
         ]);
 
         $q = $request->input('q');
 
-        if (Str::of($q)->startsWith('@')) {
-            if (strlen($q) < 3) {
-                return [];
-            }
-            $q = mb_substr($q, 1);
+        $cleanQuery = Str::startsWith($q, '@') ? Str::substr($q, 1) : $q;
+
+        if (strlen($cleanQuery) < 2) {
+            return [];
         }
 
         $user = $request->user();
+        $currentUserId = $request->user()->profile_id;
 
         abort_if($user->has_roles && ! UserRoleService::can('can-post', $user->id), 403, 'Invalid permissions for this action');
 
-        $blocked = UserFilter::whereFilterableType('App\Profile')
-            ->whereFilterType('block')
-            ->whereFilterableId($request->user()->profile_id)
-            ->pluck('user_id');
+        $blocked = UserFilterService::searchExcludedProfileIds($request->user()->profile_id);
 
-        $blocked->push($request->user()->profile_id);
-
-        $results = Profile::select('id', 'domain', 'username')
-            ->whereNotIn('id', $blocked)
-            ->whereNull('domain')
-            ->where('username', 'like', '%'.$q.'%')
+        $operator = db_is_pgsql() ? 'ilike' : 'like';
+        $results = Profile::select([
+            'profiles.id',
+            'profiles.domain',
+            'profiles.username',
+            'profiles.followers_count',
+        ])
+            ->selectRaw('MAX(CASE WHEN followers.following_id IS NOT NULL THEN 1 ELSE 0 END) as is_followed')
+            ->leftJoin('followers', function ($join) use ($currentUserId) {
+                $join->on('followers.following_id', '=', 'profiles.id')
+                    ->where('followers.profile_id', '=', $currentUserId);
+            })
+            ->whereNotIn('profiles.id', $blocked)
+            ->where(function ($query) use ($cleanQuery, $operator) {
+                $query->where('profiles.username', $operator, $cleanQuery.'%')
+                    ->orWhere('profiles.username', $operator, '%'.$cleanQuery.'%');
+            })
+            ->groupBy('profiles.id', 'profiles.domain', 'profiles.username', 'profiles.followers_count')
+            ->orderByDesc('is_followed')
+            ->orderByDesc('profiles.followers_count')
+            ->orderBy('profiles.username')
             ->limit(15)
             ->get()
             ->map(function ($r) {
@@ -281,7 +313,7 @@ class ComposeController extends Controller
         return $results;
     }
 
-    public function searchUntag(Request $request)
+    public function searchUntag(Request $request): array
     {
         abort_if(! $request->user(), 403);
 
@@ -305,7 +337,7 @@ class ComposeController extends Controller
         if (! $tag) {
             return [];
         }
-        Notification::whereItemType('App\MediaTag')
+        Notification::whereItemType(MediaTag::class)
             ->whereItemId($tag->id)
             ->whereProfileId($profile_id)
             ->whereAction('tagged')
@@ -325,11 +357,17 @@ class ComposeController extends Controller
         abort_if($request->user()->has_roles && ! UserRoleService::can('can-post', $request->user()->id), 403, 'Invalid permissions for this action');
         $pid = $request->user()->profile_id;
         abort_if(! $pid, 400);
-        $q = e($request->input('q'));
+
+        $raw = e($request->input('q'));
+
+        $country = null;
+        if (str_contains($raw, ',')) {
+            [$raw, $country] = array_map('trim', explode(',', $raw, 2));
+        }
 
         $popular = Cache::remember('pf:search:location:v1:popular', now()->addMinutes(60), function () {
             $minId = SnowflakeService::byDate(now()->subDays(290));
-            if (config('database.default') == 'pgsql') {
+            if (db_is_pgsql()) {
                 return Status::selectRaw('id, place_id, count(place_id) as pc')
                     ->whereNotNull('place_id')
                     ->where('id', '>', $minId)
@@ -343,6 +381,7 @@ class ComposeController extends Controller
                     ->map(function ($place) {
                         return [
                             'id' => $place->place_id,
+                            // @phpstan-ignore-next-line
                             'count' => $place->pc,
                         ];
                     })
@@ -350,6 +389,7 @@ class ComposeController extends Controller
                     ->values();
             }
 
+            // @phpstan-ignore-next-line
             return Status::selectRaw('id, place_id, count(place_id) as pc')
                 ->whereNotNull('place_id')
                 ->where('id', '>', $minId)
@@ -363,18 +403,25 @@ class ComposeController extends Controller
                 ->map(function ($place) {
                     return [
                         'id' => $place->place_id,
+                        // @phpstan-ignore-next-line
                         'count' => $place->pc,
                     ];
                 });
         });
-        $q = '%'.$q.'%';
-        $wildcard = config('database.default') === 'pgsql' ? 'ilike' : 'like';
 
-        $places = DB::table('places')
-            ->where('name', $wildcard, $q)
-            ->limit((strlen($q) > 5 ? 360 : 30))
+        $wildcard = db_is_pgsql() ? 'ilike' : 'like';
+        $q = '%'.$raw.'%';
+
+        $placesQuery = DB::table('places')->where('name', $wildcard, $q);
+
+        if ($country) {
+            $placesQuery->where('country', $wildcard, '%'.$country.'%');
+        }
+
+        $places = $placesQuery
+            ->limit((strlen($raw) > 5 ? 360 : 30))
             ->get()
-            ->sortByDesc(function ($place, $key) use ($popular) {
+            ->sortByDesc(function ($place) use ($popular) {
                 return $popular->filter(function ($p) use ($place) {
                     return $p['id'] == $place->id;
                 })->map(function ($p) use ($place) {
@@ -400,38 +447,60 @@ class ComposeController extends Controller
         abort_if(! $request->user(), 403);
 
         $this->validate($request, [
-            'q' => 'required|string|min:2|max:50',
+            'q' => [
+                'required',
+                'string',
+                'min:2',
+                'max:50',
+                'regex:/^[@]?[a-zA-Z0-9._-]+$/',
+            ],
         ]);
 
         abort_if($request->user()->has_roles && ! UserRoleService::can('can-post', $request->user()->id), 403, 'Invalid permissions for this action');
 
         $q = $request->input('q');
 
-        if (Str::of($q)->startsWith('@')) {
-            if (strlen($q) < 3) {
-                return [];
-            }
+        $cleanQuery = Str::startsWith($q, '@') ? Str::substr($q, 1) : $q;
+
+        if (strlen($cleanQuery) < 2) {
+            return [];
         }
 
-        $blocked = UserFilter::whereFilterableType('App\Profile')
-            ->whereFilterType('block')
-            ->whereFilterableId($request->user()->profile_id)
-            ->pluck('user_id');
+        $blocked = UserFilterService::searchExcludedProfileIds($request->user()->profile_id);
 
-        $blocked->push($request->user()->profile_id);
+        $currentUserId = $request->user()->profile_id;
+        $operator = db_is_pgsql() ? 'ilike' : 'like';
 
-        $results = Profile::select('id', 'domain', 'username')
-            ->whereNotIn('id', $blocked)
-            ->where('username', 'like', '%'.$q.'%')
-            ->groupBy('id', 'domain')
+        $results = Profile::select([
+            'profiles.id',
+            'profiles.domain',
+            'profiles.username',
+            'profiles.followers_count',
+        ])
+            ->selectRaw('MAX(CASE WHEN followers.following_id IS NOT NULL THEN 1 ELSE 0 END) as is_followed')
+            ->leftJoin('followers', function ($join) use ($currentUserId) {
+                $join->on('followers.following_id', '=', 'profiles.id')
+                    ->where('followers.profile_id', '=', $currentUserId);
+            })
+            ->whereNotIn('profiles.id', $blocked)
+            ->where(function ($query) use ($cleanQuery, $operator) {
+                $query->where('profiles.username', $operator, $cleanQuery.'%')
+                    ->orWhere('profiles.username', $operator, '%'.$cleanQuery.'%');
+            })
+            ->groupBy('profiles.id', 'profiles.domain', 'profiles.username', 'profiles.followers_count')
+            ->orderByDesc('is_followed')
+            ->orderByDesc('profiles.followers_count')
+            ->orderBy('profiles.username')
             ->limit(15)
             ->get()
             ->map(function ($profile) {
                 $username = $profile->domain ? substr($profile->username, 1) : $profile->username;
 
                 return [
-                    'key' => '@'.str_limit($username, 30),
+                    'key' => '@'.Str::limit($username, 30),
                     'value' => $username,
+                    // @phpstan-ignore-next-line
+                    'is_followed' => (bool) $profile->is_followed,
                 ];
             });
 
@@ -469,7 +538,7 @@ class ComposeController extends Controller
     public function store(Request $request)
     {
         $this->validate($request, [
-            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length', 500),
+            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length'),
             'media.*' => 'required',
             'media.*.id' => 'required|integer|min:1',
             'media.*.filter_class' => 'nullable|alpha_dash|max:30',
@@ -483,6 +552,7 @@ class ComposeController extends Controller
             'license' => 'nullable|integer|min:1|max:16',
             'collections' => 'sometimes|array|min:1|max:5',
             'spoiler_text' => 'nullable|string|max:140',
+            'quote_approval_policy' => 'sometimes|nullable|string|in:public,followers,nobody',
             // 'optimize_media' => 'nullable'
         ]);
 
@@ -505,7 +575,7 @@ class ComposeController extends Controller
 
         $limitKey = 'compose:rate-limit:store:'.$user->id;
         $limitTtl = now()->addMinutes(15);
-        // $limitReached = Cache::remember($limitKey, now()->addMinutes(60), function () use ($user) {
+        // $limitReached = Cache::remember($limitKey, $limitTtl, function () use ($user) {
         //     $dailyLimit = Status::whereProfileId($user->profile_id)
         //         ->whereNull('in_reply_to_id')
         //         ->whereNull('reblog_of_id')
@@ -525,7 +595,7 @@ class ComposeController extends Controller
         $status = new Status;
         $mimes = [];
         $place = $request->input('place');
-        $cw = $request->input('cw');
+        $cw = $profile->cw == true ? true : $request->boolean('cw');
         $tagged = $request->input('tagged');
         $optimize_media = (bool) $request->input('optimize_media');
 
@@ -534,18 +604,14 @@ class ComposeController extends Controller
                 continue;
             }
             $m = Media::findOrFail($media['id']);
-            if ($m->profile_id !== $profile->id || $m->status_id) {
+            if ($m->profile_id !== $profile->id || $m->status_id || DirectMessageService::isMessageMedia($m->id)) {
                 abort(403, 'Invalid media id');
             }
-            $m->filter_class = in_array($media['filter_class'], Filter::classes()) ? $media['filter_class'] : null;
+            $m->filter_class = isset($media['filter_class']) && in_array($media['filter_class'], Filter::classes()) ? $media['filter_class'] : null;
             $m->license = $license;
             $m->caption = isset($media['alt']) ? strip_tags($media['alt']) : null;
             $m->order = isset($media['cursor']) && is_int($media['cursor']) ? (int) $media['cursor'] : $k;
-
-            if ($cw == true || $profile->cw == true) {
-                $m->is_nsfw = $cw;
-                $status->is_nsfw = $cw;
-            }
+            $m->is_nsfw = $cw;
             $m->save();
             $attachments[] = $m;
             array_push($mimes, $m->mime);
@@ -555,12 +621,13 @@ class ComposeController extends Controller
 
         $mediaType = StatusController::mimeTypeCheck($mimes);
 
-        if (in_array($mediaType, ['photo', 'video', 'photo:album']) == false) {
+        if (in_array($mediaType, ['photo', 'video', 'photo:album']) === false) {
             abort(400, __('exception.compose.invalid.album'));
         }
 
-        if ($place && is_array($place)) {
+        if ($place && is_array($place) && isset($place['id'])) {
             $status->place_id = $place['id'];
+            PlaceService::clearStatusesByPlaceId($place['id']);
         }
 
         if ($request->filled('comments_disabled')) {
@@ -571,7 +638,11 @@ class ComposeController extends Controller
             $status->cw_summary = $request->input('spoiler_text');
         }
 
-        $defaultCaption = "";
+        if ($request->filled('quote_approval_policy')) {
+            $status->quote_policy = QuoteService::fromApiPolicy($request->input('quote_approval_policy'));
+        }
+
+        $defaultCaption = '';
         $status->caption = strip_tags($request->input('caption')) ?? $defaultCaption;
         $status->rendered = $defaultCaption;
         $status->scope = 'draft';
@@ -586,14 +657,16 @@ class ComposeController extends Controller
 
         $visibility = $profile->unlisted == true && $visibility == 'public' ? 'unlisted' : $visibility;
         $visibility = $profile->is_private ? 'private' : $visibility;
-        $cw = $profile->cw == true ? true : $cw;
         $status->is_nsfw = $cw;
         $status->visibility = $visibility;
         $status->scope = $visibility;
         $status->type = $mediaType;
         $status->save();
 
-        foreach ($tagged as $tg) {
+        foreach ((array) $tagged as $tg) {
+            if (! is_array($tg) || ! isset($tg['id'], $tg['name'])) {
+                continue;
+            }
             $mt = new MediaTag;
             $mt->status_id = $status->id;
             $mt->media_id = $status->media->first()->id;
@@ -615,7 +688,7 @@ class ComposeController extends Controller
                     $count = $collection->items()->count();
                     CollectionItem::firstOrCreate([
                         'collection_id' => $collection->id,
-                        'object_type' => 'App\Status',
+                        'object_type' => Status::class,
                         'object_id' => $status->id,
                     ], [
                         'order' => $count,
@@ -633,13 +706,13 @@ class ComposeController extends Controller
                 });
         }
 
-        NewStatusPipeline::dispatch($status);
         Cache::forget('user:account:id:'.$profile->user_id);
         Cache::forget('_api:statuses:recent_9:'.$profile->id);
         Cache::forget('profile:status_count:'.$profile->id);
         Cache::forget('status:transformer:media:attachments:'.$status->id);
         Cache::forget('profile:embed:'.$status->profile_id);
         Cache::forget($limitKey);
+        NewStatusPipeline::dispatch($status);
 
         return $status->url();
     }
@@ -648,7 +721,7 @@ class ComposeController extends Controller
     {
         abort_unless(config('exp.top'), 404);
         $this->validate($request, [
-            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length', 500),
+            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length'),
             'cw' => 'nullable|boolean',
             'visibility' => 'required|string|in:public,private,unlisted|min:2|max:10',
             'place' => 'nullable',
@@ -675,11 +748,14 @@ class ComposeController extends Controller
         $visibility = $request->input('visibility');
         $status = new Status;
         $place = $request->input('place');
-        $cw = $request->input('cw');
+        $cw = $profile->cw == true ? true : $request->boolean('cw');
         $tagged = $request->input('tagged');
-        $defaultCaption = "";
+        // Empty string is valid whether `caption`/`rendered` are nullable or
+        // NOT NULL (they are NOT NULL on MySQL/MariaDB in practice), so use it
+        // regardless of driver rather than inserting null.
+        $defaultCaption = '';
 
-        if ($place && is_array($place)) {
+        if ($place && is_array($place) && isset($place['id'])) {
             $status->place_id = $place['id'];
         }
 
@@ -692,7 +768,6 @@ class ComposeController extends Controller
         $status->profile_id = $profile->id;
         $entities = [];
         $visibility = $profile->unlisted == true && $visibility == 'public' ? 'unlisted' : $visibility;
-        $cw = $profile->cw == true ? true : $cw;
         $status->is_nsfw = $cw;
         $status->visibility = $visibility;
         $status->scope = $visibility;
@@ -707,7 +782,10 @@ class ComposeController extends Controller
         ], $entities), JSON_UNESCAPED_SLASHES);
         $status->save();
 
-        foreach ($tagged as $tg) {
+        foreach ((array) $tagged as $tg) {
+            if (! is_array($tg) || ! isset($tg['id'], $tg['name'])) {
+                continue;
+            }
             $mt = new MediaTag;
             $mt->status_id = $status->id;
             $mt->media_id = $status->media->first()->id;
@@ -729,7 +807,7 @@ class ComposeController extends Controller
         return $status->url();
     }
 
-    public function mediaProcessingCheck(Request $request)
+    public function mediaProcessingCheck(Request $request): array
     {
         $this->validate($request, [
             'id' => 'required|integer|min:1',
@@ -766,16 +844,23 @@ class ComposeController extends Controller
         ];
     }
 
-    public function composeSettings(Request $request)
+    public function composeSettings(Request $request): JsonResponse
     {
         $uid = $request->user()->id;
         abort_if($request->user()->has_roles && ! UserRoleService::can('can-post', $request->user()->id), 403, 'Invalid permissions for this action');
 
+        $types = config_cache('pixelfed.media_types');
+        if (str_contains($types, ',')) {
+            $types = explode(',', $types);
+        }
         $default = [
+            'allowed_media_types' => $types,
+            'max_caption_length' => (int) config_cache('pixelfed.max_caption_length'),
             'default_license' => 1,
             'media_descriptions' => false,
+            'max_file_size' => (int) config_cache('pixelfed.max_photo_size'),
             'max_media_attachments' => (int) config_cache('pixelfed.max_album_length'),
-            'max_altext_length' => config_cache('pixelfed.max_altext_length'),
+            'max_altext_length' => (int) config_cache('pixelfed.max_altext_length'),
         ];
         $settings = AccountService::settings($uid);
         if (isset($settings['other']) && isset($settings['other']['scope'])) {
@@ -784,13 +869,15 @@ class ComposeController extends Controller
             $settings['compose_settings'] = $s;
         }
 
-        return array_merge($default, $settings['compose_settings']);
+        $res = array_merge($default, $settings['compose_settings']);
+
+        return response()->json($res, 200, [], JSON_UNESCAPED_SLASHES);
     }
 
-    public function createPoll(Request $request)
+    public function createPoll(Request $request): array
     {
         $this->validate($request, [
-            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length', 500),
+            'caption' => 'nullable|string|max:'.config_cache('pixelfed.max_caption_length'),
             'cw' => 'nullable|boolean',
             'visibility' => 'required|string|in:public,private',
             'comments_disabled' => 'nullable',

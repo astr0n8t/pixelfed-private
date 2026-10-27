@@ -16,7 +16,13 @@
                     <div class="d-flex flex-column align-items-center justify-content-center">
                         <p class="lead mb-1 text-muted">You've been invited to join</p>
                         <p class="h3 mb-2">{{ instance.uri }}</p>
-                        <p class="mb-0 text-muted">
+                        <!-- restricted instances do not publish stats to anonymous visitors -->
+                        <p v-if="instance.stats" class="mb-0 text-muted">
+                            <span>{{ instance.stats.user_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} users</span>
+                            <span>·</span>
+                            <span>{{ instance.stats.status_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} posts</span>
+                        </p>
+
                         <div v-if="inviteConfig.message != 'You\'ve been invited to join'">
                             <div class="admin-message">
                                 <p class="small text-light mb-0">Message from admin(s):</p>
@@ -33,7 +39,7 @@
                                 class="form-control form-control-lg"
                                 placeholder="What should everyone call you?"
                                 minlength="2"
-                                maxlength="15"
+                                maxlength="30"
                                 v-model="form.username" />
 
                             <p v-if="errors.username" class="form-text text-danger">
@@ -363,11 +369,15 @@
             },
 
             validateEmail() {
-                if(!this.form.email || !this.form.email.length) {
+                const email = this.form?.email?.trim();
+
+                if (!email || email.length > 254) {
                     return false;
                 }
 
-                return /^[a-zA-Z]+[a-zA-Z0-9_.-]+@[a-zA-Z0-9_.-]+[a-zA-Z]$/i.test(this.form.email);
+                const pattern = /^[a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+
+                return pattern.test(email);
             },
 
             handleRegistration() {
@@ -468,6 +478,19 @@
 
                 .form-control {
                     color: #fff;
+                    background-color: #1c1c1e;
+                    border-color: var(--dropdown-item-hover-color) !important;
+
+                    &::placeholder {
+                        color: var(--muted);
+                    }
+
+                    &:focus {
+                        color: #fff;
+                        background-color: #1c1c1e;
+                        border-color: #8E54E9 !important;
+                        box-shadow: 0 0 0 0.2rem rgba(142, 84, 233, 0.25);
+                    }
                 }
 
                 .admin-message {

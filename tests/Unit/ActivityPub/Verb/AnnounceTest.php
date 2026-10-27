@@ -3,21 +3,30 @@
 namespace Tests\Unit\ActivityPub\Verb;
 
 use App\Util\ActivityPub\Validator\Announce;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class AnnounceTest extends TestCase
 {
     protected array $validAnnounce;
+
     protected array $invalidAnnounce;
+
     protected array $invalidDate;
+
     protected array $contextMissing;
+
     protected array $audienceMissing;
+
     protected array $audienceMissing2;
+
     protected array $invalidActor;
+
     protected array $invalidActor2;
+
     protected array $mastodonAnnounce;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -28,11 +37,11 @@ class AnnounceTest extends TestCase
             'actor' => 'https://example.org/users/alice',
             'published' => '2018-12-31T23:59:59Z',
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public'
+                'https://www.w3.org/ns/activitystreams#Public',
             ],
             'cc' => [
                 'https://example.org/users/bob',
-                'https://example.org/users/alice/followers'
+                'https://example.org/users/alice/followers',
             ],
             'object' => 'https://example.org/p/bob/100000000000000',
         ];
@@ -44,11 +53,11 @@ class AnnounceTest extends TestCase
             'actor' => 'https://example.org/users/alice',
             'published' => '2018-12-31T23:59:59Z',
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public'
+                'https://www.w3.org/ns/activitystreams#Public',
             ],
             'cc' => [
                 'https://example.org/users/bob',
-                'https://example.org/users/alice/followers'
+                'https://example.org/users/alice/followers',
             ],
             'object' => 'https://example.org/p/bob/100000000000000',
         ];
@@ -59,11 +68,11 @@ class AnnounceTest extends TestCase
             'actor' => 'https://example.org/users/alice',
             'published' => '2018-12-31T23:59:59Z',
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public'
+                'https://www.w3.org/ns/activitystreams#Public',
             ],
             'cc' => [
                 'https://example.org/users/bob',
-                'https://example.org/users/alice/followers'
+                'https://example.org/users/alice/followers',
             ],
             'object' => 'https://example.org/p/bob/100000000000000',
         ];
@@ -75,11 +84,11 @@ class AnnounceTest extends TestCase
             'actor' => '10000',
             'published' => '2018-12-31T23:59:59Z',
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public'
+                'https://www.w3.org/ns/activitystreams#Public',
             ],
             'cc' => [
                 'https://example.org/users/bob',
-                'https://example.org/users/alice/followers'
+                'https://example.org/users/alice/followers',
             ],
             'object' => 'https://example.org/p/bob/100000000000000',
         ];
@@ -90,11 +99,11 @@ class AnnounceTest extends TestCase
             'type' => 'Announce',
             'published' => '2018-12-31T23:59:59Z',
             'to' => [
-                'https://www.w3.org/ns/activitystreams#Public'
+                'https://www.w3.org/ns/activitystreams#Public',
             ],
             'cc' => [
                 'https://example.org/users/bob',
-                'https://example.org/users/alice/followers'
+                'https://example.org/users/alice/followers',
             ],
             'object' => 'https://example.org/p/bob/100000000000000',
         ];
@@ -138,32 +147,32 @@ class AnnounceTest extends TestCase
         ];
     }
 
-    /** @test */
+    #[Test]
     public function basic_accept()
     {
         $this->assertTrue(Announce::validate($this->validAnnounce));
     }
 
-    /** @test */
+    #[Test]
     public function invalid_accept()
     {
         $this->assertFalse(Announce::validate($this->invalidAnnounce));
     }
 
-    /** @test */
+    #[Test]
     public function context_missing()
     {
         $this->assertFalse(Announce::validate($this->contextMissing));
     }
 
-    /** @test */
+    #[Test]
     public function invalid_actor()
     {
         $this->assertFalse(Announce::validate($this->invalidActor));
         $this->assertFalse(Announce::validate($this->invalidActor2));
     }
 
-    /** @test */
+    #[Test]
     public function mastodon_announce()
     {
         $this->assertTrue(Announce::validate($this->mastodonAnnounce));

@@ -3,13 +3,14 @@
 namespace Tests\Unit\ActivityPub;
 
 use App\Util\ActivityPub\Helpers;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RemoteFollowTest extends TestCase
 {
     protected string $mastodon;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -17,8 +18,8 @@ class RemoteFollowTest extends TestCase
 
     }
 
-    /** @test */
-    public function validateMastodonFollowObject()
+    #[Test]
+    public function validate_mastodon_follow_object()
     {
         $mastodon = json_decode($this->mastodon, true);
         $mastodon = Helpers::validateObject($mastodon);

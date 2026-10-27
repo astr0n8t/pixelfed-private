@@ -2,10 +2,10 @@
 
 namespace App\Jobs\MovePipeline;
 
-use App\Follower;
-use App\Profile;
+use App\Models\Follower;
+use App\Models\Profile;
+use App\Models\UserFilter;
 use App\Services\AccountService;
-use App\UserFilter;
 use App\Util\ActivityPub\Helpers;
 use DateTime;
 use Exception;
@@ -71,7 +71,7 @@ class CleanupLegacyAccountMovePipeline implements ShouldQueue
      */
     public function handle(): void
     {
-        if (config('app.env') !== 'production' || (bool) config_cache('federation.activitypub.enabled') == false) {
+        if (config('app.env') !== 'production' || (bool) config_cache('federation.activitypub.enabled') === false) {
             throw new Exception('Activitypub not enabled');
         }
 
@@ -85,7 +85,7 @@ class CleanupLegacyAccountMovePipeline implements ShouldQueue
             throw new Exception('Invalid move accounts');
         }
 
-        UserFilter::where('filterable_type', 'App\Profile')
+        UserFilter::whereIn('filterable_type', ['App\Profile', Profile::class])
             ->where('filterable_id', $actorAccount['id'])
             ->update(['filterable_id' => $targetAccount['id']]);
 
@@ -95,6 +95,7 @@ class CleanupLegacyAccountMovePipeline implements ShouldQueue
 
         if ($oldProfile) {
             $oldProfile->moved_to_profile_id = $targetAccount['id'];
+            $oldProfile->followers_count = 0;
             $oldProfile->save();
             AccountService::del($oldProfile->id);
             AccountService::del($targetAccount['id']);

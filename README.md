@@ -16,6 +16,18 @@ This fork enables you to run a private/restricted instance without federation re
 <img src="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-screenshot.jpg">
 </p>
 
+## Fork specific settings
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `RESTRICTED_INSTANCE` | `false` | Require an account to view anything; also hides instance details, nodeinfo and the instance actor from anonymous clients. |
+| `PF_USER_INVITES` | `false` | Let users invite people by email from `/i/invites`. |
+| `PF_NSFW_ENABLED` | `false` | Show sensitive/NSFW controls in the web UI. |
+| `PF_PRONOUNS_ENABLED` | `false` | Show pronoun settings and labels in the web UI. |
+| `AUTOFOLLOW_ENABLED` / `AUTOFOLLOW_USERNAMES` | `false` / empty | Default for the admin autofollow settings (comma separated usernames). |
+
+Local media is always served through signed URLs that expire after 60 minutes, so the nginx image routes `/storage` through Laravel.
+
 ## Documentation
 
 There is no official documentation for pixelfed private.

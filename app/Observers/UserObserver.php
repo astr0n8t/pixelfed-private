@@ -3,24 +3,20 @@
 namespace App\Observers;
 
 use App\Jobs\AvatarPipeline\CreateAvatar;
-use App\Follower;
-use App\Profile;
-use App\User;
-use App\UserSetting;
-use App\Services\UserFilterService;
-use App\Models\DefaultDomainBlock;
-use App\Models\UserDomainBlock;
 use App\Jobs\FollowPipeline\FollowPipeline;
-use DB;
+use App\Models\DefaultDomainBlock;
+use App\Models\Follower;
+use App\Models\Profile;
+use App\Models\User;
+use App\Models\UserDomainBlock;
+use App\Models\UserSetting;
 use App\Services\FollowerService;
+use Illuminate\Support\Facades\DB;
 
 class UserObserver
 {
     /**
      * Handle the notification "created" event.
-     *
-     * @param  \App\User $user
-     * @return void
      */
     public function created(User $user): void
     {
@@ -30,7 +26,6 @@ class UserObserver
     /**
      * Listen to the User saved event.
      *
-     * @param \App\User $user
      *
      * @return void
      */
@@ -41,15 +36,11 @@ class UserObserver
 
     /**
      * Listen to the User updated event.
-     *
-     * @param \App\User $user
-     *
-     * @return void
      */
     public function updated(User $user): void
     {
         $this->handleUser($user);
-        if($user->profile) {
+        if ($user->profile) {
             $this->applyDefaultDomainBlocks($user);
         }
     }
@@ -57,7 +48,6 @@ class UserObserver
     /**
      * Handle the user "deleted" event.
      *
-     * @param  \App\User $user
      * @return void
      */
     public function deleted(User $user)
@@ -67,22 +57,46 @@ class UserObserver
 
     protected function handleUser($user)
     {
-        if(in_array($user->status, ['deleted', 'delete'])) {
+        if (in_array($user->status, ['deleted', 'delete'])) {
             return;
         }
 
-        if(Profile::whereUsername($user->username)->exists()) {
+        // Already linked: nothing to do.
+        if ($user->profile_id && $user->profile) {
+            $this->createSettingsIfMissing($user);
+
+            return;
+        }
+
+        // Recover from a partial-failure state: a profile for this user exists
+        // (its own row was created) but users.profile_id was never set. Adopt
+        // it instead of bailing out, which previously left the user stuck with
+        // a null profile_id forever.
+        $existing = Profile::whereUserId($user->id)->first();
+
+        if ($existing) {
+            DB::transaction(function () use ($user, $existing) {
+                $fresh = User::findOrFail($user->id);
+                $fresh->profile_id = $existing->id;
+                $fresh->save();
+            });
+            $user->profile_id = $existing->id;
+            $this->createSettingsIfMissing($user);
+
             return;
         }
 
         if (empty($user->profile)) {
-            $profile = DB::transaction(function() use($user) {
-                $profile = new Profile();
+            // Create the profile AND link it to the user in a single
+            // transaction so a failure can't leave users.profile_id null while
+            // the profile row exists.
+            $profile = DB::transaction(function () use ($user) {
+                $profile = new Profile;
                 $profile->user_id = $user->id;
                 $profile->username = $user->username;
                 $profile->name = $user->name;
                 $pkiConfig = [
-                    'digest_alg'       => 'sha512',
+                    'digest_alg' => 'sha512',
                     'private_key_bits' => 2048,
                     'private_key_type' => OPENSSL_KEYTYPE_RSA,
                 ];
@@ -95,30 +109,30 @@ class UserObserver
                 $profile->public_key = $pki_public;
                 $profile->save();
                 $this->applyDefaultDomainBlocks($user);
+
+                $fresh = User::findOrFail($user->id);
+                $fresh->profile_id = $profile->id;
+                $fresh->save();
+
                 return $profile;
             });
 
+            $user->profile_id = $profile->id;
 
-            DB::transaction(function() use($user, $profile) {
-                $user = User::findOrFail($user->id);
-                $user->profile_id = $profile->id;
-                $user->save();
+            CreateAvatar::dispatch($profile);
 
-                CreateAvatar::dispatch($profile);
-            });
-
-            if((bool) config_cache('account.autofollow') == true) {
+            if ((bool) config_cache('account.autofollow') === true) {
                 $names = config_cache('account.autofollow_usernames');
                 $names = explode(',', $names);
 
-                if(!$names || !last($names)) {
+                if (! $names || ! last($names)) {
                     return;
                 }
 
                 $profiles = Profile::whereIn('username', $names)->get();
 
-                if($profiles) {
-                    foreach($profiles as $p) {
+                if ($profiles) {
+                    foreach ($profiles as $p) {
                         $follower = new Follower;
                         $follower->profile_id = $profile->id;
                         $follower->following_id = $p->id;
@@ -130,10 +144,15 @@ class UserObserver
             }
         }
 
+        $this->createSettingsIfMissing($user);
+    }
+
+    protected function createSettingsIfMissing($user): void
+    {
         if (empty($user->settings)) {
-            DB::transaction(function() use($user) {
+            DB::transaction(function () use ($user) {
                 UserSetting::firstOrCreate([
-                    'user_id' => $user->id
+                    'user_id' => $user->id,
                 ]);
             });
         }
@@ -141,19 +160,19 @@ class UserObserver
 
     protected function applyDefaultDomainBlocks($user)
     {
-        if($user->profile_id == null) {
+        if ($user->profile_id == null) {
             return;
         }
         $defaultDomainBlocks = DefaultDomainBlock::pluck('domain')->toArray();
 
-        if(!$defaultDomainBlocks || !count($defaultDomainBlocks)) {
+        if (! $defaultDomainBlocks || ! count($defaultDomainBlocks)) {
             return;
         }
 
-        foreach($defaultDomainBlocks as $domain) {
+        foreach ($defaultDomainBlocks as $domain) {
             UserDomainBlock::updateOrCreate([
                 'profile_id' => $user->profile_id,
-                'domain' => strtolower(trim($domain))
+                'domain' => strtolower(trim($domain)),
             ]);
         }
     }

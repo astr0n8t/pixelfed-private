@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand navbar-light navbar-laravel shadow-none border-bottom sticky-top py-1">
 	<div class="container">
 			<a class="navbar-brand d-flex align-items-center" href="{{ config('app.url') }}" title="Logo">
-				<img src="/img/pixelfed-icon-color.svg" height="30px" class="px-2" loading="eager" alt="Pixelfed logo">
+				<img src="{{ config('app.logo') }}" height="30px" class="px-2" loading="eager" alt="Pixelfed logo">
 				<span class="font-weight-bold mb-0 d-none d-sm-block" style="font-size:20px;">{{ config_cache('app.name') }}</span>
 			</a>
 
@@ -18,14 +18,14 @@
 
 				<ul class="navbar-nav ml-auto">
 					<li>
-						<a class="nav-link font-weight-bold text-dark" href="/login" title="Login">
-							{{ __('Login') }}
+						<a class="nav-link font-weight-bold text-dark" href="/login" title="{{ __('auth.login') }}">
+                        {{ __('auth.login') }}
 						</a>
 					</li>
 				@if(config_cache('pixelfed.open_registration') && in_array(config_cache('system.user_mode'), ['default', 'admin']))
 					<li>
-						<a class="ml-3 nav-link font-weight-bold text-dark" href="/register" title="Register">
-							{{ __('Register') }}
+						<a class="ml-3 nav-link font-weight-bold text-dark" href="/register" title="__('auth.register') ">
+                        {{ __('auth.register') }}
 						</a>
 					</li>
 				@endif

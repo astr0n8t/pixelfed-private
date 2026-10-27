@@ -1,7 +1,7 @@
 <template>
-	<div v-if="status.sensitive == true">
+	<div v-if="config.nsfw.enabled && status.sensitive == true">
 		<details class="details-animated">
-			< v-if="config.nsfw.enabled" summary>
+			<summary>
 				<p class="mb-0 lead font-weight-bold">{{ status.spoiler_text ? status.spoiler_text : 'CW / NSFW / Hidden Media'}}</p>
 				<p class="font-weight-light">(click to show)</p>
 			</summary>
@@ -70,6 +70,12 @@
 
 <script type="text/javascript">
 	export default {
-		props: ['status']
+		props: ['status'],
+
+		data() {
+			return {
+				config: window.App.config,
+			}
+		}
 	}
 </script>

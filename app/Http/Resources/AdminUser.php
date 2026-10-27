@@ -3,15 +3,32 @@
 namespace App\Http\Resources;
 
 use App\Services\AccountService;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $profile_id
+ * @property string|null $name
+ * @property string $username
+ * @property bool $is_admin
+ * @property string $email
+ * @property Carbon|null $email_verified_at
+ * @property string|null $register_source
+ * @property string|null $app_register_ip
+ * @property bool $has_interstitial
+ * @property Carbon|null $last_active_at
+ * @property Carbon $created_at
+ */
 class AdminUser extends JsonResource
 {
     /**
      * Transform the resource into an array.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return array|\Illuminate\Contracts\Support\Arrayable|\JsonSerializable
+     * @param  Request  $request
+     * @return array|Arrayable|\JsonSerializable
      */
     public function toArray($request)
     {

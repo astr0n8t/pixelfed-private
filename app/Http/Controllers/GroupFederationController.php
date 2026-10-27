@@ -5,15 +5,16 @@ namespace App\Http\Controllers;
 use App\Models\Group;
 use App\Models\GroupPost;
 use App\Models\InstanceActor;
+use App\Models\Status;
 use App\Services\MediaService;
-use App\Status;
 use App\Util\Lexer\Autolink;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 
 class GroupFederationController extends Controller
 {
-    public function getGroupObject(Request $request, $id)
+    public function getGroupObject(Request $request, $id): JsonResponse
     {
         $group = Group::whereLocal(true)->whereActivitypub(true)->findOrFail($id);
         $res = $this->showGroupObject($group);
@@ -23,7 +24,7 @@ class GroupFederationController extends Controller
 
     public function showGroupObject($group)
     {
-        return Cache::remember('ap:groups:object:'.$group->id, now()->addMinutes(60), function () use ($group) {
+        return Cache::remember('ap:groups:object:'.$group->id, 3600, function () use ($group) {
             return [
                 '@context' => 'https://www.w3.org/ns/activitystreams',
                 'id' => $group->url(),
@@ -48,26 +49,27 @@ class GroupFederationController extends Controller
                 'url' => $group->permalink(),
             ];
 
-            if ($group->metadata && isset($group->metadata['avatar'])) {
-                $res['icon'] = [
-                    'type' => 'Image',
-                    'url' => $group->metadata['avatar']['url'],
-                ];
-            }
+            // Dead - after a return
+            // if ($group->metadata && isset($group->metadata['avatar'])) {
+            //     $res['icon'] = [
+            //         'type' => 'Image',
+            //         'url' => $group->metadata['avatar']['url'],
+            //     ];
+            // }
 
-            if ($group->metadata && isset($group->metadata['header'])) {
-                $res['image'] = [
-                    'type' => 'Image',
-                    'url' => $group->metadata['header']['url'],
-                ];
-            }
-            ksort($res);
+            // if ($group->metadata && isset($group->metadata['header'])) {
+            //     $res['image'] = [
+            //         'type' => 'Image',
+            //         'url' => $group->metadata['header']['url'],
+            //     ];
+            // }
+            // ksort($res);
 
-            return $res;
+            // return $res;
         });
     }
 
-    public function getStatusObject(Request $request, $gid, $sid)
+    public function getStatusObject(Request $request, $gid, $sid): JsonResponse
     {
         $group = Group::whereLocal(true)->whereActivitypub(true)->findOrFail($gid);
         $gp = GroupPost::whereGroupId($gid)->findOrFail($sid);

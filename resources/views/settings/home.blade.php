@@ -69,13 +69,13 @@
 			<label for="language" class="col-sm-3 col-form-label font-weight-bold">{{__('settings.home.language')}}</label>
 			<div class="col-sm-9">
 				<select class="form-control" name="language">
-				@foreach(App\Util\Localization\Localization::languages() as $lang)
-					<option value="{{$lang}}" {{(Auth::user()->language ?? 'en') == $lang ? 'selected':''}}>{{locale_get_display_language($lang, 'en')}} - {{locale_get_display_language($lang, $lang)}}</option>
+				@foreach(App\Util\Localization\Localization::locales() as $locale)
+					<option value="{{$locale['code']}}" {{(Auth::user()->language ?? 'en-US') == $locale['code'] ? 'selected':''}}>{{$locale['name']}} - {{$locale['nativeName']}}</option>
 				@endforeach
 				</select>
 			</div>
 		</div>
-        @if((bool) config_cache('pixelfed.pronouns.enabled'))
+		@if((bool) config_cache('pixelfed.pronouns.enabled'))
 		<div class="form-group row">
 			<label for="pronouns" class="col-sm-3 col-form-label font-weight-bold">{{__('settings.home.pronouns')}}</label>
 			<div class="col-sm-9">
@@ -88,7 +88,7 @@
 				<p class="help-text text-muted small">{{__('settings.home.select_up_to_4_pronouns_that_will_appear_on_etc')}}</p>
 			</div>
 		</div>
-        @endif
+		@endif
 
         @if((bool) config_cache('federation.activitypub.enabled'))
         <div class="form-group row">

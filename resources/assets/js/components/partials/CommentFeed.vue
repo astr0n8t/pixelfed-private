@@ -104,6 +104,7 @@
 
 		data() {
 			return {
+				config: window.App.config,
 				loaded: false,
 				profile: undefined,
 				feed: [],

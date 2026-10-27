@@ -2,9 +2,9 @@
 
 namespace App\Services;
 
-use Cache;
 use Exception;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class NotificationAppGatewayService
@@ -23,7 +23,7 @@ class NotificationAppGatewayService
         }
 
         $apiKey = config('instance.notifications.nag.api_key');
-        if (! $apiKey || empty($apiKey) || strlen($apiKey) !== 45) {
+        if (! $apiKey || strlen($apiKey) !== 45) {
             return false;
         }
 
@@ -37,14 +37,14 @@ class NotificationAppGatewayService
         $endpoint = 'https://'.config('instance.notifications.nag.endpoint').'/api/v1/instance-check?domain='.config('pixelfed.domain.app');
         try {
             $res = Http::withHeaders(['X-PIXELFED-API' => 1])
+                ->connectTimeout(5)
+                ->timeout(10)
                 ->retry(3, 500)
                 ->throw()
                 ->get($endpoint);
 
             $data = $res->json();
-        } catch (RequestException $e) {
-            return false;
-        } catch (Exception $e) {
+        } catch (RequestException|Exception) {
             return false;
         }
 
@@ -64,7 +64,7 @@ class NotificationAppGatewayService
 
     public static function isValidExpoPushToken($token)
     {
-        if (! $token || empty($token)) {
+        if (! $token) {
             return false;
         }
 
@@ -89,19 +89,19 @@ class NotificationAppGatewayService
             return false;
         }
 
-        if (! $userToken || empty($userToken) || ! self::isValidExpoPushToken($userToken)) {
+        if (! $userToken || ! self::isValidExpoPushToken($userToken)) {
             return false;
         }
 
         $types = PushNotificationService::NOTIFY_TYPES;
 
-        if (! $type || empty($type) || ! in_array($type, $types)) {
+        if (! $type || ! in_array($type, $types)) {
             return false;
         }
 
         $apiKey = config('instance.notifications.nag.api_key');
 
-        if (! $apiKey || empty($apiKey)) {
+        if (! $apiKey) {
             return false;
         }
         $url = 'https://'.config('instance.notifications.nag.endpoint').'/api/v1/relay/deliver';
@@ -109,6 +109,8 @@ class NotificationAppGatewayService
         try {
             $response = Http::withToken($apiKey)
                 ->withHeaders(['X-PIXELFED-API' => 1])
+                ->connectTimeout(5)
+                ->timeout(10)
                 ->post($url, [
                     'token' => $userToken,
                     'type' => $type,
@@ -116,10 +118,10 @@ class NotificationAppGatewayService
                 ]);
 
             $response->throw();
-        } catch (RequestException $e) {
-            return;
-        } catch (Exception $e) {
-            return;
+        } catch (RequestException|Exception) {
+            return null;
         }
+
+        return null;
     }
 }

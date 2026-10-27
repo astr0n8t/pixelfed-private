@@ -2,52 +2,61 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Place;
+use App\Services\PlaceService;
+use App\Services\StatusService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
-use App\{
-	Place,
-	Status
-};
 
 class PlaceController extends Controller
 {
-	public function __construct()
-	{
-		$this->middleware('auth');
-	}
+    const PLACES_CACHE_KEY = 'pf:places:sid-cache:by:placeid:';
 
-    public function show(Request $request, $id, $slug)
+    public function __construct()
     {
-        $this->validate($request, [
-            'page' => 'sometimes|max:10'
-        ]);
-
-    	$place = Place::whereSlug($slug)->findOrFail($id);
-    	$posts = Status::wherePlaceId($place->id)
-            ->whereNull('uri')
-    		->whereScope('public')
-    		->orderByDesc('created_at')
-    		->simplePaginate(10);
-
-    	return view('discover.places.show', compact('place', 'posts'));
+        $this->middleware('auth');
     }
 
-    public function directoryHome(Request $request)
+    public function show(Request $request, int $id, $slug): View
+    {
+        abort_if($id < 1 || $id > 128800, 404);
+
+        $place = Place::whereSlug($slug)->findOrFail($id);
+
+        $statusIds = PlaceService::getStatusesByPlaceId($id);
+
+        $posts = $statusIds->map(function ($item) {
+            return StatusService::get($item->id);
+        })->filter(function ($item) {
+            return $item && count($item['media_attachments'][0]);
+        })->take(108)->values();
+
+        return view('discover.places.show', ['place' => $place, 'posts' => $posts]);
+    }
+
+    public function directoryHome(Request $request): View
     {
         $places = Place::select('country')
             ->distinct('country')
             ->simplePaginate(48);
 
-        return view('discover.places.directory.home', compact('places'));
+        return view('discover.places.directory.home', ['places' => $places]);
     }
 
-    public function directoryCities(Request $request, $country)
+    public function directoryCities(Request $request, $country): View
     {
-        $country = ucfirst(urldecode($country));
-        $places = Place::whereCountry($country)
+        $country = urldecode($country);
+        $operator = db_is_pgsql() ? 'ilike' : '=';
+
+        $places = Place::where('country', $operator, $country)
             ->orderBy('name', 'asc')
             ->distinct('name')
             ->simplePaginate(48);
 
-        return view('discover.places.directory.cities', compact('places'));
+        if ($places->isEmpty()) {
+            abort(404, 'Country not found');
+        }
+
+        return view('discover.places.directory.cities', ['places' => $places]);
     }
 }

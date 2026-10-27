@@ -28,7 +28,7 @@ abstract class Regex
     /**
      * Contains all generated regular expressions.
      *
-     * @var string The regex patterns.
+     * @var array<string, string> The regex patterns.
      */
     protected static $patterns = [];
 
@@ -43,7 +43,7 @@ abstract class Regex
     /**
      * This constructor is used to populate some variables.
      *
-     * @param string $tweet The tweet to parse.
+     * @param  string  $tweet  The tweet to parse.
      */
     protected function __construct($tweet = null)
     {
@@ -162,9 +162,18 @@ abstract class Regex
         //      look-ahead capture here and don't append $after when we return.
         $tmp['valid_mention_preceding_chars'] = '([^a-zA-Z0-9_!#\$%&*@＠\/]|^|(?:^|[^a-z0-9_+~.-])RT:?)';
 
-        $re['valid_mentions_or_lists'] = '/'.$tmp['valid_mention_preceding_chars'].'(['.$tmp['at_signs'].'])([\p{L}0-9_\-.]{1,20})((\/[a-z][a-z0-9_\-]{0,24})?(?=(.*|$))(?:@[a-z0-9\.\-]+[a-z0-9]+)?)/iu';
+        // Local part (the username before any @domain) capped at 64. Local
+        // Pixelfed usernames max at 30 (RegisterController: max:30), but a
+        // REMOTE handle's username comes from other software and can be longer;
+        // the profiles.username column stores the full "@user@domain" as a
+        // VARCHAR(255). A cap that is too small does not fail cleanly, it
+        // matches the first N chars and drops the "@domain" suffix, turning a
+        // remote mention into a broken local one (#7204). 64 comfortably covers
+        // remote usernames while still bounding the pattern. The trailing
+        // "@domain" group below is matched separately and is not length-capped.
+        $re['valid_mentions_or_lists'] = '/'.$tmp['valid_mention_preceding_chars'].'(['.$tmp['at_signs'].'])([\p{L}0-9_\-.]{1,64})((\/[a-z][a-z0-9_\-]{0,24})?(?=(.*|$))(?:@[a-z0-9\.\-]+[a-z0-9]+)?)/iu';
 
-        $re['valid_reply'] = '/^(?:['.$tmp['spaces'].'])*['.$tmp['at_signs'].']([a-z0-9_\-.]{1,20})(?=(.*|$))/iu';
+        $re['valid_reply'] = '/^(?:['.$tmp['spaces'].'])*['.$tmp['at_signs'].']([a-z0-9_\-.]{1,64})(?=(.*|$))/iu';
         $re['end_mention_match'] = '/\A(?:['.$tmp['at_signs'].']|['.$tmp['latin_accents'].']|:\/\/)/iu';
 
         // URL related hash regex collection
@@ -265,30 +274,30 @@ abstract class Regex
         $tmp['validate_url_unreserved'] = '[a-z\p{Cyrillic}0-9\-._~]';
         $tmp['validate_url_pct_encoded'] = '(?:%[0-9a-f]{2})';
         $tmp['validate_url_sub_delims'] = '[!$&\'()*+,;=]';
-        $tmp['validate_url_pchar'] = '(?:'.$tmp['validate_url_unreserved'].'|'.$tmp['validate_url_pct_encoded'].'|'.$tmp['validate_url_sub_delims'].'|[:\|@])'; ///iox
+        $tmp['validate_url_pchar'] = '(?:'.$tmp['validate_url_unreserved'].'|'.$tmp['validate_url_pct_encoded'].'|'.$tmp['validate_url_sub_delims'].'|[:\|@])'; // /iox
 
-        $tmp['validate_url_userinfo'] = '(?:'.$tmp['validate_url_unreserved'].'|'.$tmp['validate_url_pct_encoded'].'|'.$tmp['validate_url_sub_delims'].'|:)*'; ///iox
+        $tmp['validate_url_userinfo'] = '(?:'.$tmp['validate_url_unreserved'].'|'.$tmp['validate_url_pct_encoded'].'|'.$tmp['validate_url_sub_delims'].'|:)*'; // /iox
 
-        $tmp['validate_url_dec_octet'] = '(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])'; ///i
-        $tmp['validate_url_ipv4'] = '(?:'.$tmp['validate_url_dec_octet'].'(?:\.'.$tmp['validate_url_dec_octet'].'){3})'; ///iox
+        $tmp['validate_url_dec_octet'] = '(?:[0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])'; // /i
+        $tmp['validate_url_ipv4'] = '(?:'.$tmp['validate_url_dec_octet'].'(?:\.'.$tmp['validate_url_dec_octet'].'){3})'; // /iox
         // Punting on real IPv6 validation for now
-        $tmp['validate_url_ipv6'] = '(?:\[[a-f0-9:\.]+\])'; ///i
+        $tmp['validate_url_ipv6'] = '(?:\[[a-f0-9:\.]+\])'; // /i
         // Also punting on IPvFuture for now
-        $tmp['validate_url_ip'] = '(?:'.$tmp['validate_url_ipv4'].'|'.$tmp['validate_url_ipv6'].')'; ///iox
+        $tmp['validate_url_ip'] = '(?:'.$tmp['validate_url_ipv4'].'|'.$tmp['validate_url_ipv6'].')'; // /iox
         // This is more strict than the rfc specifies
-        $tmp['validate_url_subdomain_segment'] = '(?:[a-z0-9](?:[a-z0-9_\-]*[a-z0-9])?)'; ///i
-        $tmp['validate_url_domain_segment'] = '(?:[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)'; ///i
-        $tmp['validate_url_domain_tld'] = '(?:[a-z](?:[a-z0-9\-]*[a-z0-9])?)'; ///i
-        $tmp['validate_url_domain'] = '(?:(?:'.$tmp['validate_url_subdomain_segment'].'\.)*(?:'.$tmp['validate_url_domain_segment'].'\.)'.$tmp['validate_url_domain_tld'].')'; ///iox
+        $tmp['validate_url_subdomain_segment'] = '(?:[a-z0-9](?:[a-z0-9_\-]*[a-z0-9])?)'; // /i
+        $tmp['validate_url_domain_segment'] = '(?:[a-z0-9](?:[a-z0-9\-]*[a-z0-9])?)'; // /i
+        $tmp['validate_url_domain_tld'] = '(?:[a-z](?:[a-z0-9\-]*[a-z0-9])?)'; // /i
+        $tmp['validate_url_domain'] = '(?:(?:'.$tmp['validate_url_subdomain_segment'].'\.)*(?:'.$tmp['validate_url_domain_segment'].'\.)'.$tmp['validate_url_domain_tld'].')'; // /iox
 
-        $tmp['validate_url_host'] = '(?:'.$tmp['validate_url_ip'].'|'.$tmp['validate_url_domain'].')'; ///iox
+        $tmp['validate_url_host'] = '(?:'.$tmp['validate_url_ip'].'|'.$tmp['validate_url_domain'].')'; // /iox
         // Unencoded internationalized domains - this doesn't check for invalid UTF-8 sequences
-        $tmp['validate_url_unicode_subdomain_segment'] = '(?:(?:[a-z0-9]|[^\x00-\x7f])(?:(?:[a-z0-9_\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; ///ix
-        $tmp['validate_url_unicode_domain_segment'] = '(?:(?:[a-z0-9]|[^\x00-\x7f])(?:(?:[a-z0-9\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; ///ix
-        $tmp['validate_url_unicode_domain_tld'] = '(?:(?:[a-z]|[^\x00-\x7f])(?:(?:[a-z0-9\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; ///ix
-        $tmp['validate_url_unicode_domain'] = '(?:(?:'.$tmp['validate_url_unicode_subdomain_segment'].'\.)*(?:'.$tmp['validate_url_unicode_domain_segment'].'\.)'.$tmp['validate_url_unicode_domain_tld'].')'; ///iox
+        $tmp['validate_url_unicode_subdomain_segment'] = '(?:(?:[a-z0-9]|[^\x00-\x7f])(?:(?:[a-z0-9_\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; // /ix
+        $tmp['validate_url_unicode_domain_segment'] = '(?:(?:[a-z0-9]|[^\x00-\x7f])(?:(?:[a-z0-9\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; // /ix
+        $tmp['validate_url_unicode_domain_tld'] = '(?:(?:[a-z]|[^\x00-\x7f])(?:(?:[a-z0-9\-]|[^\x00-\x7f])*(?:[a-z0-9]|[^\x00-\x7f]))?)'; // /ix
+        $tmp['validate_url_unicode_domain'] = '(?:(?:'.$tmp['validate_url_unicode_subdomain_segment'].'\.)*(?:'.$tmp['validate_url_unicode_domain_segment'].'\.)'.$tmp['validate_url_unicode_domain_tld'].')'; // /iox
 
-        $tmp['validate_url_unicode_host'] = '(?:'.$tmp['validate_url_ip'].'|'.$tmp['validate_url_unicode_domain'].')'; ///iox
+        $tmp['validate_url_unicode_host'] = '(?:'.$tmp['validate_url_ip'].'|'.$tmp['validate_url_unicode_domain'].')'; // /iox
 
         $tmp['validate_url_port'] = '[0-9]{1,5}';
 

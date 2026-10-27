@@ -2,30 +2,34 @@
 
 namespace App\Jobs\HomeFeedPipeline;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
-use App\Hashtag;
-use App\StatusHashtag;
+use App\Models\Hashtag;
+use App\Services\FollowerService;
 use App\Services\HashtagFollowService;
 use App\Services\HomeTimelineService;
 use App\Services\StatusService;
-use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Foundation\Bus\Dispatchable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
-class HashtagRemoveFanoutPipeline implements ShouldQueue, ShouldBeUniqueUntilProcessing
+class HashtagRemoveFanoutPipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     protected $sid;
+
     protected $hid;
 
     public $timeout = 900;
+
     public $tries = 3;
+
     public $maxExceptions = 1;
+
     public $failOnTimeout = true;
 
     /**
@@ -40,7 +44,7 @@ class HashtagRemoveFanoutPipeline implements ShouldQueue, ShouldBeUniqueUntilPro
      */
     public function uniqueId(): string
     {
-        return 'hfp:hashtag:fanout:remove:' . $this->hid . ':' . $this->sid;
+        return 'hfp:hashtag:fanout:remove:'.$this->hid.':'.$this->sid;
     }
 
     /**
@@ -50,7 +54,7 @@ class HashtagRemoveFanoutPipeline implements ShouldQueue, ShouldBeUniqueUntilPro
      */
     public function middleware(): array
     {
-        return [(new WithoutOverlapping("hfp:hashtag:fanout:remove:{$this->hid}:{$this->sid}"))->shared()->dontRelease()];
+        return [(new WithoutOverlapping("hfp:hashtag:fanout:remove:{$this->hid}:{$this->sid}"))->shared()->expireAfter($this->timeout)->dontRelease()];
     }
 
     /**
@@ -69,23 +73,35 @@ class HashtagRemoveFanoutPipeline implements ShouldQueue, ShouldBeUniqueUntilPro
     {
         $sid = $this->sid;
         $hid = $this->hid;
-        $status = StatusService::get($sid, false);
 
-        if(!$status || !isset($status['account']) || !isset($status['account']['id'])) {
+        // Verify status ID exists
+        if (! $sid) {
+            Log::info('HashtagRemoveFanoutPipeline: Status ID not provided, skipping job');
+
             return;
         }
 
-        if(!in_array($status['pf_type'], ['photo', 'photo:album', 'video', 'video:album', 'photo:video:album'])) {
+        // Verify hashtag ID exists
+        if (! $hid) {
+            Log::info('HashtagRemoveFanoutPipeline: Hashtag ID not provided, skipping job');
+
             return;
         }
 
         $ids = HashtagFollowService::getPidByHid($hid);
 
-        if(!$ids || !count($ids)) {
+        if (! $ids || ! count($ids)) {
             return;
         }
 
-        foreach($ids as $id) {
+        $status = StatusService::get($sid, false);
+        $authorId = $status['account']['id'] ?? null;
+
+        foreach ($ids as $id) {
+            if ($authorId !== null && FollowerService::follows((string) $id, (string) $authorId)) {
+                continue;
+            }
+
             HomeTimelineService::rem($id, $sid);
         }
     }

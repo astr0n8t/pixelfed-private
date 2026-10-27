@@ -2,8 +2,8 @@
 
 namespace App\Mail;
 
+use App\Models\UserInvite;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -14,36 +14,20 @@ class UserInviteMessage extends Mailable
     use Queueable, SerializesModels;
 
     public function __construct(
-        public $verify,
+        public readonly UserInvite $invite,
     ) {}
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'You\'ve been invited to join Pixelfed!',
+            subject: 'You\'ve been invited to join '.config('app.name').'!',
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            markdown: 'emails.user-invite.invite',
+            markdown: 'emails.user.invite',
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

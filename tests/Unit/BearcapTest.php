@@ -3,12 +3,13 @@
 namespace Tests\Unit;
 
 use App\Util\Lexer\Bearcap;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
 class BearcapTest extends TestCase
 {
-    /** @test */
-    public function validTest()
+    #[Test]
+    public function valid_test()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=https://pixelfed.test/stories/admin/337892163734081536';
         $expected = [
@@ -19,56 +20,56 @@ class BearcapTest extends TestCase
         $this->assertEquals($expected, $actual);
     }
 
-    /** @test */
-    public function invalidTokenParameterName()
+    #[Test]
+    public function invalid_token_parameter_name()
     {
         $str = 'bear:?token=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=https://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function invalidUrlParameterName()
+    #[Test]
+    public function invalid_url_parameter_name()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&url=https://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function invalidScheme()
+    #[Test]
+    public function invalid_scheme()
     {
         $str = 'bearcap:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&url=https://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function missingToken()
+    #[Test]
+    public function missing_token()
     {
         $str = 'bear:?u=https://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function missingUrl()
+    #[Test]
+    public function missing_url()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function invalidHttpUrl()
+    #[Test]
+    public function invalid_http_url()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=http://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);
         $this->assertFalse($actual);
     }
 
-    /** @test */
-    public function invalidUrlSchema()
+    #[Test]
+    public function invalid_url_schema()
     {
         $str = 'bear:?t=LpVypnEUdHhwwgXE9tTqEwrtPvmLjqYaPexqyXnVo1flSfJy5AYMCdRPiFRmqld2&u=phar://pixelfed.test/stories/admin/337892163734081536';
         $actual = Bearcap::decode($str);

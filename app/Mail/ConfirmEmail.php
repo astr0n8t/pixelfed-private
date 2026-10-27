@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\EmailVerification;
+use App\Models\EmailVerification;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -10,6 +10,8 @@ use Illuminate\Queue\SerializesModels;
 class ConfirmEmail extends Mailable
 {
     use Queueable, SerializesModels;
+
+    protected $verify;
 
     /**
      * Create a new message instance.
@@ -28,6 +30,6 @@ class ConfirmEmail extends Mailable
      */
     public function build()
     {
-        return $this->markdown('emails.confirm_email')->with(['verify'=>$this->verify]);
+        return $this->markdown('emails.confirm_email')->with(['verify' => $this->verify]);
     }
 }

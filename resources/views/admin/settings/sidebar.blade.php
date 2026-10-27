@@ -10,8 +10,8 @@
         <a class="nav-link font-weight-light text-muted" href="{{route('settings.email')}}">Email</a>
       </li> --}}
       @if(config('pixelfed.user_invites.enabled'))
-      <li class="nav-item pl-3 {{request()->is('settings/invites*')?'active':''}}">
-        <a class="nav-link font-weight-light text-muted" href="{{route('settings.invites')}}">Invites</a>
+      <li class="nav-item pl-3 {{request()->is('i/invites*')?'active':''}}">
+        <a class="nav-link font-weight-light text-muted" href="{{route('invites.home')}}">Invites</a>
       </li>
       @endif
       <li class="nav-item pl-3 {{request()->is('settings/notifications')?'active':''}}">

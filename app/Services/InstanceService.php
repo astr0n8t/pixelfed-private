@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
-use App\Instance;
-use App\Util\Blurhash\Blurhash;
-use Cache;
+use App\Models\Instance;
+use App\Util\Media\Blurhash;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class InstanceService
 {
@@ -31,8 +33,10 @@ class InstanceService
 
     public static function getByDomain($domain)
     {
-        return Cache::remember(self::CACHE_KEY_BY_DOMAIN.$domain, now()->addMinutes(60), function () use ($domain) {
-            return Instance::whereDomain($domain)->first();
+        return Cache::remember(self::CACHE_KEY_BY_DOMAIN.$domain, 3600, function () use ($domain) {
+            $instance = Instance::whereDomain($domain)->first();
+
+            return $instance ? $instance->toArray() : null;
         });
     }
 
@@ -100,13 +104,25 @@ class InstanceService
 
     public static function totalLocalStatuses()
     {
-        return config_cache('instance.stats.total_local_posts');
+        if (config('instance.enable_cc')) {
+            return config_cache('instance.stats.total_local_posts');
+        }
+
+        return Cache::remember(self::CACHE_KEY_TOTAL_POSTS, now()->addHour(), function () {
+            return DB::table('statuses')
+                ->whereNull('deleted_at')
+                ->where('local', true)
+                ->whereNot('type', 'share')
+                ->count();
+        });
     }
 
+    // GLITCH MODIFIED START: "real" post count
     public static function totalRealLocalStatuses()
     {
         return config_cache('instance.stats.real_total_local_posts');
     }
+    // GLITCH MODIFIED END
 
     public static function headerBlurhash()
     {
@@ -122,32 +138,12 @@ class InstanceService
 
             $file = config_cache('app.banner_image') ?? url(Storage::url('public/headers/default.jpg'));
 
-            $image = imagecreatefromstring(file_get_contents($file));
-            if (! $image) {
-                return 'UzJR]l{wHZRjM}R%XRkCH?X9xaWEjZj]kAjt';
-            }
-            $width = imagesx($image);
-            $height = imagesy($image);
-
-            $pixels = [];
-            for ($y = 0; $y < $height; $y++) {
-                $row = [];
-                for ($x = 0; $x < $width; $x++) {
-                    $index = imagecolorat($image, $x, $y);
-                    $colors = imagecolorsforindex($image, $index);
-
-                    $row[] = [$colors['red'], $colors['green'], $colors['blue']];
-                }
-                $pixels[] = $row;
-            }
-
-            // Free the allocated GdImage object from memory:
-            imagedestroy($image);
-
-            $components_x = 4;
-            $components_y = 4;
-            $blurhash = Blurhash::encode($pixels, $components_x, $components_y);
-            if (strlen($blurhash) > 191) {
+            // Goes through the configured image driver (and a downscaled sample)
+            // rather than raw GD calls at full resolution, so this no longer
+            // fatals on hosts that run vips without ext-gd.
+            $contents = @file_get_contents($file);
+            $blurhash = $contents ? Blurhash::fromBinary($contents) : null;
+            if (! $blurhash) {
                 return 'UzJR]l{wHZRjM}R%XRkCH?X9xaWEjZj]kAjt';
             }
 

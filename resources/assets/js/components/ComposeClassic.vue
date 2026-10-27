@@ -45,7 +45,7 @@
 						</div>
 					</div>
 					<div v-if="ids.length > 0">
-
+						
 						<b-carousel id="p-carousel"
 							style="text-shadow: 1px 1px 2px #333;"
 							controls
@@ -120,55 +120,55 @@
 									<div class="row">
 										<div class="d-none d-block-sm col-sm-2 px-0 text-center">
 											<i class="fas fa-globe"></i>
-										</div>
+										</div> 
 										<div class="col-12 col-sm-10 pl-2">
 											<p class="font-weight-bold mb-0">Public</p>
 											<p class="small mb-0">Anyone can see</p>
-										</div>
+										</div> 
 									</div>
 								</a>
 								<a :class="[visibility=='private'?'dropdown-item active':'dropdown-item']" href="#" data-id="private" data-title="Followers Only" v-on:click.prevent="visibility = 'private'">
 									<div class="row">
 										<div class="d-none d-block-sm col-sm-2 px-0 text-center">
 											<i class="fas fa-lock"></i>
-										</div>
+										</div> 
 										<div class="col-12 col-sm-10 pl-2">
 											<p class="font-weight-bold mb-0">Followers Only</p>
 											<p class="small mb-0">Only followers can see</p>
-										</div>
+										</div> 
 									</div>
 								</a>
 								<a :class="[visibility=='unlisted'?'dropdown-item active':'dropdown-item']" href="#" data-id="private" data-title="Unlisted" v-on:click.prevent="visibility = 'unlisted'">
 									<div class="row">
 										<div class="d-none d-block-sm col-sm-2 px-0 text-center">
 											<i class="fas fa-lock"></i>
-										</div>
+										</div> 
 										<div class="col-12 col-sm-10 pl-2">
 											<p class="font-weight-bold mb-0">Unlisted</p>
 											<p class="small mb-0">Not listed on public timelines</p>
-										</div>
+										</div> 
 									</div>
 								</a>
 								<!-- <a class="dropdown-item" href="#" data-id="circle" data-title="Circle">
 									<div class="row">
 										<div class="col-12 col-sm-2 px-0 text-center">
 											<i class="far fa-circle"></i>
-										</div>
+										</div> 
 										<div class="col-12 col-sm-10 pl-2">
 											<p class="font-weight-bold mb-0">Circle</p>
 											<p class="small mb-0">Select a circle</p>
-										</div>
+										</div> 
 									</div>
 								</a>
 								<a class="dropdown-item" href="#" data-id="direct" data-title="Direct Message">
 									<div class="row">
 										<div class="col-12 col-sm-2 px-0 text-center">
 											<i class="fas fa-envelope"></i>
-										</div>
+										</div> 
 										<div class="col-12 col-sm-10 pl-2">
 											<p class="font-weight-bold mb-0">Direct Message</p>
 											<p class="small mb-0">Recipients only</p>
-										</div>
+										</div> 
 									</div>
 								</a> -->
 							</div>
@@ -249,46 +249,46 @@ export default {
 	mounted() {
 		this.mediaWatcher();
 		this.filters = [
-			['1977','filter-1977'],
-			['Aden','filter-aden'],
-			['Amaro','filter-amaro'],
-			['Ashby','filter-ashby'],
-			['Brannan','filter-brannan'],
-			['Brooklyn','filter-brooklyn'],
-			['Charmes','filter-charmes'],
-			['Clarendon','filter-clarendon'],
-			['Crema','filter-crema'],
-			['Dogpatch','filter-dogpatch'],
-			['Earlybird','filter-earlybird'],
-			['Gingham','filter-gingham'],
-			['Ginza','filter-ginza'],
-			['Hefe','filter-hefe'],
-			['Helena','filter-helena'],
-			['Hudson','filter-hudson'],
-			['Inkwell','filter-inkwell'],
-			['Kelvin','filter-kelvin'],
-			['Kuno','filter-juno'],
-			['Lark','filter-lark'],
-			['Lo-Fi','filter-lofi'],
-			['Ludwig','filter-ludwig'],
-			['Maven','filter-maven'],
-			['Mayfair','filter-mayfair'],
-			['Moon','filter-moon'],
-			['Nashville','filter-nashville'],
-			['Perpetua','filter-perpetua'],
-			['Poprocket','filter-poprocket'],
-			['Reyes','filter-reyes'],
-			['Rise','filter-rise'],
-			['Sierra','filter-sierra'],
-			['Skyline','filter-skyline'],
-			['Slumber','filter-slumber'],
-			['Stinson','filter-stinson'],
-			['Sutro','filter-sutro'],
-			['Toaster','filter-toaster'],
-			['Valencia','filter-valencia'],
-			['Vesper','filter-vesper'],
-			['Walden','filter-walden'],
-			['Willow','filter-willow'],
+			['1977','filter-1977'], 
+			['Aden','filter-aden'], 
+			['Amaro','filter-amaro'], 
+			['Ashby','filter-ashby'], 
+			['Brannan','filter-brannan'], 
+			['Brooklyn','filter-brooklyn'], 
+			['Charmes','filter-charmes'], 
+			['Clarendon','filter-clarendon'], 
+			['Crema','filter-crema'], 
+			['Dogpatch','filter-dogpatch'], 
+			['Earlybird','filter-earlybird'], 
+			['Gingham','filter-gingham'], 
+			['Ginza','filter-ginza'], 
+			['Hefe','filter-hefe'], 
+			['Helena','filter-helena'], 
+			['Hudson','filter-hudson'], 
+			['Inkwell','filter-inkwell'], 
+			['Kelvin','filter-kelvin'], 
+			['Kuno','filter-juno'], 
+			['Lark','filter-lark'], 
+			['Lo-Fi','filter-lofi'], 
+			['Ludwig','filter-ludwig'], 
+			['Maven','filter-maven'], 
+			['Mayfair','filter-mayfair'], 
+			['Moon','filter-moon'], 
+			['Nashville','filter-nashville'], 
+			['Perpetua','filter-perpetua'], 
+			['Poprocket','filter-poprocket'], 
+			['Reyes','filter-reyes'], 
+			['Rise','filter-rise'], 
+			['Sierra','filter-sierra'], 
+			['Skyline','filter-skyline'], 
+			['Slumber','filter-slumber'], 
+			['Stinson','filter-stinson'], 
+			['Sutro','filter-sutro'], 
+			['Toaster','filter-toaster'], 
+			['Valencia','filter-valencia'], 
+			['Vesper','filter-vesper'], 
+			['Walden','filter-walden'], 
+			['Willow','filter-willow'], 
 			['X-Pro II','filter-xpro-ii']
 		];
 	},
@@ -352,7 +352,18 @@ export default {
 					}).catch(function(e) {
 						self.uploading = false;
 						io.value = null;
-						swal('Oops, something went wrong!', 'An unexpected error occurred.', 'error');
+						let errorMsg = 'An unexpected error occurred.';
+						if (e.response && e.response.status === 422 && e.response.data) {
+							if (e.response.data.errors) {
+								let messages = Object.values(e.response.data.errors).flat();
+								errorMsg = messages.join('\n');
+							} else if (e.response.data.message) {
+								errorMsg = e.response.data.message;
+							}
+						} else if (e.response && e.response.data && e.response.data.message) {
+							errorMsg = e.response.data.message;
+						}
+						swal('Upload Failed', errorMsg, 'error');
 					});
 					io.value = null;
 					self.uploadProgress = 0;
@@ -393,7 +404,7 @@ export default {
 
 		mediaAltText() {
 			return;
-			// deprecate
+			// deprecate 
 			swal({
 				text: 'Add a media description',
 				content: "input"
@@ -478,8 +489,8 @@ export default {
 				<p class="small font-weight-bold">Please visit the <a href="/site/kb/sharing-media">Sharing Media</a> page for more info.</p>
 			`;
 			swal({
-				title: 'Compose UI v3',
-				content: text,
+				title: 'Compose UI v3', 
+				content: text, 
 				icon: 'info'
 			});
 		},
@@ -494,7 +505,7 @@ export default {
 			let composeType = this.composeType;
 			let video = config.uploader.media_types.includes('video/mp4');
 
-			return video ?
+			return video ? 
 			'Click here to add photos or videos' :
 			'Click here to add photos';
 		},

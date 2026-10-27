@@ -1,3 +1,5 @@
+import VueI18n from 'vue-i18n';
+
 require('./polyfill');
 window._ = require('lodash');
 window.Popper = require('popper.js').default;
@@ -19,7 +21,7 @@ if (token) {
 window.App = window.App || {};
 
 window.App.redirect = function() {
-	document.querySelectorAll('a').forEach(function(i,k) { 
+	document.querySelectorAll('a').forEach(function(i,k) {
 		let a = i.getAttribute('href');
 		if(a && a.length > 5 && a.startsWith('https://')) {
 			let url = new URL(a);
@@ -31,7 +33,27 @@ window.App.redirect = function() {
 }
 
 window.App.boot = function() {
-	new Vue({ el: '#content'});
+    Vue.use(VueI18n);
+
+    // Load every locale JSON in ./i18n/ automatically, keyed by locale code
+    // (the filename, e.g. en-US, pt-PT). New languages are picked up on rebuild.
+    let i18nMessages = {};
+    const i18nContext = require.context('./i18n', false, /\.json$/);
+    i18nContext.keys().forEach((key) => {
+        const locale = key.replace(/^\.\//, '').replace(/\.json$/, '');
+        i18nMessages[locale] = i18nContext(key);
+    });
+    let locale = document.querySelector('html').getAttribute('lang');
+
+    const i18n = new VueI18n({
+    locale: locale, // set locale
+    fallbackLocale: 'en-US',
+    messages: i18nMessages
+});
+    new Vue({
+        el: '#content',
+        i18n,
+    });
 }
 
 window.addEventListener("load", () => {
@@ -67,8 +89,8 @@ window.App.util = {
 			console.log('Unsupported method.');
 		}),
 	},
-	time: (function() { 
-		return new Date; 
+	time: (function() {
+		return new Date;
 	}),
 	version: 1,
 	format: {
@@ -78,7 +100,7 @@ window.App.util = {
 			}
 			return new Intl.NumberFormat(locale, { notation: notation , compactDisplay: "short" }).format(count);
 		}),
-        timeAgo: function(ts) {
+        timeAgo: (function(ts) {
             const date = new Date(ts);
             const now = new Date();
 
@@ -111,7 +133,7 @@ window.App.util = {
             }
 
             return Math.floor(seconds) + "s";
-        },
+        }),
 		timeAhead: (function(ts, short = true) {
 			let date = Date.parse(ts);
 			let diff = date - Date.parse(new Date());
@@ -154,9 +176,9 @@ window.App.util = {
 				tag = '/i/redirect?url=' + encodeURIComponent(tag);
 			}
 
-			return tag; 
+			return tag;
 		})
-	}, 
+	},
 	filters: [
 			['1984','filter-1977'],
 			['Azen','filter-aden'],

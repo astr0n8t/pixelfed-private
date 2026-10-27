@@ -2,38 +2,21 @@
 
 namespace App\Services;
 
-use App\Profile;
+use App\Models\Profile;
 use App\Util\ActivityPub\Helpers;
 use App\Util\Webfinger\WebfingerUrl;
-use Illuminate\Support\Facades\Http;
 
 class WebfingerService
 {
     public static function rawGet($url)
     {
-        $n = WebfingerUrl::get($url);
-        if (! $n) {
-            return false;
-        }
-        $webfinger = FetchCacheService::getJson($n);
-        if (! $webfinger) {
+        if (empty($url)) {
             return false;
         }
 
-        if (! isset($webfinger['links']) || ! is_array($webfinger['links']) || empty($webfinger['links'])) {
-            return false;
-        }
-        $link = collect($webfinger['links'])
-            ->filter(function ($link) {
-                return $link &&
-                    isset($link['rel'], $link['type'], $link['href']) &&
-                    $link['rel'] === 'self' &&
-                    in_array($link['type'], ['application/activity+json', 'application/ld+json; profile="https://www.w3.org/ns/activitystreams"']);
-            })
-            ->pluck('href')
-            ->first();
+        $link = self::fetchSelfLink(WebfingerUrl::get($url));
 
-        return $link;
+        return $link ?: false;
     }
 
     public static function lookup($query, $mastodonMode = false)
@@ -48,33 +31,43 @@ class WebfingerService
                 AccountService::getMastodon($profile->id, true) :
                 AccountService::get($profile->id);
         }
-        $url = WebfingerUrl::generateWebfingerUrl($query);
-        if (! Helpers::validateUrl($url)) {
+
+        $link = self::fetchSelfLink(WebfingerUrl::generateWebfingerUrl($query));
+        if (! $link) {
             return [];
         }
 
-        try {
-            $res = Http::retry(3, 100)
-                ->acceptJson()
-                ->withHeaders([
-                    'User-Agent' => '(Pixelfed/'.config('pixelfed.version').'; +'.config('app.url').')',
-                ])
-                ->timeout(20)
-                ->get($url);
-        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+        $profile = Helpers::profileFetch($link);
+        if (! $profile instanceof Profile) {
             return [];
         }
 
-        if (! $res->successful()) {
-            return [];
+        return $mastodonMode ?
+            AccountService::getMastodon($profile->id, true) :
+            AccountService::get($profile->id);
+    }
+
+    protected static function fetchSelfLink($url)
+    {
+        if (! $url || ! is_string($url) || ! str_starts_with($url, 'https://')) {
+            return null;
         }
 
-        $webfinger = $res->json();
-        if (! isset($webfinger['links']) || ! is_array($webfinger['links']) || empty($webfinger['links'])) {
-            return [];
+        $host = parse_url($url, PHP_URL_HOST);
+        if (! $host) {
+            return null;
         }
 
-        $link = collect($webfinger['links'])
+        if (in_array($host, InstanceService::getBannedDomains())) {
+            return null;
+        }
+
+        $webfinger = FetchCacheService::getJson($url);
+        if (! $webfinger || ! isset($webfinger['links']) || ! is_array($webfinger['links']) || empty($webfinger['links'])) {
+            return null;
+        }
+
+        return collect($webfinger['links'])
             ->filter(function ($link) {
                 return $link &&
                     isset($link['rel'], $link['type'], $link['href']) &&
@@ -83,14 +76,5 @@ class WebfingerService
             })
             ->pluck('href')
             ->first();
-
-        $profile = Helpers::profileFetch($link);
-        if (! $profile) {
-            return;
-        }
-
-        return $mastodonMode ?
-            AccountService::getMastodon($profile->id, true) :
-            AccountService::get($profile->id);
     }
 }

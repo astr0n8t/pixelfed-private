@@ -1,9 +1,10 @@
+/redis-data
+/mysql-9-data
 .DS_Store
 /.bash_history
 /.bash_profile
 /.bashrc
 /.composer
-/.direnv
 /.env
 /.env.dottie-backup
 #/.git
@@ -11,8 +12,9 @@
 /.gitconfig
 #/.gitignore
 /.idea
+/.phpunit.cache
+/.phpunit.result.cache
 /.vagrant
-/.vscode
 /bootstrap/cache
 /docker-compose-state/
 /Homestead.json
@@ -28,8 +30,12 @@
 /yarn-error.log
 /public/build
 
+# Psalm reports and cache
+/storage/psalm-reports
+/psalm.sarif.json
+/.psalm-cache
+
+
 # Exceptions - these *MUST* be last
-!/.vscode/settings.json
-!/.vscode/extensions.json
 !/bootstrap/cache/.gitignore
 !/public/vendor/horizon/.gitignore

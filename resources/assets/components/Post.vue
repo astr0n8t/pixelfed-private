@@ -40,6 +40,7 @@
                         v-on:follow="follow()"
                         v-on:unfollow="unfollow()"
                         v-on:counter-change="counterChange"
+                        v-on:comment-likes-modal="openCommentLikesModal"
                         />
                 </div>
 
@@ -81,31 +82,33 @@
         <context-menu
             v-if="isLoaded"
             ref="contextMenu"
-            :status="post"
+            :status="shadowStatus"
             :profile="user"
             @report-modal="handleReport()"
             @delete="deletePost()"
+            @pinned="handlePinned()"
+            @unpinned="handleUnpinned()"
             v-on:edit="handleEdit"
         />
 
         <likes-modal
             v-if="showLikesModal"
             ref="likesModal"
-            :status="post"
+            :status="likesModalPost"
             :profile="user"
         />
 
         <shares-modal
             v-if="showSharesModal"
             ref="sharesModal"
-            :status="post"
+            :status="shadowStatus"
             :profile="profile"
         />
 
         <report-modal
             v-if="post"
             ref="reportModal"
-            :status="post"
+            :status="shadowStatus"
         />
 
         <post-edit-modal
@@ -163,6 +166,7 @@
                 media: undefined,
                 mediaIndex: 0,
                 showLikesModal: false,
+                likesModalPost: {},
                 isReply: false,
                 reply: {},
                 showSharesModal: false,
@@ -173,6 +177,14 @@
 
         created() {
             this.init();
+        },
+
+        computed: {
+            shadowStatus: {
+                get() {
+                    return this.post.reblog ? this.post.reblog : this.post;
+                }
+            }
         },
 
         watch: {
@@ -357,6 +369,7 @@
             },
 
             openLikesModal() {
+                this.likesModalPost = this.post.reblog ? this.post.reblog : this.post;
                 this.showLikesModal = true;
                 this.$nextTick(() => {
                     this.$refs.likesModal.open();
@@ -441,7 +454,27 @@
                 this.$nextTick(() => {
                     this.forceUpdateIdx++;
                 });
-            }
+            },
+
+            handlePinned() {
+                this.post.pinned = true;
+            },
+
+            handleUnpinned() {
+                this.post.pinned = false;
+            },
+
+            openCommentLikesModal(post) {
+                if(post.reblog != null) {
+                    this.likesModalPost = post.reblog;
+                } else {
+                    this.likesModalPost = post;
+                }
+                this.showLikesModal = true;
+                this.$nextTick(() => {
+                    this.$refs.likesModal.open();
+                });
+            },
         }
     }
 </script>

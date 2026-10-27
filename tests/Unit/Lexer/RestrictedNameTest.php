@@ -3,12 +3,13 @@
 namespace Tests\Unit\Lexer;
 
 use App\Util\Lexer\RestrictedNames;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class RestrictedNameTest extends TestCase
 {
-    /** @test */
-    public function restrictedUsername()
+    #[Test]
+    public function restricted_username()
     {
         $names = RestrictedNames::get();
         $this->assertContains('p', $names);

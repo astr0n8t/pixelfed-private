@@ -2,8 +2,9 @@
 
 namespace App\Jobs\MediaPipeline;
 
-use App\Media;
+use App\Models\Media;
 use App\Services\Media\MediaHlsService;
+use App\Services\UserStorageService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUniqueUntilProcessing;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -11,6 +12,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 class MediaDeletePipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
@@ -62,10 +64,51 @@ class MediaDeletePipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
     public function handle()
     {
         $media = $this->media;
+
+        // Verify media exists
+        if (! $media) {
+            Log::info('MediaDeletePipeline: Media no longer exists, skipping job');
+
+            return 1;
+        }
+
+        // Verify media is still orphaned before deleting
+        if ($media->status_id !== null) {
+            Log::info('MediaDeletePipeline: Media is attached to a status, skipping deletion', [
+                'media_id' => $media->id,
+                'status_id' => $media->status_id,
+                'profile_id' => $media->profile_id,
+                'user_id' => $media->user_id,
+                'mime' => $media->mime,
+                'size' => $media->size,
+                'order' => $media->order,
+                'media_path' => $media->media_path,
+                'thumbnail_path' => $media->thumbnail_path,
+                'hls_path' => $media->hls_path,
+                'remote_media' => (bool) $media->remote_media,
+                'created_at' => $media->created_at?->toDateTimeString(),
+                'updated_at' => $media->updated_at?->toDateTimeString(),
+            ]);
+
+            return 1;
+        }
+
+        $ownerUserId = $media->user_id;
+        $ownerMediaSize = (int) $media->size;
         $path = $media->media_path;
         $thumb = $media->thumbnail_path;
 
         if (! $path) {
+            Log::info('MediaDeletePipeline: Media has no path, skipping deletion', [
+                'media_id' => $media->id,
+                'status_id' => $media->status_id,
+                'profile_id' => $media->profile_id,
+                'user_id' => $media->user_id,
+                'mime' => $media->mime,
+                'thumbnail_path' => $media->thumbnail_path,
+                'hls_path' => $media->hls_path,
+            ]);
+
             return 1;
         }
 
@@ -73,8 +116,20 @@ class MediaDeletePipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
         array_pop($e);
         $i = implode('/', $e);
 
-        if ((bool) config_cache('pixelfed.cloud_storage') == true) {
-            $disk = Storage::disk(config('filesystems.cloud'));
+        try {
+            if ((bool) config_cache('pixelfed.cloud_storage') === true) {
+                $disk = Storage::disk(config('filesystems.cloud'));
+
+                if ($path && $disk->exists($path)) {
+                    $disk->delete($path);
+                }
+
+                if ($thumb && $disk->exists($thumb)) {
+                    $disk->delete($thumb);
+                }
+            }
+
+            $disk = Storage::disk(config('filesystems.local'));
 
             if ($path && $disk->exists($path)) {
                 $disk->delete($path);
@@ -83,28 +138,32 @@ class MediaDeletePipeline implements ShouldBeUniqueUntilProcessing, ShouldQueue
             if ($thumb && $disk->exists($thumb)) {
                 $disk->delete($thumb);
             }
-        }
 
-        $disk = Storage::disk(config('filesystems.local'));
-
-        if ($path && $disk->exists($path)) {
-            $disk->delete($path);
-        }
-
-        if ($thumb && $disk->exists($thumb)) {
-            $disk->delete($thumb);
-        }
-
-        if ($media->hls_path != null) {
-            $files = MediaHlsService::allFiles($media);
-            if ($files && count($files)) {
-                foreach ($files as $file) {
-                    $disk->delete($file);
+            if ($media->hls_path != null) {
+                $files = MediaHlsService::allFiles($media);
+                if ($files && count($files)) {
+                    foreach ($files as $file) {
+                        $disk->delete($file);
+                    }
                 }
             }
-        }
 
-        $media->delete();
+            $media->delete();
+
+            if ($ownerUserId) {
+                UserStorageService::decrementStorageUsed($ownerUserId, $ownerMediaSize);
+            }
+        } catch (\Exception $e) {
+            Log::warning('MediaDeletePipeline: Failed to delete media', [
+                'media_id' => $media->id,
+                'status_id' => $media->status_id,
+                'media_path' => $path,
+                'thumbnail_path' => $thumb,
+                'hls_path' => $media->hls_path,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
 
         return 1;
     }

@@ -3,14 +3,16 @@
 namespace Tests\Unit\ActivityPub\Verb;
 
 use App\Util\ActivityPub\Validator\UndoFollow;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class UndoFollowTest extends TestCase
 {
     protected array $validUndo;
+
     protected array $invalidUndo;
 
-    public function setUp(): void
+    protected function setUp(): void
     {
         parent::setUp();
 
@@ -24,17 +26,17 @@ class UndoFollowTest extends TestCase
             'object' => [
                 'id' => 'https://example.net/u/bob#follows/bb27f601-ddb9-4567-8f16-023d90605ca9',
                 'type' => 'Follow',
-            ]
+            ],
         ];
     }
 
-    /** @test */
+    #[Test]
     public function valid_undo_follow()
     {
         $this->assertTrue(UndoFollow::validate($this->validUndo));
     }
 
-    /** @test */
+    #[Test]
     public function invalid_undo_follow()
     {
         $this->assertFalse(UndoFollow::validate($this->invalidUndo));

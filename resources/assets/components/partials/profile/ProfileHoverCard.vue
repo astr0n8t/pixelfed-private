@@ -103,6 +103,7 @@
 
 		data() {
 			return {
+				config: window.App.config,
 				user: window._sharedData.user,
 				bio: undefined,
 				isLoading: false,

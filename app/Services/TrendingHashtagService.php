@@ -2,55 +2,56 @@
 
 namespace App\Services;
 
+use App\Models\Hashtag;
+use App\Models\StatusHashtag;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Redis;
-use App\Hashtag;
-use App\StatusHashtag;
+use Illuminate\Support\Facades\DB;
 
 class TrendingHashtagService
 {
     const CACHE_KEY = 'api:discover:v1.1:trending:hashtags';
 
-    public static function key($k = null)
+    public static function key($k = null): string
     {
-        return self::CACHE_KEY . $k;
+        return self::CACHE_KEY.$k;
     }
 
     public static function getBannedHashtags()
     {
-        return Cache::remember(self::key(':is_banned'), now()->addMinutes(60), function() {
+        return Cache::remember(self::key(':is_banned'), now()->addMinutes(60), function () {
             return Hashtag::whereIsBanned(true)->pluck('id')->toArray();
         });
     }
 
     public static function getBannedHashtagNames()
     {
-        return Cache::remember(self::key(':is_banned:names'), now()->addMinutes(60), function() {
+        return Cache::remember(self::key(':is_banned:names'), now()->addMinutes(60), function () {
             return Hashtag::find(self::getBannedHashtags())->pluck('name')->toArray();
         });
     }
 
     public static function getNonTrendingHashtags()
     {
-        return Cache::remember(self::key(':can_trend'), now()->addMinutes(60), function() {
+        return Cache::remember(self::key(':can_trend'), now()->addMinutes(60), function () {
             return Hashtag::whereCanTrend(false)->pluck('id')->toArray();
         });
     }
 
     public static function getNsfwHashtags()
     {
-        return Cache::remember(self::key(':is_nsfw'), now()->addMinutes(60), function() {
+        return Cache::remember(self::key(':is_nsfw'), now()->addMinutes(60), function () {
             return Hashtag::whereIsNsfw(true)->pluck('id')->toArray();
         });
     }
 
     public static function getMinRecentId()
     {
-        return Cache::remember(self::key('-min-id'), now()->addMinutes(60), function() {
+        return Cache::remember(self::key('-min-id'), now()->addMinutes(60), function () {
             $minId = StatusHashtag::where('created_at', '>', now()->subMinutes(config('trending.hashtags.recency_mins')))->first();
-            if(!$minId) {
+            if (! $minId) {
                 return 0;
             }
+
             return $minId->id;
         });
     }
@@ -61,27 +62,35 @@ class TrendingHashtagService
 
         $skipIds = array_merge(self::getBannedHashtags(), self::getNonTrendingHashtags(), self::getNsfwHashtags());
 
-        return Cache::remember(self::CACHE_KEY, now()->addMinutes(60), function() use($minId, $skipIds) {
-            return StatusHashtag::select('hashtag_id', \DB::raw('count(*) as total'))
+        return Cache::remember(self::CACHE_KEY, now()->addMinutes(60), function () use ($minId, $skipIds) {
+            // @phpstan-ignore-next-line
+            $trending = StatusHashtag::select('hashtag_id', DB::raw('count(*) as total'))
                 ->whereNotIn('hashtag_id', $skipIds)
                 ->where('id', '>', $minId)
                 ->groupBy('hashtag_id')
                 ->orderBy('total', 'desc')
                 ->take(config('trending.hashtags.limit'))
+                ->get();
+
+            $hashtags = Hashtag::whereIn('id', $trending->pluck('hashtag_id'))
                 ->get()
-                ->map(function($h) {
-                    $hashtag = Hashtag::find($h->hashtag_id);
-                    if(!$hashtag) {
-                        return;
-                    }
-                    return [
-                        'id' => $h->hashtag_id,
-                        'total' => $h->total,
-                        'name' => '#'.$hashtag->name,
-                        'hashtag' => $hashtag->name,
-                        'url' => $hashtag->url()
-                    ];
-                })
+                ->keyBy('id');
+
+            return $trending->map(function ($h) use ($hashtags) {
+                $hashtag = $hashtags->get($h->hashtag_id);
+                if (! $hashtag) {
+                    return;
+                }
+
+                return [
+                    'id' => $h->hashtag_id,
+                    // @phpstan-ignore-next-line
+                    'total' => $h->total,
+                    'name' => '#'.$hashtag->name,
+                    'hashtag' => $hashtag->name,
+                    'url' => $hashtag->url(),
+                ];
+            })
                 ->filter()
                 ->values();
         });

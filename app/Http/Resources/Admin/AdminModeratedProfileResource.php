@@ -2,10 +2,25 @@
 
 namespace App\Http\Resources\Admin;
 
-use App\Profile;
+use App\Models\Profile;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $domain
+ * @property int $profile_id
+ * @property string|null $profile_url
+ * @property string|null $note
+ * @property bool $is_banned
+ * @property bool $is_nsfw
+ * @property bool $is_unlisted
+ * @property bool $is_noautolink
+ * @property bool $is_nodms
+ * @property bool $is_notrending
+ * @property Carbon $created_at
+ */
 class AdminModeratedProfileResource extends JsonResource
 {
     /**

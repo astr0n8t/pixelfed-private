@@ -8,8 +8,8 @@ use App\Models\GroupInteraction;
 use App\Models\GroupMember;
 use App\Models\GroupPost;
 use App\Models\GroupReport;
-use Cache;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 
 trait AdminGroupsController
 {
@@ -17,12 +17,12 @@ trait AdminGroupsController
     {
         $stats = $this->groupAdminStats();
 
-        return view('admin.groups.home', compact('stats'));
+        return view('admin.groups.home', ['stats' => $stats]);
     }
 
     protected function groupAdminStats()
     {
-        return Cache::remember('admin:groups:stats', now()->addMinutes(60), function () {
+        return Cache::remember('admin:groups:stats', 3, function () {
             $res = [
                 'total' => Group::count(),
                 'local' => Group::whereLocal(true)->count(),

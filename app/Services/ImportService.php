@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\ImportPost;
-use Cache;
+use Carbon\Carbon;
+use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class ImportService
 {
@@ -11,71 +14,251 @@ class ImportService
 
     public static function getId($userId, $year, $month, $day)
     {
-        if($userId > 999999) {
-            return;
+        if ($userId > 999999) {
+            return null;
         }
-        if($year < 9 || $year > (int) now()->addYear()->format('y')) {
-            return;
+        if ($year < 9 || $year > (int) now()->addYear()->format('y')) {
+            return null;
         }
-        if($month < 1 || $month > 12) {
-            return;
+        if ($month < 1 || $month > 12) {
+            return null;
         }
-        if($day < 1 || $day > 31) {
-            return;
+        if ($day < 1 || $day > 31) {
+            return null;
         }
+
         $start = 1;
-        $key = self::CACHE_KEY . 'getIdRange:incr:byUserId:' . $userId . ':y-' . $year . ':m-' . $month . ':d-' . $day;
-        $incr = Cache::increment($key, random_int(5, 19));
-        if($incr > 999) {
-            $daysInMonth = now()->parse($day . '-' . $month . '-' . $year)->daysInMonth;
+        $maxAttempts = 10;
 
-            if($month == 12) {
-                $year = $year + 1;
-                $month = 1;
-                $day = 0;
-            }
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            try {
+                return DB::transaction(function () use ($userId, $year, $month, $day, $start) {
+                    $maxExistingIncr = ImportPost::where('user_id', $userId)
+                        ->where('creation_year', $year)
+                        ->where('creation_month', $month)
+                        ->where('creation_day', $day)
+                        ->lockForUpdate()
+                        ->max('creation_id') ?? 0;
 
-            if($day + 1 >= $daysInMonth) {
-                $day = 1;
-                $month = $month + 1;
-            } else {
-                $day = $day + 1;
+                    $incr = $maxExistingIncr + 1;
+
+                    if ($incr > 999) {
+                        [$newYear, $newMonth, $newDay] = self::getNextValidDate($year, $month, $day);
+                        if (! $newYear) {
+                            throw new \Exception('Could not find valid next date');
+                        }
+
+                        return self::getId($userId, $newYear, $newMonth, $newDay);
+                    }
+
+                    $uid = str_pad($userId, 6, 0, STR_PAD_LEFT);
+                    $yearStr = str_pad($year, 2, 0, STR_PAD_LEFT);
+                    $monthStr = str_pad($month, 2, 0, STR_PAD_LEFT);
+                    $dayStr = str_pad($day, 2, 0, STR_PAD_LEFT);
+                    $zone = $yearStr.$monthStr.$dayStr.str_pad($incr, 3, 0, STR_PAD_LEFT);
+
+                    return [
+                        'id' => $start.$uid.$zone,
+                        'year' => $year,
+                        'month' => $month,
+                        'day' => $day,
+                        'incr' => $incr,
+                        'user_id' => $userId,
+                    ];
+                }, 3);
+            } catch (QueryException $e) {
+                if ($e->getCode() === '40001') {
+                    usleep(random_int(1000, 10000));
+
+                    continue;
+                }
+                throw $e;
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'Could not find valid next date')) {
+                    return null;
+                }
+                throw $e;
             }
-            return self::getId($userId, $year, $month, $day);
         }
-        $uid = str_pad($userId, 6, 0, STR_PAD_LEFT);
-        $year = str_pad($year, 2, 0, STR_PAD_LEFT);
-        $month = str_pad($month, 2, 0, STR_PAD_LEFT);
-        $day = str_pad($day, 2, 0, STR_PAD_LEFT);
-        $zone = $year . $month . $day . str_pad($incr, 3, 0, STR_PAD_LEFT);
-        return [
-            'id' => $start . $uid . $zone,
-            'year' => $year,
-            'month' => $month,
-            'day' => $day,
-            'incr' => $incr,
-        ];
+
+        return null;
     }
 
-    public static function getPostCount($profileId, $refresh = false)
+    public static function getAndReserveId($userId, $year, $month, $day, $importPostData = [])
     {
-        $key = self::CACHE_KEY . 'totalPostCountByProfileId:' . $profileId;
-        if($refresh) {
+        if ($userId > 999999) {
+            return null;
+        }
+        if ($year < 9 || $year > (int) now()->addYear()->format('y')) {
+            return null;
+        }
+        if ($month < 1 || $month > 12) {
+            return null;
+        }
+        if ($day < 1 || $day > 31) {
+            return null;
+        }
+
+        $start = 1;
+        $maxAttempts = 10;
+
+        for ($attempt = 0; $attempt < $maxAttempts; $attempt++) {
+            try {
+                return DB::transaction(function () use ($userId, $year, $month, $day, $start, $importPostData) {
+                    $maxExistingIncr = ImportPost::where('user_id', $userId)
+                        ->where('creation_year', $year)
+                        ->where('creation_month', $month)
+                        ->where('creation_day', $day)
+                        ->lockForUpdate()
+                        ->max('creation_id') ?? 0;
+
+                    $incr = $maxExistingIncr + 1;
+
+                    if ($incr > 999) {
+                        [$newYear, $newMonth, $newDay] = self::getNextValidDate($year, $month, $day);
+                        if (! $newYear) {
+                            throw new \Exception('Could not find valid next date');
+                        }
+
+                        return self::getAndReserveId($userId, $newYear, $newMonth, $newDay, $importPostData);
+                    }
+
+                    $uid = str_pad($userId, 6, 0, STR_PAD_LEFT);
+                    $yearStr = str_pad($year, 2, 0, STR_PAD_LEFT);
+                    $monthStr = str_pad($month, 2, 0, STR_PAD_LEFT);
+                    $dayStr = str_pad($day, 2, 0, STR_PAD_LEFT);
+                    $zone = $yearStr.$monthStr.$dayStr.str_pad($incr, 3, 0, STR_PAD_LEFT);
+
+                    $idData = [
+                        'id' => $start.$uid.$zone,
+                        'year' => $year,
+                        'month' => $month,
+                        'day' => $day,
+                        'incr' => $incr,
+                        'user_id' => $userId,
+                    ];
+
+                    $placeholder = new ImportPost(array_merge([
+                        'user_id' => $userId,
+                        'creation_year' => $year,
+                        'creation_month' => $month,
+                        'creation_day' => $day,
+                        'creation_id' => $incr,
+                        'reserved_at' => now(),
+                    ], $importPostData));
+
+                    $placeholder->save();
+
+                    return [
+                        'id_data' => $idData,
+                        'import_post' => $placeholder,
+                    ];
+                }, 3);
+            } catch (QueryException $e) {
+                if ($e->getCode() === '40001') {
+                    usleep(random_int(1000, 10000));
+
+                    continue;
+                }
+
+                if ($e->getCode() === '23000') {
+                    usleep(random_int(100, 1000));
+
+                    continue;
+                }
+
+                throw $e;
+            } catch (\Exception $e) {
+                if (str_contains($e->getMessage(), 'Could not find valid next date')) {
+                    return null;
+                }
+                throw $e;
+            }
+        }
+
+        return null;
+    }
+
+    public static function getUniqueCreationId($userId, $year, $month, $day, $excludeImportPostId = null)
+    {
+        return DB::transaction(function () use ($userId, $year, $month, $day, $excludeImportPostId) {
+            $query = ImportPost::where('user_id', $userId)
+                ->where('creation_year', $year)
+                ->where('creation_month', $month)
+                ->where('creation_day', $day)
+                ->lockForUpdate();
+
+            if ($excludeImportPostId) {
+                $query->where('id', '!=', $excludeImportPostId);
+            }
+
+            $maxExistingIncr = $query->max('creation_id') ?? 0;
+
+            $incr = $maxExistingIncr + 1;
+
+            while ($incr <= 999) {
+                $uid = str_pad($userId, 6, 0, STR_PAD_LEFT);
+                $yearStr = str_pad($year, 2, 0, STR_PAD_LEFT);
+                $monthStr = str_pad($month, 2, 0, STR_PAD_LEFT);
+                $dayStr = str_pad($day, 2, 0, STR_PAD_LEFT);
+                $zone = $yearStr.$monthStr.$dayStr.str_pad($incr, 3, 0, STR_PAD_LEFT);
+                $statusId = '1'.$uid.$zone;
+
+                $statusExists = DB::table('statuses')->where('id', $statusId)->exists();
+
+                $importExists = ImportPost::where('user_id', $userId)
+                    ->where('creation_year', $year)
+                    ->where('creation_month', $month)
+                    ->where('creation_day', $day)
+                    ->where('creation_id', $incr)
+                    ->when($excludeImportPostId, function ($q) use ($excludeImportPostId) {
+                        return $q->where('id', '!=', $excludeImportPostId);
+                    })
+                    ->exists();
+
+                if (! $statusExists && ! $importExists) {
+                    return [
+                        'incr' => $incr,
+                        'year' => $year,
+                        'month' => $month,
+                        'day' => $day,
+                        'status_id' => $statusId,
+                    ];
+                }
+
+                $incr++;
+            }
+
+            [$newYear, $newMonth, $newDay] = self::getNextValidDate($year, $month, $day);
+            if (! $newYear) {
+                return null;
+            }
+
+            return self::getUniqueCreationId($userId, $newYear, $newMonth, $newDay, $excludeImportPostId);
+        }, 3);
+    }
+
+    public static function getPostCount($profileId, $refresh = false): int
+    {
+        $key = self::CACHE_KEY.'totalPostCountByProfileId:'.$profileId;
+        if ($refresh) {
             Cache::forget($key);
         }
-        return intval(Cache::remember($key, now()->addMinutes(60), function() use($profileId) {
+
+        return intval(Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)->whereSkipMissingMedia(false)->count();
         }));
     }
 
-    public static function getAttempts($profileId)
+    public static function getAttempts($profileId): int
     {
-        $key = self::CACHE_KEY . 'attemptsByProfileId:' . $profileId;
-        return intval(Cache::remember($key, now()->addMinutes(60), function() use($profileId) {
+        $key = self::CACHE_KEY.'attemptsByProfileId:'.$profileId;
+
+        return intval(Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)
                 ->whereSkipMissingMedia(false)
                 ->get()
-                ->groupBy(function($item) {
+                ->groupBy(function ($item) {
                     return $item->created_at->format('Y-m-d');
                 })
                 ->count();
@@ -84,31 +267,55 @@ class ImportService
 
     public static function clearAttempts($profileId)
     {
-        $key = self::CACHE_KEY . 'attemptsByProfileId:' . $profileId;
+        $key = self::CACHE_KEY.'attemptsByProfileId:'.$profileId;
+
         return Cache::forget($key);
     }
 
     public static function getImportedFiles($profileId, $refresh = false)
     {
-        $key = self::CACHE_KEY . 'importedPostsByProfileId:' . $profileId;
-        if($refresh) {
+        $key = self::CACHE_KEY.'importedPostsByProfileId:'.$profileId;
+        if ($refresh) {
             Cache::forget($key);
         }
-        return Cache::remember($key, now()->addMinutes(60), function() use($profileId) {
+
+        return Cache::remember($key, now()->addMinutes(60), function () use ($profileId) {
             return ImportPost::whereProfileId($profileId)
                 ->get()
-                ->filter(function($ip) {
-                    return StatusService::get($ip->status_id) == null;
+                ->filter(function ($ip) {
+                    return StatusService::get($ip->status_id) != null;
                 })
-                ->map(function($ip) {
-                    return collect($ip->media)->map(function($m) { return $m['uri']; });
+                ->map(function ($ip) {
+                    return collect($ip->media)->map(function ($m) {
+                        return $m['uri'];
+                    });
                 })->values()->flatten();
         });
     }
 
     public static function clearImportedFiles($profileId)
     {
-        $key = self::CACHE_KEY . 'importedPostsByProfileId:' . $profileId;
+        $key = self::CACHE_KEY.'importedPostsByProfileId:'.$profileId;
+
         return Cache::forget($key);
+    }
+
+    private static function getNextValidDate($year, $month, $day)
+    {
+        try {
+            $fullYear = $year < 50 ? 2000 + $year : 1900 + $year;
+            $date = Carbon::createFromDate($fullYear, $month, $day);
+            $nextDay = $date->addDay();
+
+            $nextYear2Digit = (int) $nextDay->format('y');
+
+            return [
+                $nextYear2Digit,
+                $nextDay->month,
+                $nextDay->day,
+            ];
+        } catch (\Exception) {
+            return [null, null, null];
+        }
     }
 }

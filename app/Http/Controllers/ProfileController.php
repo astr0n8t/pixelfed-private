@@ -2,24 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\AccountInterstitial;
-use App\Follower;
-use App\FollowRequest;
-use App\Profile;
+use App\Models\AccountInterstitial;
+use App\Models\Follower;
+use App\Models\FollowRequest;
+use App\Models\Profile;
+use App\Models\Status;
+use App\Models\Story;
+use App\Models\User;
+use App\Models\UserFilter;
+use App\Models\UserSetting;
 use App\Services\AccountService;
 use App\Services\FollowerService;
 use App\Services\StatusService;
-use App\Status;
-use App\Story;
 use App\Transformer\ActivityPub\ProfileTransformer;
-use App\User;
-use App\UserFilter;
-use App\UserSetting;
-use Auth;
-use Cache;
+use Illuminate\Contracts\View\View as ViewContract;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\View;
 use League\Fractal;
-use View;
 
 class ProfileController extends Controller
 {
@@ -33,7 +36,7 @@ class ProfileController extends Controller
         }
 
         // redirect authed users to Metro 2.0
-        if ($request->user() && !$request->filled('carousel')) {
+        if ($request->user() && ! $request->filled('carousel')) {
             // unless they force static view
             if (! $request->has('fs') || $request->input('fs') != '1') {
                 $pid = AccountService::usernameToId($username);
@@ -47,7 +50,7 @@ class ProfileController extends Controller
 
         abort_unless($user, 404);
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$user->id, now()->addMinutes(60), function () use ($user) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$user->id, 3600, function () use ($user) {
             $exists = AccountInterstitial::whereUserId($user->user_id)->where('is_spam', 1)->count();
             if ($exists) {
                 return true;
@@ -62,88 +65,86 @@ class ProfileController extends Controller
         return $this->buildProfile($request, $user);
     }
 
-    protected function buildProfile(Request $request, $user)
+    protected function buildProfile(Request $request, $user): ViewContract
     {
         $carousel = (bool) $request->filled('carousel');
         $username = $user->username;
-        $loggedIn = Auth::check();
+        $loggedIn = $request->user() !== null;
         $isPrivate = false;
         $isBlocked = false;
         if (! $loggedIn) {
             $key = 'profile:settings:'.$user->id;
-            $ttl = now()->addHours(6);
-            $settings = Cache::remember($key, now()->addMinutes(60), function () use ($user) {
-                return $user->user->settings;
+            $ttl = now()->addMinutes(60);
+            $settings = Cache::remember($key, $ttl, function () use ($user) {
+                $s = $user->user?->settings;
+
+                return [
+                    'crawlable' => $s->crawlable ?? true,
+                    'following' => [
+                        'count' => $s->show_profile_following_count ?? true,
+                        'list' => $s->show_profile_following ?? false,
+                    ],
+                    'followers' => [
+                        'count' => $s->show_profile_follower_count ?? true,
+                        'list' => $s->show_profile_followers ?? false,
+                    ],
+                ];
             });
 
             if ($user->is_private == true) {
                 $profile = null;
 
-                return view('profile.private', compact('user'));
+                return view('profile.private', ['user' => $user]);
             }
 
             $owner = false;
             $is_following = false;
 
             $profile = $user;
-            $settings = [
-                'crawlable' => $settings->crawlable,
-                'following' => [
-                    'count' => $settings->show_profile_following_count,
-                    'list' => $settings->show_profile_following,
-                ],
-                'followers' => [
-                    'count' => $settings->show_profile_follower_count,
-                    'list' => $settings->show_profile_followers,
-                ],
-            ];
 
-            if($carousel) {
-                return view('profile.show_carousel', compact('profile', 'settings'));
-            }
-            return view('profile.show', compact('profile', 'settings'));
-        } else {
-            $key = 'profile:settings:'.$user->id;
-            $ttl = now()->addHours(6);
-            $settings = Cache::remember($key, now()->addMinutes(60), function () use ($user) {
-                return $user->user->settings;
-            });
-
-            if ($user->is_private == true) {
-                $isPrivate = $this->privateProfileCheck($user, $loggedIn);
+            if ($carousel) {
+                return view('profile.show_carousel', ['profile' => $profile, 'settings' => $settings]);
             }
 
-            $isBlocked = $this->blockedProfileCheck($user);
-
-            $owner = $loggedIn && Auth::id() === $user->user_id;
-            $is_following = ($owner == false && Auth::check()) ? $user->followedBy(Auth::user()->profile) : false;
-
-            if ($isPrivate == true || $isBlocked == true) {
-                $requested = Auth::check() ? FollowRequest::whereFollowerId(Auth::user()->profile_id)
-                    ->whereFollowingId($user->id)
-                    ->exists() : false;
-
-                return view('profile.private', compact('user', 'is_following', 'requested'));
-            }
-
-            $is_admin = is_null($user->domain) ? $user->user->is_admin : false;
-            $profile = $user;
-            $settings = [
-                'crawlable' => $settings->crawlable,
-                'following' => [
-                    'count' => $settings->show_profile_following_count,
-                    'list' => $settings->show_profile_following,
-                ],
-                'followers' => [
-                    'count' => $settings->show_profile_follower_count,
-                    'list' => $settings->show_profile_followers,
-                ],
-            ];
-            if($carousel) {
-                return view('profile.show_carousel', compact('profile', 'settings'));
-            }
-            return view('profile.show', compact('profile', 'settings'));
+            return view('profile.show', ['profile' => $profile, 'settings' => $settings]);
         }
+        $key = 'profile:settings:'.$user->id;
+        $ttl = now()->addMinutes(60);
+        $settings = Cache::remember($key, $ttl, function () use ($user) {
+            $s = $user->user?->settings;
+
+            return [
+                'crawlable' => $s->crawlable ?? true,
+                'following' => [
+                    'count' => $s->show_profile_following_count ?? true,
+                    'list' => $s->show_profile_following ?? false,
+                ],
+                'followers' => [
+                    'count' => $s->show_profile_follower_count ?? true,
+                    'list' => $s->show_profile_followers ?? false,
+                ],
+            ];
+        });
+        if ($user->is_private == true) {
+            $isPrivate = $this->privateProfileCheck($user, $loggedIn);
+        }
+        $isBlocked = $this->blockedProfileCheck($user);
+        $owner = $loggedIn && Auth::id() === $user->user_id;
+        $is_following = ($owner === false && $request->user() !== null) ? $user->followedBy($request->user()->profile) : false;
+        if ($isPrivate === true || $isBlocked === true) {
+            $requested = $request->user() !== null ? FollowRequest::whereFollowerId($request->user()->profile_id)
+                ->whereFollowingId($user->id)
+                ->exists() : false;
+
+            return view('profile.private', ['user' => $user, 'is_following' => $is_following, 'requested' => $requested]);
+        }
+        $is_admin = is_null($user->domain) ? $user->user->is_admin : false;
+        $profile = $user;
+        if ($carousel) {
+            return view('profile.show_carousel', ['profile' => $profile, 'settings' => $settings]);
+        }
+
+        return view('profile.show', ['profile' => $profile, 'settings' => $settings]);
     }
 
     protected function getCachedUser($username, $withTrashed = false)
@@ -154,17 +155,17 @@ class ProfileController extends Controller
         }
         $hash = ($withTrashed ? 'wt:' : 'wot:').strtolower($username);
 
-        return Cache::remember('pfc:cached-user:'.$hash, $withTrashed ? now()->addMinutes(60) : 900, function () use ($username, $withTrashed) {
+        return Cache::remember('pfc:cached-user:'.$hash, ($withTrashed ? 3600 : 900), function () use ($username, $withTrashed) {
             if (! $withTrashed) {
                 return Profile::whereNull(['domain', 'status'])
                     ->whereUsername($username)
                     ->first();
-            } else {
-                return Profile::withTrashed()
-                    ->whereNull('domain')
-                    ->whereUsername($username)
-                    ->first();
             }
+
+            return Profile::withTrashed()
+                ->whereNull(['domain', 'status'])
+                ->whereUsername($username)
+                ->first();
         });
     }
 
@@ -183,13 +184,13 @@ class ProfileController extends Controller
         return redirect($user->url());
     }
 
-    protected function privateProfileCheck(Profile $profile, $loggedIn)
+    protected function privateProfileCheck(Profile $profile, $loggedIn): bool
     {
-        if (! Auth::check()) {
+        if (! request()->user()) {
             return true;
         }
 
-        $user = Auth::user()->profile;
+        $user = request()->user()->profile;
         if ($user->id == $profile->id || ! $profile->is_private) {
             return false;
         }
@@ -202,14 +203,13 @@ class ProfileController extends Controller
         return false;
     }
 
-    public static function accountCheck(Profile $profile)
+    public static function accountCheck(Profile $profile): ViewContract
     {
         switch ($profile->status) {
             case 'disabled':
             case 'suspended':
             case 'delete':
                 return view('profile.disabled');
-                break;
 
             default:
                 break;
@@ -218,12 +218,12 @@ class ProfileController extends Controller
         return abort(404);
     }
 
-    protected function blockedProfileCheck(Profile $profile)
+    protected function blockedProfileCheck(Profile $profile): bool
     {
-        $pid = Auth::user()->profile->id;
+        $pid = request()->user()->profile->id;
         $blocks = UserFilter::whereUserId($profile->id)
             ->whereFilterType('block')
-            ->whereFilterableType('App\Profile')
+            ->whereIn('filterable_type', ['App\Profile', Profile::class])
             ->pluck('filterable_id')
             ->toArray();
         if (in_array($pid, $blocks)) {
@@ -239,8 +239,8 @@ class ProfileController extends Controller
         abort_if(! $user, 404, 'Not found');
         abort_if($user->domain, 404);
 
-        return Cache::remember('pf:activitypub:user-object:by-id:'.$user->id, now()->addMinutes(60), function () use ($user) {
-            $fractal = new Fractal\Manager();
+        return Cache::remember('pf:activitypub:user-object:by-id:'.$user->id, 1800, function () use ($user) {
+            $fractal = new Fractal\Manager;
             $resource = new Fractal\Resource\Item($user, new ProfileTransformer);
             $res = $fractal->createData($resource)->toArray();
 
@@ -260,7 +260,7 @@ class ProfileController extends Controller
 
         abort_if(! $profile || $profile['locked'] || ! $profile['local'], 404);
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], now()->addMinutes(60), function () use ($profile) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile['id'], 3600, function () use ($profile) {
             $uid = User::whereProfileId($profile['id'])->first();
             if (! $uid) {
                 return true;
@@ -314,7 +314,7 @@ class ProfileController extends Controller
                 $headers['Last-Modified'] = now()->parse($items->first()['created_at'])->toRfc7231String();
             }
 
-            return compact('items', 'permalink', 'headers');
+            return ['items' => $items, 'permalink' => $permalink, 'headers' => $headers];
         });
         abort_if(! $data || ! isset($data['items']) || ! isset($data['permalink']), 404);
 
@@ -329,14 +329,14 @@ class ProfileController extends Controller
             ->withHeaders($data['headers']);
     }
 
-    public function meRedirect()
+    public function meRedirect(Request $request): RedirectResponse
     {
-        abort_if(! Auth::check(), 404);
+        abort_if(! $request->user(), 404);
 
-        return redirect(Auth::user()->url());
+        return redirect($request->user()->url());
     }
 
-    public function embed(Request $request, $username)
+    public function embed(Request $request, $username): Response
     {
         $res = view('profile.embed-removed');
 
@@ -354,7 +354,7 @@ class ProfileController extends Controller
             return response($res)->withHeaders(['X-Frame-Options' => 'ALLOWALL']);
         }
 
-        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile->id, now()->addMinutes(60), function () use ($profile) {
+        $aiCheck = Cache::remember('profile:ai-check:spam-login:'.$profile->id, 3600, function () use ($profile) {
             $exists = AccountInterstitial::whereUserId($profile->user_id)->where('is_spam', 1)->count();
             if ($exists) {
                 return true;
@@ -372,23 +372,23 @@ class ProfileController extends Controller
         }
 
         $profile = AccountService::get($profile->id);
-        $res = view('profile.embed', compact('profile'));
+        $res = view('profile.embed', ['profile' => $profile]);
 
         return response($res)->withHeaders(['X-Frame-Options' => 'ALLOWALL']);
     }
 
-    public function stories(Request $request, $username)
+    public function stories(Request $request, $username): ViewContract
     {
         abort_if(! (bool) config_cache('instance.stories.enabled') || ! $request->user(), 404);
-        $profile = Profile::whereNull('domain')->whereUsername($username)->firstOrFail();
+        $profile = Profile::whereNull(['domain', 'status'])->whereUsername($username)->firstOrFail();
         $pid = $profile->id;
-        $authed = Auth::user()->profile_id;
+        $authed = $request->user()->profile_id;
         abort_if($pid != $authed && ! FollowerService::follows($authed, $pid), 404);
         $exists = Story::whereProfileId($pid)
             ->whereActive(true)
             ->exists();
         abort_unless($exists, 404);
 
-        return view('profile.story', compact('pid', 'profile'));
+        return view('profile.story', ['pid' => $pid, 'profile' => $profile]);
     }
 }

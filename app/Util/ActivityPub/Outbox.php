@@ -3,7 +3,7 @@
 namespace App\Util\ActivityPub;
 
 use App\Http\Controllers\ProfileController;
-use App\Status;
+use App\Models\Status;
 use App\Transformer\ActivityPub\Verb\CreateNote;
 use League\Fractal;
 
@@ -31,8 +31,8 @@ class Outbox
 
         $count = Status::whereProfileId($profile->id)->count();
 
-        $fractal = new Fractal\Manager();
-        $resource = new Fractal\Resource\Collection($timeline, new CreateNote());
+        $fractal = new Fractal\Manager;
+        $resource = new Fractal\Resource\Collection($timeline, new CreateNote);
         $res = $fractal->createData($resource)->toArray();
 
         $outbox = [

@@ -3,12 +3,13 @@
 namespace Tests\Unit;
 
 use App\Util\Lexer\Nickname;
+use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
 class WebfingerTest extends TestCase
 {
-    /** @test */
-    public function webfingerTest()
+    #[Test]
+    public function webfinger_test()
     {
         $expected = [
             'domain' => 'pixelfed.org',

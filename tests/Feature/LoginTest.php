@@ -1,16 +1,7 @@
 <?php
 
-namespace Tests\Feature;
+it('shows the login page', function () {
+    $response = $this->get('login');
 
-use Tests\TestCase;
-
-class LoginTest extends TestCase
-{
-    /** @test */
-    public function view_login_page()
-    {
-        $response = $this->get('login');
-
-        $response->assertSee('Forgot Password');
-    }
-}
+    $response->assertSee('Forgot Password');
+});
