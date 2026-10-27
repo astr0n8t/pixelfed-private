@@ -273,6 +273,9 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->grou
 
         Route::get('web/{q}', [SpaController::class, 'index'])->where('q', '.*');
         Route::get('web', [SpaController::class, 'index']);
+
+        Route::get('invites', [SpaController::class, 'index'])->name('invites.home');
+        Route::get('invites/create', [SpaController::class, 'index'])->name('invites.create');
     });
 
     Route::prefix('account')->group(function () {
@@ -383,9 +386,6 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->grou
             Route::redirect('/', '/settings/relationships/home');
             Route::get('home', [SettingsController::class, 'relationshipsHome'])->name('settings.relationships');
         });
-        Route::get('invites/create', [UserInviteController::class, 'create'])->name('settings.invites.create');
-        Route::post('invites/create', [UserInviteController::class, 'store']);
-        Route::get('invites', [UserInviteController::class, 'show'])->name('settings.invites');
         // Route::get('sponsor', [SettingsController::class, 'sponsor'])->name('settings.sponsor');
         // Route::post('sponsor', [SettingsController::class, 'sponsorStore']);
         Route::prefix('import')->middleware('dangerzone')->group(function () {
@@ -502,6 +502,8 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->grou
 
     Route::get('auth/invite/a/{code}', [AdminInviteController::class, 'index']);
     Route::post('api/v1.1/auth/invite/admin/re', [AdminInviteController::class, 'apiRegister'])->middleware('throttle:5,1440');
+    Route::get('auth/invite/u/{code}', [UserInviteController::class, 'index']);
+    Route::post('api/v1.1/auth/invite/user/re', [UserInviteController::class, 'apiRegister'])->middleware('throttle:5,1440');
 
     Route::redirect('groups/', '/groups/home');
     Route::redirect('groups/home', '/groups/feed');

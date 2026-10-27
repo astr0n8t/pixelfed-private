@@ -22,6 +22,7 @@ use App\Http\Controllers\SoftwareUpdateController;
 use App\Http\Controllers\SpaController;
 use App\Http\Controllers\StatusController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\UserInviteController;
 
 Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->group(function () {
     Route::prefix('api')->group(function () {
@@ -51,6 +52,10 @@ Route::domain(config('pixelfed.domain.app'))->middleware(['localization'])->grou
                 Route::post('/poll', [ComposeController::class, 'createPoll']);
             });
         });
+
+        Route::post('invites/create', [UserInviteController::class, 'create']);
+        Route::post('invites/delete', [UserInviteController::class, 'delete']);
+        Route::get('invites/get', [UserInviteController::class, 'get']);
 
         Route::prefix('direct')->group(function () {
             Route::get('browse', [DirectMessageController::class, 'browse']);

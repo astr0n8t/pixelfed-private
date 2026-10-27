@@ -16,7 +16,8 @@
                     <div class="d-flex flex-column align-items-center justify-content-center">
                         <p class="lead mb-1 text-muted">You've been invited to join</p>
                         <p class="h3 mb-2">{{ instance.uri }}</p>
-                        <p class="mb-0 text-muted">
+                        <!-- restricted instances do not publish stats to anonymous visitors -->
+                        <p v-if="instance.stats" class="mb-0 text-muted">
                             <span>{{ instance.stats.user_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} users</span>
                             <span>·</span>
                             <span>{{ instance.stats.status_count.toLocaleString('en-CA', { compactDisplay: "short", notation: "compact"}) }} posts</span>

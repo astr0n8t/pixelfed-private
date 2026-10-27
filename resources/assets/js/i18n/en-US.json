@@ -38,6 +38,7 @@
     "navmenu": {
         "search": "Search",
         "admin": "Admin Dashboard",
+        "invites": "Invite Users",
         "homeFeed": "Home Feed",
         "localFeed": "Local Feed",
         "globalFeed": "Global Feed",

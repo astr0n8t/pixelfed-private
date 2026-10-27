@@ -41,6 +41,7 @@ use App\Http\Controllers\StatusEditController;
 use App\Http\Controllers\Stories\StoryApiV1Controller;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\UserAppSettingsController;
+use App\Http\Controllers\UserInviteController;
 
 $middleware = ['auth:sanctum,api'];
 
@@ -341,6 +342,9 @@ Route::prefix('api')->group(function () use ($middleware) {
             Route::post('invite/admin/verify', [AdminInviteController::class, 'apiVerifyCheck'])->middleware('throttle:20,120');
             Route::post('invite/admin/uc', [AdminInviteController::class, 'apiUsernameCheck'])->middleware('throttle:20,120');
             Route::post('invite/admin/ec', [AdminInviteController::class, 'apiEmailCheck'])->middleware('throttle:10,1440');
+            Route::post('invite/user/verify', [UserInviteController::class, 'apiVerifyCheck'])->middleware('throttle:20,5');
+            Route::post('invite/user/uc', [UserInviteController::class, 'apiUsernameCheck'])->middleware('throttle:20,5');
+            Route::post('invite/user/ec', [UserInviteController::class, 'apiEmailCheck'])->middleware('throttle:20,5');
         });
 
         Route::prefix('push')->group(function () use ($middleware) {

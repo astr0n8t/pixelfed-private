@@ -1,0 +1,16 @@
+Vue.component(
+    'invites-create',
+    require('./../components/InvitesCreate.vue').default
+);
+Vue.component(
+    'invites-home',
+    require('./../components/InvitesHome.vue').default
+);
+Vue.component(
+    'admin-invite',
+    require('./../components/invite/AdminInvite.vue').default
+);
+Vue.component(
+    'user-invite',
+    require('./../components/invite/UserInvite.vue').default
+);
