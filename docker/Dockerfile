@@ -8,37 +8,52 @@
 # See: https://nginx.org/
 #
 # renovate: datasource=docker depName=nginx versioning=semver
-ARG NGINX_VERSION="latest"
+ARG NGINX_VERSION="1.29.4"
 
 # See: https://github.com/ddollar/forego
 #
 # renovate: datasource=docker depName=nginxproxy/forego
-ARG FOREGO_VERSION="0.18.2"
+ARG FOREGO_VERSION="0.18.8"
 
 # See: https://github.com/hairyhenderson/gomplate
 #
 # renovate: datasource=github-releases depName=hairyhenderson/gomplate
-ARG GOMPLATE_VERSION="4.3.0"
+ARG GOMPLATE_VERSION="5.2.0"
 
 # See: https://github.com/jippi/dottie
 #
 # renovate: datasource=docker depName=ghcr.io/jippi/dottie
-ARG DOTTIE_VERSION="v0.14.3"
+ARG DOTTIE_VERSION="v1.3.0"
 
 # See: https://github.com/composer/composer
 #
 # renovate: datasource=github-releases depName=composer/composer
-ARG COMPOSER_VERSION="2.8.4"
+ARG COMPOSER_VERSION="2.9.2"
 
 # See: https://github.com/jippi/dottie
 #
 # renovate: datasource=docker depName=ghcr.io/jippi/dottie
-ARG MARIADB_CLIENT_VERSION="10.11"
+ARG MARIADB_CLIENT_VERSION="11.8"
 
 # See: https://github.com/jippi/dottie
 #
 # renovate: datasource=docker depName=ghcr.io/jippi/dottie
 ARG POSTGRESQL_CLIENT_VERSION="17"
+
+# Go toolchain for building forego/dottie/gomplate (see the go-tools stage). Keep on the latest patch
+# release: rebuilding with it is what fixes the stdlib CVEs in those binaries.
+#
+# renovate: datasource=docker depName=golang
+ARG GOLANG_VERSION="1.27.3"
+
+# Static ffmpeg/ffprobe (replaces Debian's ffmpeg package, whose libavdevice/libplacebo dependencies
+# pull in ~360MB of audio, X11/GPU and Vulkan libraries a server never uses).
+# Security fixes come from bumping this tag, not from apt.
+#
+# See: https://github.com/wader/static-ffmpeg
+#
+# renovate: datasource=docker depName=mwader/static-ffmpeg
+ARG FFMPEG_VERSION="9.0.2-1"
 
 ARG RUNTIME_UID=33 # often called 'www-data'
 ARG RUNTIME_GID=33 # often called 'www-data'
@@ -66,9 +81,10 @@ ARG PHP_PECL_EXTENSIONS_EXTRA=
 # PHP extensions installed via https://deb.sury.org/
 # ! NOTE: Must not include the "php8.x-" prefix for packages
 # !       so [php8.4-bcmath] should just be [bcmath] here
-ARG PHP_EXTENSIONS="bcmath curl gd imagick intl mbstring redis xml yaml zip"
+ARG PHP_EXTENSIONS="bcmath curl gd imagick intl mbstring redis vips xml yaml zip ffi"
 ARG PHP_EXTENSIONS_EXTRA=""
-ARG PHP_EXTENSIONS_DATABASE="pgsql mysql sqlite"
+ARG PHP_EXTENSIONS_DATABASE="pgsql mysql sqlite3"
+#ARG PHP_EXTENSIONS_DATABASE="pgsql mysql sqlite"
 
 # GPG key for nginx apt repository
 ARG NGINX_GPGKEY="573BFD6B3D8FBC641079A6ABABF5BD827BD9BF62"
@@ -84,28 +100,44 @@ ARG NGINX_GPGKEY_PATH="/usr/share/keyrings/nginx-archive-keyring.gpg"
 # Used to copy some docker-entrypoint files for [nginx-runtime]
 #
 # NOTE: Docker will *not* pull this image unless it's referenced (via build target)
-FROM docker.io/library/nginx:latest AS nginx-image
+# GLITCH MODIFIED: Docker Hub pull-through mirror, avoids ECR Public rate limits (upstream: nginx)
+FROM mirror.gcr.io/library/nginx:${NGINX_VERSION} AS nginx-image
 
-# Forego is a Procfile "runner" that makes it trival to run multiple
-# processes under a simple init / PID 1 process.
+# Go helper binaries, built from their pinned release tags (see install/go-tools.sh):
+#   forego   - Procfile runner, PID 1 for the nginx runtime   https://github.com/nginx-proxy/forego
+#   dottie   - .env validation                                  https://github.com/jippi/dottie
+#   gomplate - config templating in the entrypoint             https://github.com/hairyhenderson/gomplate
+# Built with a current Go and patched golang.org/x/* (etc.) modules, because the upstream release
+# binaries lag behind Go security releases. Cross-compiled on the build platform.
+FROM --platform=${BUILDPLATFORM} docker.io/library/golang:${GOLANG_VERSION}-${PHP_DEBIAN_RELEASE} AS go-tools
+
+ARG FOREGO_VERSION
+ARG DOTTIE_VERSION
+ARG GOMPLATE_VERSION
+ARG TARGETOS
+ARG TARGETARCH
+
+ENV GOOS=${TARGETOS}
+ENV GOARCH=${TARGETARCH}
+
+COPY docker/rootfs/shared/docker/install/go-tools.sh /go-tools.sh
+
+RUN --mount=type=cache,id=pixelfed-go-mod,target=/go/pkg/mod \
+    --mount=type=cache,id=pixelfed-go-build-${TARGETARCH},target=/root/.cache/go-build \
+    FOREGO_VERSION=${FOREGO_VERSION} DOTTIE_VERSION=${DOTTIE_VERSION} GOMPLATE_VERSION=${GOMPLATE_VERSION} \
+    /go-tools.sh /out
+
+# Static ffmpeg + ffprobe binaries
 #
 # NOTE: Docker will *not* pull this image unless it's referenced (via build target)
-#
-# See: https://github.com/nginx-proxy/forego
-FROM ghcr.io/nginx-proxy/forego:${FOREGO_VERSION}-debian AS forego-image
-
-# Dottie makes working with .env files easier and safer
-#
-# NOTE: Docker will *not* pull this image unless it's referenced (via build target)
-#
-# See: https://github.com/jippi/dottie
-FROM ghcr.io/jippi/dottie:${DOTTIE_VERSION} AS dottie-image
+FROM docker.io/mwader/static-ffmpeg:${FFMPEG_VERSION} AS ffmpeg-image
 
 #######################################################
 # Base image
 #######################################################
 
-FROM debian:${PHP_DEBIAN_RELEASE} AS base
+# -slim: same Debian, without docs/man pages/translations (and dpkg skips them for later installs too)
+FROM docker.io/library/debian:${PHP_DEBIAN_RELEASE}-slim AS base
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
@@ -138,8 +170,8 @@ ARG POSTGRESQL_CLIENT_VERSION
 # Copy the base layer installer into the image
 COPY docker/rootfs/shared/docker/install/base.sh /docker/install/base.sh
 
-RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/lib/apt \
-    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/cache/apt \
+RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
+    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
     /docker/install/base.sh
 
 #######################################################
@@ -147,6 +179,7 @@ RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TA
 #######################################################
 
 ARG COMPOSER_VERSION
+ARG PHP_VERSION
 ARG PHP_EXTENSIONS
 ARG PHP_EXTENSIONS_DATABASE
 ARG PHP_EXTENSIONS_EXTRA
@@ -157,10 +190,9 @@ ARG PHP_BASE_TYPE
 # Copy the PHP layer installer into the image
 COPY docker/rootfs/shared/docker/install/php.sh /docker/install/php.sh
 
-RUN --mount=type=cache,id=pixelfed-pear-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/tmp/pear \
-    --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/lib/apt \
-    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/cache/apt \
-    IPE_KEEP_SYSPKG_CACHE=1 \
+RUN --mount=type=cache,id=pixelfed-pear-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/tmp/pear \
+    --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
+    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
     COMPOSER_VERSION=${COMPOSER_VERSION} \
     PHP_EXTENSIONS_DATABASE=${PHP_EXTENSIONS_DATABASE} \
     PHP_EXTENSIONS_EXTRA=${PHP_EXTENSIONS_EXTRA} \
@@ -180,7 +212,7 @@ ENV COMPOSER_CACHE_DIR="/cache/composer"
 # Don't enforce any memory limits for composer
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Disable interactvitity from composer
+# Disable interactivity from composer
 ENV COMPOSER_NO_INTERACTION=1
 
 #######################################################
@@ -205,7 +237,7 @@ USER ${RUNTIME_UID}:${RUNTIME_GID}
 FROM --platform=${BUILDARCH} node:lts AS frontend-build
 
 ARG BUILDARCH
-ARG BUILD_FRONTEND=1
+ARG BUILD_FRONTEND=0
 ARG RUNTIME_UID
 ARG RUNTIME_GID
 
@@ -253,16 +285,15 @@ ARG PHP_VERSION
 ARG RUNTIME_UID
 ARG RUNTIME_GID
 
-# Install composer dependencies
+# Install composer dependencies (production only: no test/lint tooling in the image)
 # NOTE: we skip the autoloader generation here since we don't have all files available (yet)
-RUN --mount=type=cache,id=pixelfed-composer-${PHP_VERSION},sharing=locked,target=/cache/composer \
+# NOTE: --no-scripts because composer.json hooks call `php artisan`, which does not exist until the
+#       source is copied in below; package discovery still runs at `composer dump-autoload` later
+RUN --mount=type=cache,id=pixelfed-composer-${PHP_VERSION},uid=${RUNTIME_UID},gid=${RUNTIME_GID},sharing=locked,target=/cache/composer \
     --mount=type=bind,source=composer.json,target=/var/www/composer.json \
     --mount=type=bind,source=composer.lock,target=/var/www/composer.lock \
     set -ex \
-    && composer install --prefer-dist --no-autoloader --ignore-platform-reqs
-
-# Copy all other files over
-COPY --chown=${RUNTIME_UID}:${RUNTIME_GID} . /var/www/
+    && composer install --prefer-dist --no-autoloader --no-scripts --no-dev --ignore-platform-reqs
 
 #######################################################
 # Runtime: base
@@ -280,33 +311,53 @@ ARG PIXELFED_VERSION
 
 ENV PIXELFED_VERSION=${PIXELFED_VERSION}
 
-ARG TARGETARCH
-ARG TARGETOS
-ARG GOMPLATE_VERSION
+# Image driver fallback for config/image.php when IMAGE_DRIVER is not set. Not IMAGE_DRIVER itself:
+# a real env var would override IMAGE_DRIVER from .env. libvips + FFI ship in this image.
+ENV DOCKER_IMAGE_DRIVER=vips
 
 USER root
 
-COPY --link --from=forego-image /usr/local/bin/forego /usr/local/bin/forego
-COPY --link --from=dottie-image /usr/local/bin/dottie /usr/local/bin/dottie
-
-# Fetch gomplate
+COPY --link --from=go-tools /out/forego /out/dottie /out/gomplate /usr/local/bin/
+COPY --link --from=ffmpeg-image /ffmpeg /ffprobe /usr/local/bin/
 RUN set -ex \
-    && wget \
-        --quiet \
-        -O /usr/local/bin/gomplate \
-        https://github.com/hairyhenderson/gomplate/releases/download/v${GOMPLATE_VERSION}/gomplate_${TARGETOS}-${TARGETARCH} \
-    && chmod +x /usr/local/bin/gomplate \
-    && /usr/local/bin/gomplate --version
+    && gomplate --version \
+    && ffmpeg -hide_banner -version | head -n1
+
+# Apply pending Debian security/bug-fix updates on every build (see install/patch.sh).
+# The package install layer in [base] is cached for as long as base.sh is unchanged, so its own
+# `apt-get upgrade` can be months old. Pass a changing APT_UPGRADE_CACHEBUST (CI uses the run id)
+# to force this layer to re-run; it sits before the app files so app-only changes don't re-run it.
+ARG PHP_VERSION
+ARG PHP_DEBIAN_RELEASE
+ARG TARGETPLATFORM
+ARG APT_UPGRADE_CACHEBUST=""
+COPY docker/rootfs/shared/docker/install/patch.sh /docker/install/patch.sh
+RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
+    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
+    echo "apt upgrade cachebust: ${APT_UPGRADE_CACHEBUST}" \
+    && /docker/install/patch.sh
+
+# Keep Laravel's package/service manifests inside the image instead of bootstrap/cache/.
+# Deployments often mount a volume over bootstrap/cache; a packages.php written there by another image
+# version then registers providers this image does not have (e.g. dev-only Telescope -> fatal error).
+ENV APP_PACKAGES_CACHE=/var/www/bootstrap/image-cache/packages.php
+ENV APP_SERVICES_CACHE=/var/www/bootstrap/image-cache/services.php
 
 #! Changing user to runtime user
 USER ${RUNTIME_UID}:${RUNTIME_GID}
 
-COPY --link --from=composer-and-src --chown=${RUNTIME_UID}:${RUNTIME_GID} /var/www /var/www
+# vendor/ and the app source are separate layers: vendor only changes with composer.lock, so a
+# code-only change re-pushes/re-pulls the small source layer instead of vendor + source together
+COPY --link --from=composer-and-src --chown=${RUNTIME_UID}:${RUNTIME_GID} /var/www/vendor /var/www/vendor
+COPY --link --chown=${RUNTIME_UID}:${RUNTIME_GID} . /var/www/
 COPY --link --from=frontend-build --chown=${RUNTIME_UID}:${RUNTIME_GID} /var/www/public /var/www/public
 
 # Generate optimized autoloader now that we have all files around
+# (its post-autoload-dump hook runs package:discover, writing $APP_PACKAGES_CACHE)
 RUN set -ex \
-    && ENABLE_CONFIG_CACHE=false composer dump-autoload --optimize
+    && mkdir -p /var/www/bootstrap/image-cache \
+    && ENABLE_CONFIG_CACHE=false composer dump-autoload --optimize --no-dev \
+    && test -s "$APP_PACKAGES_CACHE"
 
 # for detail why storage is copied this way, pls refer to https://github.com/pixelfed/pixelfed/pull/2137#discussion_r434468862
 RUN set -ex \
@@ -319,6 +370,33 @@ USER root
 COPY docker/rootfs/shared /
 
 ENTRYPOINT ["/docker/entrypoint.sh"]
+
+#######################################################
+# Runtime: apache
+#######################################################
+
+FROM shared-runtime AS apache-runtime
+
+ARG PHP_DEBIAN_RELEASE
+ARG PHP_VERSION
+ARG TARGETPLATFORM
+
+# Install apache webserver
+RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
+    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
+    set -ex \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends apache2
+
+COPY docker/rootfs/apache /
+
+RUN set -ex \
+    && a2dismod mpm_event \
+    && a2enmod php${PHP_VERSION} \
+    && a2enmod rewrite remoteip proxy proxy_http \
+    && a2enconf remoteip
+
+CMD ["apache2-foreground"]
 
 #######################################################
 # Runtime: fpm
@@ -350,16 +428,19 @@ ARG TARGETPLATFORM
 ENV PHP_VERSION=${PHP_VERSION}
 
 # Install nginx dependencies
-RUN --mount=type=cache,id=pixelfed-apt-lists-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/lib/apt/lists \
-    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},sharing=locked,target=/var/cache/apt \
-    set -ex \
-    && curl https://nginx.org/keys/nginx_signing.key | gpg --dearmor > "$NGINX_GPGKEY_PATH" \
-    && echo "deb [signed-by=${NGINX_GPGKEY_PATH}] https://nginx.org/packages/mainline/debian/ ${PHP_DEBIAN_RELEASE} nginx" >> /etc/apt/sources.list.d/nginx.list \
+RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
+    --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
+    set -ex -o pipefail \
     && apt-get update \
-    && apt-get install -y --no-install-recommends nginx=${NGINX_VERSION}*
+    && apt-get install -y --no-install-recommends wget gnupg ca-certificates \
+    && wget -qO- https://nginx.org/keys/nginx_signing.key | gpg --dearmor > "${NGINX_GPGKEY_PATH}" \
+    && echo "deb [signed-by=${NGINX_GPGKEY_PATH}] https://nginx.org/packages/mainline/debian/ ${PHP_DEBIAN_RELEASE} nginx" > /etc/apt/sources.list.d/nginx.list \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends nginx=${NGINX_VERSION}* 
 
 # copy docker entrypoints from the *real* nginx image directly
 COPY --link --from=nginx-image /docker-entrypoint.d /docker/entrypoint.d/
+
 COPY docker/rootfs/nginx /
 
 STOPSIGNAL SIGQUIT
