@@ -90,6 +90,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Pagination\Cursor;
 use Illuminate\Pagination\CursorPaginator;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -2038,6 +2039,13 @@ class ApiV1Controller extends Controller
      */
     public function instance(Request $request)
     {
+        // Restricted instances only reveal their domain to anonymous clients (enough for app login)
+        if (config('instance.restricted.enabled') && ! Auth::guard('web')->check() && ! Auth::guard('api')->check()) {
+            return $this->json([
+                'uri' => config('pixelfed.domain.app'),
+            ]);
+        }
+
         $res = Cache::remember('api:v1:instance-data-response-v1', 1800, function () {
             $contact = Cache::remember('api:v1:instance-data:contact', now()->addMinutes(60), function () {
                 if (config_cache('instance.admin.pid')) {

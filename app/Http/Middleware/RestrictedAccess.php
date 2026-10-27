@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class RestrictedAccess
 {
@@ -33,6 +34,10 @@ class RestrictedAccess
         'i/app-email-resend',
         'api/v1/apps',
         'api/v1/instance',
+        'api/v1.1/auth/invite/*',
+        'api/service/health-check',
+        'api/nodeinfo*',
+        'storage/*',
         '.well-known/*',
     ];
 
@@ -56,7 +61,8 @@ class RestrictedAccess
     public function handle($request, Closure $next, $guard = null)
     {
         if (config('instance.restricted.enabled')) {
-            if (! Auth::guard($guard)->check()) {
+            // API clients (mobile apps) authenticate with a token instead of a session
+            if (! Auth::guard($guard)->check() && ! Auth::guard('api')->check()) {
                 $allowed = $this->allowedRoutes;
 
                 if (config('pixelfed.open_registration')) {
@@ -64,6 +70,8 @@ class RestrictedAccess
                 }
 
                 if (! $request->is($allowed)) {
+                    Log::debug('RestrictedAccess: Request path', ['path' => $request->path()]);
+
                     return redirect('/login');
                 }
             }

@@ -11,6 +11,17 @@ class Nodeinfo
     public static function get()
     {
         $res = Cache::remember('api:nodeinfo', 900, function () {
+            // Restricted instances only expose what the mobile apps need to log in
+            if (config('instance.restricted.enabled')) {
+                return [
+                    'software' => [
+                        'name' => 'pixelfed',
+                        'version' => config('pixelfed.version'),
+                    ],
+                    'version' => '2.0',
+                ];
+            }
+
             $activeHalfYear = self::activeUsersHalfYear();
             $activeMonth = self::activeUsersMonthly();
 

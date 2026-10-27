@@ -110,6 +110,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:api',
             'bindings',
             GrantFirstPartyToken::class,
+            'restricted',
         ]);
 
         $middleware->preventRequestForgery(except: [
