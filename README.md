@@ -28,6 +28,8 @@ This fork enables you to run a private/restricted instance without federation re
 
 Local media is always served through signed URLs that expire after 60 minutes, so the nginx image routes `/storage` through Laravel.
 
+See [UPSTREAM_SYNC.md](UPSTREAM_SYNC.md) for how to update this fork from Pixelfed Glitch.
+
 ## Documentation
 
 There is no official documentation for pixelfed private.
