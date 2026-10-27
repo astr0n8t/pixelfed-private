@@ -1,41 +1,36 @@
-# Pixelfed Glitch
+# Pixelfed Private
 
 <p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/pixelfed-glitch/brand-assets/main/logo/icon_with_text_white.svg">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/pixelfed-glitch/brand-assets/main/logo/icon_with_text.svg">
-  <img alt="Pixelfed logo" src="https://raw.githubusercontent.com/pixelfed-glitch/brand-assets/main/logo/icon_with_text.svg">
-</picture>
-</p>
-
-<p align="center">
-<a href="https://github.com/pixelfed-glitch/pixelfed/actions/"><img src="https://github.com/pixelfed-glitch/pixelfed/actions/workflows/docker.yml/badge.svg" alt="Docker Build"></a>
-<a href="https://github.com/pixelfed-glitch/pixelfed/actions/"><img src="https://github.com/pixelfed-glitch/pixelfed/actions/workflows/php.yml/badge.svg" alt="PHP Test"></a>
-<a href="https://github.com/pixelfed-glitch/pixelfed/actions/"><img src="https://github.com/pixelfed-glitch/pixelfed/actions/workflows/db.yml/badge.svg" alt="DB Test"></a>
-<a href="https://packagist.org/packages/pixelfed-glitch/pixelfed"><img src="https://poser.pugx.org/pixelfed-glitch/pixelfed/license.svg" alt="License"></a>
-</p>
-
-<p align="center">
-<a target="_blank" href="https://discord.gg/HuZc6jr25X"><img src="https://dcbadge.limes.pink/api/server/https://discord.gg/HuZc6jr25X" alt="" /></a>
-</p>
-
+<a href="https://github.com/astr0n8t/pixelfed-private/actions/"><img src="https://github.com/astr0n8t/pixelfed-private/actions/workflows/docker.yml/badge.svg" alt="Docker Build"></a>
 </p>
 
 ## Introduction
 
-This is a fork of the official Pixelfed ActivityPub platform.
+This is a fork of Pixelfed Glitch.
 
 Pixelfed is a free and ethical photo sharing platform, powered by ActivityPub federation.
 
+This fork enables you to run a private/restricted instance without federation requiring an account to view and with working user invites.  The official mobile apps are still compatible while remaining restricted.
+
 <p align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-dark.jpg">
-  <source media="(prefers-color-scheme: light)" srcset="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-light.jpg">
-  <img alt="Pixelfed web user interface in light mode" src="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-readme-light.jpg">
-</picture>
+<img src="https://pixelfed.nyc3.cdn.digitaloceanspaces.com/media/pixelfed-screenshot.jpg">
 </p>
 
+## Fork specific settings
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `RESTRICTED_INSTANCE` | `false` | Require an account to view anything; also hides instance details, nodeinfo and the instance actor from anonymous clients. |
+| `PF_USER_INVITES` | `false` | Let users invite people by email from `/i/invites`. |
+| `PF_NSFW_ENABLED` | `false` | Show sensitive/NSFW controls in the web UI. |
+| `PF_PRONOUNS_ENABLED` | `false` | Show pronoun settings and labels in the web UI. |
+| `AUTOFOLLOW_ENABLED` / `AUTOFOLLOW_USERNAMES` | `false` / empty | Default for the admin autofollow settings (comma separated usernames). |
+
+Local media is always served through signed URLs that expire after 60 minutes, so the nginx image routes `/storage` through Laravel.
+
 ## Documentation
+
+There is no official documentation for pixelfed private.
 
 Documentation for Pixelfed Glitch can be found on the [Pixelfed Glitch documentation website](https://pixelfed-glitch.github.io/docs).
 
@@ -47,10 +42,12 @@ More information on : [Running Pixelfed With Docker](https://pixelfed-glitch.git
 
 ## License
 
-Pixelfed and Pixelfed Glitch are open-sourced software licensed under the AGPL license.
+Pixelfed, Pixelfed Glitch, and Pixelfed Private are open-sourced software licensed under the AGPL license.
 
 ## Communication
 
-Maintainer : @Murazaki ([@mehdi_benadel@mastodon.balamb.fr](https://mastodon.balamb.fr/@mehdi_benadel))
+Maintainer : @astr0n8t 
 
-Discord Server : [Pixelfed Glitch Discord](https://discord.gg/HuZc6jr25X)
+## Erata
+
+This fork is for my personal use and you are free to use it or take my features and pull them upstream, but I do not have the time or energy to bother upstreaming my changes.  I have taken the liberty to make opiononated changes to the source code which are probably not compatible with upstream.

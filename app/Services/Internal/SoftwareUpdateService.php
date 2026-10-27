@@ -93,7 +93,7 @@ class SoftwareUpdateService
                 ->connectTimeout(5)
                 ->retry(2, 500)
                 // GLITCH MODIFIED: glitch releases instead of versions.pixelfed.org
-                ->get('https://api.github.com/repos/pixelfed-glitch/pixelfed/releases/latest');
+                ->get('https://api.github.com/repos/astr0n8t/pixelfed-private/releases/latest');
         } catch (RequestException|ConnectionException|\Exception) {
             return;
         }

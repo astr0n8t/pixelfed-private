@@ -23,8 +23,8 @@ return [
     | This value is the version of your Pixelfed instance.
     |
     */
-    // GLITCH MODIFIED: glitch version string, set by CI via PIXELFED_VERSION
-    'version' => env('PIXELFED_VERSION', '0.15.2+glitch.1.13.0?'),
+    // Set by CI via PIXELFED_VERSION
+    'version' => env('PIXELFED_VERSION', '0.15.2+private.0.2.0'),
 
     /*
     |--------------------------------------------------------------------------

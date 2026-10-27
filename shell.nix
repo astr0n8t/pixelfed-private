@@ -31,12 +31,10 @@ pkgs.mkShell {
     mkcert
     ddev
     hadolint
-    dgoss
     gh
   ];
   runScript = "$SHELL";
   shellHook = ''
-      mkcert -install
       export PATH="$PWD/node_modules/.bin/:$PATH"
       export PATH="$PWD/vendor/bin/:$PATH"
   '';

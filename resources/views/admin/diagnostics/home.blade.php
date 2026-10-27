@@ -121,7 +121,7 @@
                 		@if(function_exists('shell_exec'))
                 			<li>
                 				<strong>Version:</strong>
-                				<span>{{config('pixelfed.version')}}-{{ @shell_exec('git log --pretty="%h" -n1 HEAD') ?? 'unknown git commit' }}</span>
+                				<span>{{config('pixelfed.version')}}</span>
                 			</li>
                 		@else
                 			<li>
