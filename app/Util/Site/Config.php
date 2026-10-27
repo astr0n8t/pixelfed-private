@@ -53,6 +53,14 @@ class Config
                     'remote_follow' => config('federation.activitypub.remoteFollow'),
                 ],
 
+                'nsfw' => [
+                    'enabled' => (bool) config_cache('pixelfed.nsfw.enabled'),
+                ],
+
+                'pronouns' => [
+                    'enabled' => (bool) config_cache('pixelfed.pronouns.enabled'),
+                ],
+
                 'ab' => config('exp'),
 
                 'site' => [

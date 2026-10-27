@@ -135,7 +135,7 @@
                                     </div>
                                     <div class="d-md-flex align-items-center mb-1 text-break">
                                         <div class="font-weight-bold mr-1">{{profile.display_name}}</div>
-                                        <div v-if="profile.pronouns" class="text-muted small">{{profile.pronouns.join('/')}}</div>
+                                        <div v-if="config.pronouns.enabled && profile.pronouns" class="text-muted small">{{profile.pronouns.join('/')}}</div>
                                     </div>
                                     <div v-if="profile.note">
                                         <p v-if="user || profile.followers_count > 10 || profile.statuses_count > 10" class="mb-0" v-html="profile.note"></p>
@@ -619,6 +619,7 @@
 
         data() {
             return {
+                config: window.App.config,
                 ids: [],
                 profile: {},
                 user: false,

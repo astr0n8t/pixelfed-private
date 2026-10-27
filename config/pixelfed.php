@@ -272,6 +272,16 @@ return [
 
     'oauth_enabled' => env('OAUTH_ENABLED', true),
 
+    // Show sensitive/NSFW (content warning) controls in the web UI
+    'nsfw' => [
+        'enabled' => env('PF_NSFW_ENABLED', false),
+    ],
+
+    // Show pronoun settings and labels in the web UI
+    'pronouns' => [
+        'enabled' => env('PF_PRONOUNS_ENABLED', false),
+    ],
+
     'bouncer' => [
         'enabled' => env('PF_BOUNCER_ENABLED', false),
 

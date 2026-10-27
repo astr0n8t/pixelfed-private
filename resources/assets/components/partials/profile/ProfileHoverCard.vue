@@ -62,7 +62,7 @@
 			</div>
 
 			<p
-				v-if="profile.hasOwnProperty('pronouns') && profile.pronouns && profile.pronouns.length"
+				v-if="config.pronouns.enabled && profile.hasOwnProperty('pronouns') && profile.pronouns && profile.pronouns.length"
 				class="pronouns">
 				{{ profile.pronouns.join(', ') }}
 			</p>
@@ -103,6 +103,7 @@
 
 		data() {
 			return {
+				config: window.App.config,
 				user: window._sharedData.user,
 				bio: undefined,
 				isLoading: false,

@@ -21,7 +21,7 @@
                                     Unfollow
                                 </button>
                             </p>
-                            <div class="custom-control custom-switch">
+                            <div v-if="config.nsfw.enabled" class="custom-control custom-switch">
                                 <input type="checkbox" class="custom-control-input" id="nsfwSwitch" v-model="forceNsfw">
                                 <label class="custom-control-label font-weight-bold text-muted" for="nsfwSwitch">Show NSFW Content</label>
                             </div>
@@ -36,7 +36,7 @@
                 <div v-for="(tag, index) in top" class="col-3 p-0 p-sm-2 p-md-3 hashtag-post-square">
                     <a class="card info-overlay card-md-border-0" :href="tag.status.url">
                         <div :class="[tag.status.filter ? 'square ' + tag.status.filter : 'square']">
-                            <div v-if="tag.status.sensitive && forceNsfw == false" class="square-content">
+                            <div v-if="config.nsfw.enabled && tag.status.sensitive && forceNsfw == false" class="square-content">
                                 <blur-hash-image
                                     v-if="s.sensitive"
                                     width="32"
@@ -71,7 +71,7 @@
                 <div v-for="(tag, index) in tags" class="col-3 p-1 hashtag-post-square">
                     <a class="card info-overlay card-md-border-0" :href="tag.status.url">
                         <div :class="[tag.status.filter ? 'square ' + tag.status.filter : 'square']">
-                            <div v-if="tag.status.sensitive && forceNsfw == false" class="square-content">
+                            <div v-if="config.nsfw.enabled && tag.status.sensitive && forceNsfw == false" class="square-content">
                                 <div class="info-overlay-text-label">
                                     <h5 class="text-white m-auto font-weight-bold">
                                         <span>
@@ -150,6 +150,7 @@
         ],
         data() {
             return {
+                config: window.App.config,
                 loaded: false,
                 page: 1,
                 authenticated: false,
