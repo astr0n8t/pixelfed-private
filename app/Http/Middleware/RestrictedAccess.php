@@ -17,6 +17,7 @@ class RestrictedAccess
      */
     protected $allowedRoutes = [
         'login',
+        'login/2fa',
         'logout',
         'password*',
         'loginAs*',
