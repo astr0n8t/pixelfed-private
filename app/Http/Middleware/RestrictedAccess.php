@@ -36,6 +36,7 @@ class RestrictedAccess
         'api/v1/apps',
         'api/v1/instance',
         'api/v1.1/auth/invite/*',
+        'api/v2.1/config'
         'api/service/health-check',
         'api/nodeinfo*',
         'storage/*',
