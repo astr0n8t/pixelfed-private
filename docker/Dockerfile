@@ -29,7 +29,7 @@ ARG DOTTIE_VERSION="v1.3.0"
 # See: https://github.com/composer/composer
 #
 # renovate: datasource=github-releases depName=composer/composer
-ARG COMPOSER_VERSION="2.9.2"
+ARG COMPOSER_VERSION="2.11.2"
 
 # See: https://github.com/jippi/dottie
 #
@@ -45,7 +45,7 @@ ARG POSTGRESQL_CLIENT_VERSION="17"
 # release: rebuilding with it is what fixes the stdlib CVEs in those binaries.
 #
 # renovate: datasource=docker depName=golang
-ARG GOLANG_VERSION="1.27.3"
+ARG GOLANG_VERSION="1.27.4"
 
 # Static ffmpeg/ffprobe (replaces Debian's ffmpeg package, whose libavdevice/libplacebo dependencies
 # pull in ~360MB of audio, X11/GPU and Vulkan libraries a server never uses).
@@ -332,11 +332,12 @@ ARG PHP_VERSION
 ARG PHP_DEBIAN_RELEASE
 ARG TARGETPLATFORM
 ARG APT_UPGRADE_CACHEBUST=""
-COPY docker/rootfs/shared/docker/install/patch.sh /docker/install/patch.sh
+COPY docker/rootfs/shared/docker/install/patch.sh docker/rootfs/shared/docker/install/check-php-version.sh /docker/install/
 RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/lib/apt \
     --mount=type=cache,id=pixelfed-apt-cache-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TARGETPLATFORM},target=/var/cache/apt \
     echo "apt upgrade cachebust: ${APT_UPGRADE_CACHEBUST}" \
-    && /docker/install/patch.sh
+    && /docker/install/patch.sh \
+    && /docker/install/check-php-version.sh
 
 # Keep Laravel's package/service manifests inside the image instead of bootstrap/cache/.
 # Deployments often mount a volume over bootstrap/cache; a packages.php written there by another image
