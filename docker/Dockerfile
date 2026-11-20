@@ -8,7 +8,8 @@
 # See: https://nginx.org/
 #
 # renovate: datasource=docker depName=nginx versioning=semver
-ARG NGINX_VERSION="1.29.4"
+# 1.31.9 fixes CVE-2026-123007 (nginx2root) and CVE-2026-123633 (HTTP/2 RCE), Nov 2026
+ARG NGINX_VERSION="1.31.9"
 
 # See: https://github.com/ddollar/forego
 #
@@ -436,7 +437,8 @@ RUN --mount=type=cache,id=pixelfed-apt-${PHP_VERSION}-${PHP_DEBIAN_RELEASE}-${TA
     && wget -qO- https://nginx.org/keys/nginx_signing.key | gpg --dearmor > "${NGINX_GPGKEY_PATH}" \
     && echo "deb [signed-by=${NGINX_GPGKEY_PATH}] https://nginx.org/packages/mainline/debian/ ${PHP_DEBIAN_RELEASE} nginx" > /etc/apt/sources.list.d/nginx.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends nginx=${NGINX_VERSION}* 
+    && apt-get install -y --no-install-recommends nginx=${NGINX_VERSION}* \
+    && nginx -v 2>&1 | grep -qx "nginx version: nginx/${NGINX_VERSION}"
 
 # copy docker entrypoints from the *real* nginx image directly
 COPY --link --from=nginx-image /docker-entrypoint.d /docker/entrypoint.d/
